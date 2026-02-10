@@ -11,7 +11,7 @@
 	// Opciones de desarrollo y mocks
 	// Por defecto en false para preparación a producción. Cambiar a true
 	// solo en entornos de desarrollo/local para probar autenticación con mocks.
-	config.USE_MOCK_AUTH = true; // set to true for local/dev testing
+	config.USE_MOCK_AUTH = false; // set to true for local/dev testing
 	config.MOCK_AUTH_URL = '/mocks/login.json';
 
 	// Exponer en entorno global para scripts no-modulares
