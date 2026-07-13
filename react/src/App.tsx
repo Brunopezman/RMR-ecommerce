@@ -1,20 +1,11 @@
-import { useState, useCallback } from 'react';
 import { useCatalog } from './hooks/useCatalog';
 import { ProductGrid } from './components/catalog/ProductGrid';
-import type { Product } from './types/product';
+import { CartProvider, CartContext } from './context/CartContext';
+import { useContext } from 'react';
 
-function App() {
+function AppContent() {
   const { products, loading, error } = useCatalog();
-  const [cartCount, setCartCount] = useState(0);
-
-  const handleAddToCart = useCallback(
-    (_product: Product) => {
-      setCartCount((prev) => prev + 1);
-      // TODO: Integrate with CartContext once implemented
-      console.log('Added to cart:', _product.nombre);
-    },
-    [],
-  );
+  const { addToCart, itemCount } = useContext(CartContext)!;
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -32,7 +23,7 @@ function App() {
                   id="contador-carrito"
                   className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
                 >
-                  {cartCount}
+                  {itemCount}
                 </span>
               </span>
             </div>
@@ -68,7 +59,7 @@ function App() {
 
         <ProductGrid
           products={products}
-          onAddToCart={handleAddToCart}
+          onAddToCart={addToCart}
           loading={loading}
           error={error}
         />
@@ -81,6 +72,14 @@ function App() {
         </div>
       </footer>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <CartProvider>
+      <AppContent />
+    </CartProvider>
   );
 }
 
