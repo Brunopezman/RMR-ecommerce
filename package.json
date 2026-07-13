@@ -1,0 +1,18 @@
+{
+  "name": "rock-merch-and-roll",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "serve .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "jsdom": "^29.1.1",
+    "serve": "^14.2.0",
+    "vitest": "^1.6.0"
+  }
+}

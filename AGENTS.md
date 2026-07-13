@@ -5,9 +5,10 @@ reglas globales del repo. Las reglas específicas de cada rol viven en `.opencod
 
 ## Qué es este repo
 E-commerce que arranca en HTML/CSS/JS vanilla (sin build step). No hay backend ni base de
-datos: los productos están hardcodeados en arrays JS. Objetivo del squad: auditar →
-testear → **migrar a React + TypeScript + Vite + Tailwind CSS** → migrar a API mock →
-migrar a backend real → sumar features de IA (shopping assistant, optimizador de
+datos: los productos están hardcodeados en `data/stock.json`. Todo el JS se comunica a
+través de `window.*` globales (IIFE, sin ES modules ni bundler). Objetivo del squad:
+auditar → testear → **migrar a React + TypeScript + Vite + Tailwind CSS** → migrar a API
+mock → migrar a backend real → sumar features de IA (shopping assistant, optimizador de
 conversión).
 
 **Stack objetivo (post Fase 2):** React 18+, TypeScript (`strict: true`), Vite, Tailwind
@@ -29,6 +30,10 @@ CSS. Ver skill `coding-standards` para estructura de carpetas y convenciones det
 ## Convenciones de código
 - Pre-migración (JS vanilla, mientras dura Fase 1): tocar lo mínimo indispensable, no
   refactorizar de paso.
+- **Respetar el orden de carga de scripts** en cada HTML: modal → navbar → env → cart →
+  products.service → products.view → auth → index → checkout. Los módulos dependen de
+  `window.*` definido por scripts previos. Romper el orden rompe la app.
+- La mayoría del JS actual usa **patrón IIFE + `window.*` globales** (excepciones: modal.js y checkout.js). No convertir a ES modules hasta Fase 2.
 - Post-migración (React + TypeScript): componentes funcionales, lógica de negocio en
   hooks/`services/`, nunca mezclada con JSX. `strict: true` en TypeScript, sin `any`.
   Ver skill `coding-standards` para el detalle completo de estructura y naming.
@@ -36,11 +41,39 @@ CSS. Ver skill `coding-standards` para estructura de carpetas y convenciones det
   actualizado en la misma tarea.
 - No borrar código sin antes confirmar con `auditor` o `qa-tester` que no rompe nada.
 
+## Arquitectura actual (pre-migración)
+
+### Entry points
+Tres páginas HTML con conjuntos de scripts distintos:
+| Archivo | Scripts que carga |
+|---|---|
+| `index.html` | modal, navbar, env, cart, service, view, auth, index, checkout |
+| `pages/shop.html` | modal, navbar, env, cart, service, view, auth, index |
+| `pages/checkout.html` | env, checkout, auth, jsPDF (CDN) |
+
+### Sistema de módulos (pre-Fase 2)
+- **No hay bundler ni ES modules**. Cada archivo es un `<script>` global suelto.
+- Todo se expone en `window.*`: `window.carrito`, `window.ProductsService`,
+  `window.pintarProductos`, `window.validarProductoRepetido`, `window.Config`, etc.
+- La mayoría usa patrón IIFE (`(function(){ ... window.X = X; })()`).
+
+### Configuración (`src/config/env.js`)
+- `window.Config.DATA_URL` — ruta al JSON de productos (default `../data/stock.json`).
+- `window.Config.USE_MOCK_AUTH` — default `false`; cambiar a `true` para login demo local.
+- `window.Config.API_URL` — endpoint base para backend real (hoy sin backend).
+
+### Estado global
+- Carrito: `localStorage.getItem('carrito')` + `window.carrito` en memoria.
+- Auth: `localStorage.getItem('authToken')` + `localStorage.getItem('userEmail')`.
+
 ## Testing
 - Unit/integration: Vitest + React Testing Library (componentes y hooks).
 - Flujos end-to-end de usuario (agregar al carrito, checkout, búsqueda): Playwright.
-- Comando estándar: `npm test` (unit) y `npm run test:e2e` (Playwright). Cualquier agente
+- **Setup necesario**: `npm install` en la raíz instala Vitest y Playwright.
+  `qa-tester` debe configurar `vitest.config.*` y `playwright.config.*` en Fase 1.
+- Comandos: `npm test` (vitest), `npm run test:e2e` (Playwright). Cualquier agente
   que toque `src/` DEBE correr `npm test` antes de dar la tarea por terminada.
+- Desarrollo local: `npm run dev` levanta un servidor estático con `serve`.
 
 ## Dónde escribe cada agente sus entregables
 - `docs/architecture/` — mapas de dependencias, decisiones de arquitectura (ADRs).

@@ -50,3 +50,49 @@ Aplicar conceptos fundamentales del desarrollo frontend como:
 ## 📌 Estado del proyecto
 
 El proyecto se encuentra en desarrollo y puede extenderse con funcionalidades como autenticación de usuarios, integración con un backend real o pasarela de pagos.
+
+---
+
+## 🧪 Testing
+
+### Unitarios / Integración (Vitest)
+
+Los tests de caracterización capturan el comportamiento actual del código
+para prevenir regresiones durante la migración a React (Fase 2).
+
+```bash
+npm test              # Ejecuta todos los tests unitarios (vitest run)
+npm run test:watch    # Modo watch durante desarrollo
+```
+
+Cobertura actual: **35 tests** en 4 suites:
+
+| Suite | Tests | Descripción |
+|---|---|---|
+| `products.service.test.js` | 14 | fetchProducts, filterByCategory, searchByName |
+| `cart.test.js` | 11 | validarProductoRepetido, eliminarProductoCarrito, vaciarCarrito |
+| `checkout.test.js` | 7 | detectarTarjeta, validarLuhn (vía DOM) |
+| `auth.test.js` | 3 | login mock exitoso/fallido |
+
+### End-to-End (Playwright)
+
+Pruebas de flujo real en navegador usando las páginas HTML estáticas.
+
+```bash
+npm run test:e2e      # Ejecuta todos los tests e2e (playwright test)
+```
+
+Cobertura actual: **13 tests** en 4 suites:
+
+| Suite | Tests | Flujo |
+|---|---|---|
+| `home.spec.js` | 3 | Carga de index.html, navbar visible, botón Compra Ahora |
+| `shop.spec.js` | 4 | Carga de shop.html, título de página, renderizado de productos, botones de compra |
+| `navigation.spec.js` | 3 | Navegación entre index ↔ shop |
+| `cart.spec.js` | 3 | Contador inicial 0, agregar producto, incrementar cantidad |
+
+### Servidor de desarrollo
+
+```bash
+npm run dev           # Sirve archivos estáticos con `serve` en el puerto 3000
+```
