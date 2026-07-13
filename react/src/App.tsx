@@ -1,11 +1,31 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useSyncExternalStore } from 'react';
 import { useCatalog } from './hooks/useCatalog';
 import { ProductGrid } from './components/catalog/ProductGrid';
 import { CartModal } from './components/cart/CartModal';
 import { LoginModal } from './components/auth/LoginModal';
+import { CheckoutPage } from './components/checkout/CheckoutPage';
 import { CartProvider, CartContext } from './context/CartContext';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 import { useAuth } from './hooks/useAuth';
+
+/**
+ * Simple location-based router — checks if current path is /checkout.
+ */
+function getPath() {
+  return window.location.pathname;
+}
+
+function Router({ children }: { children: React.ReactNode }) {
+  const pathname = useSyncExternalStore(
+    (cb) => {
+      window.addEventListener('popstate', cb);
+      return () => window.removeEventListener('popstate', cb);
+    },
+    getPath,
+  );
+
+  return pathname.includes('/checkout') ? <CheckoutPage /> : <>{children}</>;
+}
 
 function Header() {
   const { addToCart, itemCount } = useContext(CartContext)!;
@@ -30,7 +50,45 @@ function Header() {
                   </span>
                   <button
                     className="nav-link p-0 bg-transparent border-0"
-                    onClick={logout}
+                    onClick={() => {
+                      const modalId = 'logoutConfirmModal';
+                      const existing = document.getElementById(modalId);
+                      if (existing) existing.remove();
+
+                      const modalHtml = `
+                        <div class="modal fade" id="${modalId}" tabindex="-1" aria-hidden="true">
+                          <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h5 class="modal-title">Confirmar cierre de sesión</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                              </div>
+                              <div class="modal-body">
+                                <p>¿Desea cerrar sesión?</p>
+                              </div>
+                              <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="button" class="btn btn-danger" id="confirm-logout-btn">Sí, estoy seguro</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      `;
+                      const wrapper = document.createElement('div');
+                      wrapper.innerHTML = modalHtml;
+                      document.body.appendChild(wrapper.firstElementChild!);
+
+                      const modalEl = document.getElementById(modalId);
+                      if (modalEl) {
+                        const modalInstance = new (window as any).bootstrap.Modal(modalEl, { backdrop: 'static' });
+                        modalEl.addEventListener('hidden.bs.modal', () => modalEl.remove());
+                        modalEl.querySelector('#confirm-logout-btn')?.addEventListener('click', () => {
+                          modalInstance.hide();
+                          logout();
+                        });
+                        modalInstance.show();
+                      }
+                    }}
                     title="Cerrar sesión"
                   >
                     <i className="bi bi-box-arrow-right align-middle logout-trigger" />
@@ -125,7 +183,7 @@ function Footer() {
   );
 }
 
-function AppContent() {
+function ShopPage() {
   return (
     <div className="min-h-screen bg-gray-100">
       <Header />
@@ -133,6 +191,14 @@ function AppContent() {
       <ProductsSection />
       <Footer />
     </div>
+  );
+}
+
+function AppContent() {
+  return (
+    <Router>
+      <ShopPage />
+    </Router>
   );
 }
 
