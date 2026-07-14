@@ -25,10 +25,10 @@ export function CartModal({ isOpen, onClose }: CartModalProps) {
       onClick={onClose}
     >
       <div className="modal-carrito" onClick={(e) => e.stopPropagation()}>
-        <h3 className="mb-3">Carrito</h3>
+        <h3 className="mb-3 font-display font-extrabold text-lg">Carrito</h3>
         <button
           id="btn-cerrar-carrito"
-          className="btn-close float-end"
+          className="absolute top-3.5 right-3.5 text-xl text-coral border-none bg-white cursor-pointer"
           onClick={onClose}
         >
           <i className="bx bxs-x-circle" />
@@ -36,7 +36,7 @@ export function CartModal({ isOpen, onClose }: CartModalProps) {
 
         <div id="carrito-contenedor">
           {items.length === 0 ? (
-            <p className="text-muted text-center py-4">El carrito está vacío</p>
+            <p className="text-muted text-center py-4 font-display">El carrito está vacío</p>
           ) : (
             items.map((item) => (
               <CartItemRow key={item.id} item={item} onRemove={removeItem} />
@@ -44,13 +44,13 @@ export function CartModal({ isOpen, onClose }: CartModalProps) {
           )}
         </div>
 
-        <p className="precioProducto mt-3 fw-bold">
+        <p className="mt-3 fw-bold font-display text-base">
           Precio Total: $<span id="precioTotal">{summary.totalPrice}</span>
         </p>
 
         <button
           id="btn-checkout"
-          className="btn btn-primary w-100 mb-2 btn-comprar"
+          className="w-full bg-black text-white border-none py-3 mt-4 font-display uppercase tracking-wider rounded-md cursor-pointer transition-colors duration-300 hover:bg-coral text-sm font-bold"
           onClick={handleCheckout}
         >
           Finalizar Compra
@@ -58,7 +58,7 @@ export function CartModal({ isOpen, onClose }: CartModalProps) {
 
         <button
           id="vaciarCarrito"
-          className="btn btn-outline-secondary w-100"
+          className="w-full bg-transparent text-gray-500 border border-gray-300 py-2 mt-3 font-sans text-xs rounded-md cursor-pointer transition-all duration-300 hover:bg-gray-100 hover:text-coral hover:border-coral"
           onClick={clearCart}
         >
           Limpiar carrito

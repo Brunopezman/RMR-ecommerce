@@ -168,28 +168,31 @@ export function CheckoutPage() {
 
   if (pagoExitoso) {
     return (
-      <div className="container my-5 py-5 text-center">
+      <div className="container my-5 py-5 text-center mx-auto px-4">
         <i
           className="bx bx-check-circle text-success my-5"
           style={{ fontSize: '5rem' }}
         />
-        <h2 className="mt-3">¡Compra Realizada con Éxito!</h2>
-        <p className="lead">
+        <h2 className="mt-3 font-display">¡Compra Realizada con Éxito!</h2>
+        <p className="lead font-display">
           Hemos enviado el comprobante a tu correo electrónico.
         </p>
         <div className="mt-4">
           <button
             id="btn-descargar-pdf"
-            className="btn btn-outline-dark me-2"
+            className="bg-transparent border border-gray-800 text-gray-800 hover:bg-gray-800 hover:text-white px-4 py-2 rounded me-2 font-display uppercase text-sm font-bold transition-colors duration-300"
             onClick={handleDownloadPdf}
           >
             <i className="bx bx-download" /> Descargar Comprobante
           </button>
-          <a href="/" className="btn btn-dark">
+          <a
+            href="/"
+            className="bg-black hover:bg-coral text-white px-4 py-2 rounded no-underline font-display uppercase text-sm font-bold transition-colors duration-300 inline-block"
+          >
             Volver a la Tienda
           </a>
         </div>
-        <p className="text-muted mt-5">
+        <p className="text-muted mt-5 font-display">
           Serás redireccionado automáticamente en{' '}
           <span id="timer">{countdown}</span> segundos...
         </p>
@@ -199,10 +202,13 @@ export function CheckoutPage() {
 
   if (items.length === 0) {
     return (
-      <div className="container my-5 py-5 text-center">
-        <h2>Tu carrito está vacío</h2>
-        <p className="text-muted">Agregá productos antes de finalizar la compra.</p>
-        <a href="/" className="btn btn-dark">
+      <div className="container my-5 py-5 text-center mx-auto px-4">
+        <h2 className="font-display">Tu carrito está vacío</h2>
+        <p className="text-muted font-display">Agregá productos antes de finalizar la compra.</p>
+        <a
+          href="/"
+          className="bg-black hover:bg-coral text-white px-4 py-2 rounded no-underline font-display uppercase text-sm font-bold transition-colors duration-300 inline-block"
+        >
           Ir a la tienda
         </a>
       </div>
@@ -210,12 +216,12 @@ export function CheckoutPage() {
   }
 
   return (
-    <div id="seccion-pago" className="container my-5 py-5">
-      <h2 className="mb-4">Finalizar Compra</h2>
+    <div id="seccion-pago" className="container my-5 py-5 mx-auto px-4">
+      <h2 className="mb-4 font-display">Finalizar Compra</h2>
       <div className="row">
         {/* Order Summary */}
         <div className="col-md-4 order-md-2 mb-4">
-          <h4 className="d-flex justify-content-between align-items-center mb-3">
+          <h4 className="d-flex justify-content-between align-items-center mb-3 font-display">
             <span className="text-muted">Tu Carrito</span>
           </h4>
           <ul className="list-group mb-3" id="resumen-lista">
@@ -225,7 +231,7 @@ export function CheckoutPage() {
                 className="list-group-item d-flex justify-content-between lh-sm"
               >
                 <div>
-                  <h6 className="my-0">{item.nombre}</h6>
+                  <h6 className="my-0 font-display">{item.nombre}</h6>
                   <small className="text-muted">
                     Cantidad: {item.cantidad}
                   </small>
@@ -237,18 +243,18 @@ export function CheckoutPage() {
             ))}
           </ul>
           <li className="list-group-item d-flex justify-content-between">
-            <span>Total final a pagar</span>
+            <span className="font-display">Total final a pagar</span>
             <strong id="resumen-total">${totalFinal.toFixed(2)}</strong>
           </li>
         </div>
 
         {/* Payment Form */}
         <div className="col-md-8 order-md-1">
-          <h4 className="mb-3">Método de Pago</h4>
+          <h4 className="mb-3 font-display">Método de Pago</h4>
           <form id="form-pago" onSubmit={handleSubmit}>
             <div className="row">
               <div className="col-md-6 mb-3">
-                <label htmlFor="cc-name">Nombre en la tarjeta</label>
+                <label htmlFor="cc-name" className="form-label font-display">Nombre en la tarjeta</label>
                 <input
                   type="text"
                   className="form-control"
@@ -260,7 +266,7 @@ export function CheckoutPage() {
                 />
               </div>
               <div className="col-md-6 mb-3">
-                <label htmlFor="cc-number">Número de tarjeta</label>
+                <label htmlFor="cc-number" className="form-label font-display">Número de tarjeta</label>
                 <input
                   type="text"
                   className={`form-control ${!tarjetaValida && ccNumber ? 'is-invalid' : ''}`}
@@ -271,23 +277,23 @@ export function CheckoutPage() {
                   onChange={(e) => handleCardInput(e.target.value)}
                 />
               </div>
-              <div id="tarjetas-logos" className="d-flex gap-2 mt-2">
+              <div id="logos" className="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2">
                 {(['VISA', 'MASTERCARD', 'AMERICAN EXPRESS'] as const).map(
                   (brand) => (
                     <img
                       key={brand}
                       src={`/img/${brand === 'AMERICAN EXPRESS' ? 'amex' : brand.toLowerCase()}.png`}
                       id={`logo-${brand === 'AMERICAN EXPRESS' ? 'amex' : brand.toLowerCase()}`}
-                      className={`tarjeta-logo ${cardBrand === brand ? 'activa' : 'd-none'}`}
+                      className={`tarjeta-logo ${cardBrand === brand ? 'activa' : ''}`}
                       alt={brand}
-                      style={{ height: 30 }}
+                      style={{ height: 32 }}
                     />
                   ),
                 )}
               </div>
-              <div className="mb-3">
+              <div className="mb-3 mt-2">
                 <small className="text-muted">Tarjeta seleccionada:</small>
-                <p id="tarjeta-resumen" className="fw-bold">
+                <p id="tarjeta-resumen" className="fw-bold mb-0 font-display">
                   {tarjetaValida && cardBrand
                     ? `${cardBrand} •••• ${ccNumber.replace(/\D/g, '').slice(-4)}`
                     : '—'}
@@ -297,7 +303,7 @@ export function CheckoutPage() {
 
             <div className="row">
               <div className="col-md-6 mb-3">
-                <label htmlFor="cuotas">Cuotas</label>
+                <label htmlFor="cuotas" className="form-label font-display">Cuotas</label>
                 <select
                   className="form-select"
                   id="cuotas-select"
@@ -310,16 +316,16 @@ export function CheckoutPage() {
                 </select>
               </div>
               <div className="col-md-6 mb-3">
-                <label>Valor de la cuota:</label>
-                <p id="valor-cuota" className="fw-bold mt-2">
+                <label className="form-label font-display">Valor de la cuota:</label>
+                <p id="valor-cuota" className="fw-bold mt-2 font-display">
                   ${valorCuota.toFixed(2)}
                 </p>
               </div>
             </div>
 
             {/* Shipping */}
-            <li className="list-group-item">
-              <label htmlFor="envio-select" className="form-label">
+            <li className="list-group-item mb-3">
+              <label htmlFor="envio-select" className="form-label font-display">
                 Tipo de envío
               </label>
               <select
@@ -335,7 +341,7 @@ export function CheckoutPage() {
 
               {shippingType !== 'tienda' && (
                 <div id="contenedor-direccion" className="mt-3">
-                  <label htmlFor="direccion-envio" className="form-label">
+                  <label htmlFor="direccion-envio" className="form-label font-display">
                     Dirección de entrega
                   </label>
                   <input
@@ -354,13 +360,16 @@ export function CheckoutPage() {
               )}
 
               <li className="list-group-item d-flex justify-content-between my-3 py-3">
-                <span>Envío</span>
+                <span className="font-display">Envío</span>
                 <strong id="resumen-envio">${envioCost.toFixed(2)}</strong>
               </li>
             </li>
 
             <div className="col mt-3">
-              <button className="btn btn-dark btn-lg w-100" type="submit">
+              <button
+                type="submit"
+                className="w-full bg-black text-white border-none py-3 px-4 font-display uppercase text-sm font-bold rounded cursor-pointer transition-colors duration-300 hover:bg-coral"
+              >
                 Pagar Ahora
               </button>
             </div>

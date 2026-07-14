@@ -86,6 +86,7 @@ Tres páginas HTML con conjuntos de scripts distintos:
 - Nunca commitear credenciales, API keys ni `.env`.
 - Nunca hacer `git push --force` ni reescribir historia sin pedir confirmación explícita.
 - Cambios en `main`/`master` van por rama + PR, nunca commit directo.
+- **Todos los commits deben ser aprobados por el usuario antes de ser ejecutados.** Mostrar siempre el plan de commit (archivos + mensaje) y esperar confirmación.
 
 ## Skills disponibles (se cargan on-demand, ver `.opencode/skill/`)
 - `testing-workflow` — cómo configurar y correr Vitest/Playwright en este repo.

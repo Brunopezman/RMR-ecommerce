@@ -52,7 +52,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
       >
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title" id="userModalLabel">
+            <h5 className="modal-title font-display" id="userModalLabel">
               Acceso / Registro
             </h5>
             <button
@@ -102,17 +102,17 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
               </div>
               <button
                 type="submit"
-                className="btn btn-dark w-100 mt-3"
+                className="w-full bg-black text-white border-none py-3 px-7 font-display uppercase font-bold text-sm transition-colors duration-300 hover:bg-coral cursor-pointer rounded"
                 disabled={loading}
               >
                 {loading ? 'Ingresando...' : 'Iniciar Sesión'}
               </button>
             </form>
           </div>
-          <div className="modal-footer justify-content-center">
+          <div className="modal-footer justify-content-center border-t pt-3">
             <a
               href="#"
-              className="btn btn-link text-decoration-none"
+              className="btn btn-link text-decoration-none text-black transition-colors duration-300 hover:text-coral"
               onClick={onClose}
             >
               ¿Olvidaste tu contraseña?

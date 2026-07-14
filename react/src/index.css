@@ -1,3 +1,247 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ===== Body ===== */
+body {
+  font-family: 'Oswald', sans-serif;
+}
+
+/* ===== Headings ===== */
+h1 { font-size: 2.5rem; font-weight: 700; }
+h2 { font-size: 1.8rem; font-weight: 600; }
+h3 { font-size: 1.4rem; font-weight: 800; }
+h4 { font-size: 1.3rem; font-weight: 600; }
+h5 { font-size: 1.2rem; font-weight: 400; }
+
+/* ===== HR ===== */
+hr {
+  width: 30px;
+  height: 2px;
+  background-color: #fb774b;
+  color: #fb774b;
+  border: 2px solid;
+  opacity: 0.85;
+}
+
+/* ===== Stars ===== */
+.star {
+  padding: 10px 0;
+}
+.star i {
+  font-size: 0.8rem;
+  color: goldenrod;
+}
+
+/* ===== Navbar ===== */
+.navbar i {
+  font-size: 1.3rem;
+  padding: 0 4px;
+  vertical-align: middle;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+#bar {
+  font-size: 1.6rem;
+  padding: 6px;
+  transition: color 0.3s ease;
+}
+
+/* ===== Cart Modal Animation ===== */
+.modal-contenedor {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.5s;
+  opacity: 0;
+  visibility: hidden;
+  background-color: rgba(0, 0, 0, 0.3);
+  z-index: 50;
+}
+
+.modal-active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-carrito {
+  position: relative;
+  background-color: white;
+  min-width: 500px;
+  padding: 20px;
+  margin-top: -100%;
+  transition: all 0.5s;
+  border-radius: 10px;
+  box-shadow: rgba(0, 0, 0, 0.15) 0px 5px 15px 0px;
+}
+
+.modal-active .modal-carrito {
+  margin-top: 0;
+}
+
+/* Cart product list scroll */
+#carrito-contenedor {
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 15px;
+}
+
+/* ===== Product hover effects ===== */
+.product {
+  cursor: pointer;
+  margin-bottom: 2rem;
+}
+
+.product img {
+  transition: 0.3s all;
+}
+
+.product:hover img {
+  opacity: 0.7;
+}
+
+.product .buy-btn {
+  background-color: rgb(245, 146, 109);
+  transform: translateY(20px);
+  opacity: 0;
+  transition: 0.3s all;
+}
+
+.product:hover .buy-btn {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.buy-btn {
+  background-color: rgb(245, 146, 109);
+  opacity: 1;
+  transition: 0.3s all;
+}
+
+/* ===== Product images ===== */
+.product img {
+  width: 100%;
+  height: auto;
+  box-sizing: border-box;
+  object-fit: cover;
+}
+
+/* ===== Tarjeta logos ===== */
+.tarjeta-logo {
+  height: 32px;
+  opacity: 0.9;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.tarjeta-logo.activa {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+/* ===== Card brand logo container ===== */
+#logos {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ===== Login form focus ===== */
+.modal-body .form-control:focus {
+  border-color: rgb(245, 146, 109);
+  box-shadow: 0 0 0 0.25rem rgba(245, 146, 109, 0.25);
+}
+
+/* HR in login modal */
+.modal-body hr {
+  background-color: rgb(245, 146, 109);
+  height: 1px;
+  border: none;
+  opacity: 1;
+}
+
+/* ===== Media Queries ===== */
+@media (max-width: 576px) {
+  .modal-carrito {
+    min-width: 90%;
+    margin: 10px;
+    padding: 15px;
+  }
+}
+
+@media (min-width: 768px) {
+  .order-md-2 {
+    position: sticky;
+    top: 100px;
+  }
+}
+
+@media only screen and (max-width: 991px) {
+  body > nav > div > button:hover,
+  body > nav > div > button:focus {
+    background-color: rgb(95, 95, 95);
+  }
+  body > nav > div > button:hover #bar,
+  body > nav > div > button:focus #bar {
+    background-color: #d8d8d8;
+  }
+}
+
+/* ===== Bootstrap compatibility ===== */
+.is-invalid {
+  border-color: #dc3545 !important;
+}
+
+/* ===== Footer styles ===== */
+footer h5 {
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+footer li a {
+  font-size: 0.8rem;
+  text-decoration: none;
+  color: black;
+  transition: 0.3s ease;
+}
+
+footer div ul li a:hover {
+  background-color: rgb(245, 146, 109);
+}
+
+a:hover {
+  color: black;
+}
+
+footer p {
+  font-size: 0.8rem;
+}
+
+footer .copyright a {
+  color: black;
+  width: 38px;
+  height: 38px;
+  background-color: #d8d8d8;
+  display: inline-block;
+  text-align: center;
+  line-height: 38px;
+  border-radius: 50%;
+  transition: 0.3s ease;
+  margin: 0 5px;
+}
+
+footer i {
+  color: black;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+footer i:hover,
+footer i:active {
+  background-color: rgb(245, 146, 109);
+}

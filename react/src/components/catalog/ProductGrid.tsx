@@ -15,7 +15,7 @@ export function ProductGrid({ products, onAddToCart, loading, error }: ProductGr
         <div className="spinner-border text-primary" role="status">
           <span className="visually-hidden">Cargando productos...</span>
         </div>
-        <p className="mt-2 text-muted">Cargando productos...</p>
+        <p className="mt-2 text-muted font-display">Cargando productos...</p>
       </div>
     );
   }
@@ -32,7 +32,7 @@ export function ProductGrid({ products, onAddToCart, loading, error }: ProductGr
   if (products.length === 0) {
     return (
       <div className="text-center py-5 text-muted">
-        <p>No se encontraron productos.</p>
+        <p className="font-display">No se encontraron productos.</p>
       </div>
     );
   }
