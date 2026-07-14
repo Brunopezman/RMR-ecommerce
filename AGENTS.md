@@ -13,7 +13,7 @@ E-commerce de merchandising de rock. **Stack actual:** React 18+, TypeScript (`s
 | **Fase 1 — Diagnóstico** | ✅ Completa (mapa de dependencias, deuda técnica, tests de caracterización) |
 | **Fase 2 — Migración a React** | ✅ Completa (React 18 + TS + Vite + Tailwind) |
 | **Fase 3 — Datos** | ✅ Parcial (mock API lista en `data/db.json`, backend real en `server/`) |
-| **Fase 4 — Producto/IA** | ⬜ Pendiente (shopping-concierge, conversion-optimizer) |
+| **Fase 4 — Producto/IA** | ✅ Parcial (shopping-concierge implementado, conversion-optimizer descartado) |
 
 ## Convenciones de código
 

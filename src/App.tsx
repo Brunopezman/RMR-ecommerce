@@ -7,6 +7,7 @@ import { CheckoutPage } from './components/checkout/CheckoutPage';
 import { CartProvider, CartContext } from './context/CartContext';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 import { useAuth } from './hooks/useAuth';
+import { ShoppingConcierge } from './components/chat/ShoppingConcierge';
 
 /**
  * Simple location-based router — checks if current path is /checkout.
@@ -397,6 +398,7 @@ function ShopPage() {
         <ProductsSection />
       )}
       <Footer />
+      <ShoppingConcierge />
     </div>
   );
 }
