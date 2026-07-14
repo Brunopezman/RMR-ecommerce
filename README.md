@@ -1,10 +1,10 @@
-# Rock Merch & Roll – E-commerce
+# 🛒 Rock Merch & Roll – E-commerce
 
 E-commerce de merchandising de bandas de rock. Construido con React 18, TypeScript, Vite y Tailwind CSS. Incluye mock API con json-server y backend real con Express + SQLite.
 
 ---
 
-## Stack
+## 🚀 Stack
 
 | Capa | Tecnología |
 |---|---|
@@ -14,7 +14,7 @@ E-commerce de merchandising de bandas de rock. Construido con React 18, TypeScri
 
 ---
 
-## Scripts
+## 🎯 Scripts
 
 | Comando | Descripción |
 |---|---|
@@ -64,7 +64,7 @@ E-commerce de merchandising de bandas de rock. Construido con React 18, TypeScri
 
 ---
 
-## Arquitectura
+## ⚙️ Arquitectura
 
 ### Frontend (React SPA)
 
@@ -88,7 +88,7 @@ Ver `server/` — Express + TypeScript + SQLite. Las tablas se crean automática
 
 ---
 
-## Testing
+## 🧪 Testing
 
 ### Unitarios / Integración (Vitest) — 59 tests
 
