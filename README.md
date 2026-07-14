@@ -1,98 +1,118 @@
-# 🛒 Rock Merch & Roll – E-commerce
+# Rock Merch & Roll – E-commerce
 
-**Rock Merch & Roll (RMR)** es una aplicación web de e-commerce orientada a la venta de merchandising de bandas de rock. Permite a los usuarios explorar un catálogo de productos y simular una experiencia de compra completa, aplicando buenas prácticas de organización y desarrollo frontend.
-
----
-
-## 🚀 Tecnologías utilizadas
-
-* **JavaScript (ES6+)** – Lógica de la aplicación y manipulación del DOM.
-* **HTML5** – Estructura semántica de las vistas.
-* **CSS3** – Estilos personalizados.
-* **Bootstrap** – Diseño responsive y componentes UI.
-* **JSON** – Simulación de base de datos para productos y stock.
+E-commerce de merchandising de bandas de rock. Construido con React 18, TypeScript, Vite y Tailwind CSS. Incluye mock API con json-server y backend real con Express + SQLite.
 
 ---
 
-## ⚙️ Funcionalidades principales
+## Stack
 
-* 🎸 **Catálogo dinámico de productos** (remeras, gorras, tazas, pósters, etc.).
-* 🛒 **Carrito de compras** con persistencia de datos.
-* 📦 **Simulación del proceso de compra**.
-* 📱 **Diseño responsive**, adaptable a dispositivos móviles y desktop.
-* 🧩 **Arquitectura modular**, con separación de responsabilidades por componentes.
-
----
-
-## 🧱 Estructura del proyecto
-
-El proyecto está organizado de forma modular para facilitar el mantenimiento y la escalabilidad:
-
-* `components/` → lógica reutilizable (carrito, productos, autenticación, UI).
-* `data/` → datos en formato JSON.
-* `pages/` → vistas HTML.
-* `css/` → estilos globales.
-* `src/index.js` → punto de entrada de la aplicación.
+| Capa | Tecnología |
+|---|---|
+| Frontend | React 18, TypeScript (`strict: true`), Vite, Tailwind CSS |
+| Mock API | json-server (`data/db.json`, puerto 3001) |
+| Backend real | Express, TypeScript, SQLite (sql.js) — `server/` |
 
 ---
 
-## 🎯 Objetivo del proyecto
+## Scripts
 
-Aplicar conceptos fundamentales del desarrollo frontend como:
-
-* Manipulación del DOM.
-* Modularización del código.
-* Persistencia de estado en el navegador.
-* Organización de proyectos web.
-
----
-
-## 📌 Estado del proyecto
-
-El proyecto se encuentra en desarrollo y puede extenderse con funcionalidades como autenticación de usuarios, integración con un backend real o pasarela de pagos.
+| Comando | Descripción |
+|---|---|
+| `npm run dev` | Servidor de desarrollo Vite (puerto 3000) |
+| `npm run build` | TypeScript check + build de producción |
+| `npm test` | Tests unitarios (Vitest) |
+| `npm run test:e2e` | Tests end-to-end (Playwright) |
+| `npm run mock:api` | json-server con `data/db.json` (puerto 3001) |
+| `npm run server` | Backend real Express (puerto 4000) |
 
 ---
 
-## 🧪 Testing
+## Estructura del proyecto
 
-### Unitarios / Integración (Vitest)
-
-Los tests de caracterización capturan el comportamiento actual del código
-para prevenir regresiones durante la migración a React (Fase 2).
-
-```bash
-npm test              # Ejecuta todos los tests unitarios (vitest run)
-npm run test:watch    # Modo watch durante desarrollo
+```
+/
+├── index.html                 # Entry point React
+├── src/
+│   ├── main.tsx               # Punto de entrada React
+│   ├── App.tsx                # Componente raíz + router
+│   ├── components/
+│   │   ├── auth/LoginModal.tsx
+│   │   ├── cart/CartModal.tsx, CartItemRow.tsx
+│   │   ├── catalog/ProductGrid.tsx
+│   │   ├── checkout/CheckoutPage.tsx
+│   │   └── ui/ProductCard.tsx, Toast.tsx
+│   ├── context/
+│   │   ├── AuthContext.tsx
+│   │   └── CartContext.tsx
+│   ├── hooks/
+│   │   ├── useAuth.ts
+│   │   ├── useCart.ts
+│   │   └── useCatalog.ts
+│   ├── services/
+│   │   ├── api.ts
+│   │   ├── authService.ts
+│   │   ├── cartService.ts
+│   │   ├── checkoutService.ts
+│   │   └── productService.ts
+│   ├── types/                 # Interfaces TypeScript
+│   └── __tests__/             # Tests unitarios
+├── data/db.json               # Datos para json-server
+├── server/                    # Backend real Express + SQLite
+├── public/img/                # Imágenes del catálogo
+└── e2e/                       # Tests end-to-end Playwright
 ```
 
-Cobertura actual: **35 tests** en 4 suites:
+---
+
+## Arquitectura
+
+### Frontend (React SPA)
+
+- **App.tsx** — renderiza `AuthProvider` → `CartProvider` → `Router`
+- **Router** — SPA casero con `useSyncExternalStore`: `pathname.includes('/checkout')` → `CheckoutPage`, sino → `ShopPage`
+- **ShopPage** — estado `view` (`'home'` | `'shop'`):
+  - Vista `home`: Header + Hero + BannerServices + BrandSection + Footer
+  - Vista `shop`: Header + ProductsSection + Footer
+- **Contextos**: `CartContext` (carrito + localStorage), `AuthContext` (autenticación mock)
+- **Servicios**: lógica de negocio pura (sin JSX) en `src/services/`
+
+### Datos
+
+Los 17 productos del catálogo están hardcodeados en `data/db.json` en formato json-server (`{ "products": [...] }`). La app React los carga desde `/data/db.json` vía `fetch`.
+
+Para usar la mock API: `npm run mock:api` (json-server en puerto 3001), y cambiar `BASE_URL` en `src/services/api.ts` a `http://localhost:3001`.
+
+### Backend real
+
+Ver `server/` — Express + TypeScript + SQLite. Las tablas se crean automáticamente. Los productos se seedan desde `data/db.json`. Arranque: `npm run server`.
+
+---
+
+## Testing
+
+### Unitarios / Integración (Vitest) — 59 tests
+
+```bash
+npm test              # Ejecuta todos (vitest run)
+npm run test:watch    # Modo watch
+```
 
 | Suite | Tests | Descripción |
 |---|---|---|
 | `products.service.test.js` | 14 | fetchProducts, filterByCategory, searchByName |
-| `cart.test.js` | 11 | validarProductoRepetido, eliminarProductoCarrito, vaciarCarrito |
-| `checkout.test.js` | 7 | detectarTarjeta, validarLuhn (vía DOM) |
-| `auth.test.js` | 3 | login mock exitoso/fallido |
+| `cart.test.js` | 13 | validarProductoRepetido, eliminarProductoCarrito, vaciarCarrito, actualizarTotal |
+| `checkout.test.js` | 24 | detectCardType, validarLuhn, formatearNumeroTarjeta, calcularTotalConInteres, calcularEnvio, calcularResumen |
+| `auth.test.js` | 8 | login mock, loadAuthState, saveAuthState, clearAuthState |
 
-### End-to-End (Playwright)
-
-Pruebas de flujo real en navegador usando las páginas HTML estáticas.
+### End-to-End (Playwright) — 14 tests
 
 ```bash
-npm run test:e2e      # Ejecuta todos los tests e2e (playwright test)
+npm run test:e2e
 ```
-
-Cobertura actual: **13 tests** en 4 suites:
 
 | Suite | Tests | Flujo |
 |---|---|---|
-| `home.spec.js` | 3 | Carga de index.html, navbar visible, botón Compra Ahora |
-| `shop.spec.js` | 4 | Carga de shop.html, título de página, renderizado de productos, botones de compra |
-| `navigation.spec.js` | 3 | Navegación entre index ↔ shop |
+| `home.spec.js` | 4 | Carga SPA, navbar, banner-services visible, brand con 6 logos |
+| `shop.spec.js` | 4 | Click "Compra Ahora" → productos visibles, banners ocultos, grid con botones |
 | `cart.spec.js` | 3 | Contador inicial 0, agregar producto, incrementar cantidad |
-
-### Servidor de desarrollo
-
-```bash
-npm run dev           # Sirve archivos estáticos con `serve` en el puerto 3000
-```
+| `navigation.spec.js` | 3 | Nav "Productos"/"Inicio", botón "Compra Ahora" |
