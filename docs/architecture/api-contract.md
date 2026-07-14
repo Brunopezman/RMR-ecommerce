@@ -1,6 +1,6 @@
 # API Contract — Rock Merch & Roll
 
-> **Última actualización:** 2026-07-13
+> **Última actualización:** 2026-07-14
 > **Propósito:** Documento de contrato entre frontend y backend. El shape aquí descrito es el que debe respetar tanto la mock API (json-server, Paso A) como la API real (Paso B).
 
 ---
@@ -39,7 +39,7 @@ interface Product {
   "id": 1,
   "nombre": "Remera The Beatles",
   "tipo": "remera",
-  "img": "../img/remerathebeatles.png",
+  "img": "/img/remerathebeatles.png",
   "descripcion": "The Beatles - negra - lisa",
   "precio": 4000,
   "cantidad": 1
@@ -146,16 +146,12 @@ El backend real está implementado en `server/` con Express + TypeScript + SQLit
 ### Arranque
 
 ```bash
-# Desde la raíz del proyecto
 npm run server
-
-# O desde la carpeta server/
-cd server && npm run dev
 ```
 
 ### Conexión del frontend React
 
-Para conectar el frontend React al backend real, cambiar en `react/src/services/api.ts`:
+Para conectar el frontend React al backend real, cambiar en `src/services/api.ts`:
 
 ```typescript
 // Antes (mock):
@@ -165,21 +161,11 @@ export const BASE_URL = 'http://localhost:3001';
 export const BASE_URL = 'http://localhost:4000';
 ```
 
-Y en `react/src/services/productService.ts`:
-
-```typescript
-// Antes (mock):
-export const PRODUCTS_API_URL = 'http://localhost:3001/products';
-
-// Después (real):
-export const PRODUCTS_API_URL = 'http://localhost:4000/products';
-```
-
 ### Base de datos
 
 El backend usa SQLite (sql.js) con persistencia a disco en `server/data/rockmerch.db`.
 Las tablas se crean automáticamente al primer inicio. Los productos se seedan desde
-`react/db.json` si la tabla está vacía.
+`data/db.json` si la tabla está vacía.
 
 ### Esquema de tablas
 
@@ -192,7 +178,7 @@ order_items (id, order_id, product_id, nombre, precio, cantidad)
 
 ## Reglas de transición a Paso B
 
-1. **Solo cambia `BASE_URL`** en `react/src/services/api.ts`.
+1. **Solo cambia `BASE_URL`** en `src/services/api.ts`.
 2. Los nombres de campo, tipos y estructura de la respuesta NO cambian.
 3. Los endpoints (`/products`, `/users`, `/orders`) se mantienen idénticos.
 4. Si el backend real requiere autenticación, se agrega un header `Authorization` sin modificar el contrato de datos.

@@ -1,35 +1,33 @@
-/**
- * Tests e2e: Página principal (index.html)
- */
-
 import { test, expect } from '@playwright/test';
 
-test.describe('Página principal (index.html)', () => {
+test.describe('Página principal (React SPA)', () => {
   test('carga y muestra el título "Rock Merch & Roll"', async ({ page }) => {
     await page.goto('/');
-
-    // El título está en un h1#title
-    const title = page.locator('h1#title');
+    const title = page.locator('section#home h1#title');
     await expect(title).toHaveText('Rock Merch & Roll');
-
-    // El título de página también
     await expect(page).toHaveTitle('Rock Merch & Roll');
   });
 
-  test('la navbar contiene los links de navegación', async ({ page }) => {
+  test('la navbar contiene botones de navegación', async ({ page }) => {
     await page.goto('/');
-
-    const homeLink = page.locator('a.nav-link', { hasText: 'Home' });
-    const shopLink = page.locator('a.nav-link', { hasText: 'Shop' });
-
-    await expect(homeLink).toBeVisible();
-    await expect(shopLink).toBeVisible();
+    await expect(page.locator('button', { hasText: 'Inicio' })).toBeVisible();
+    await expect(page.locator('button', { hasText: 'Productos' })).toBeVisible();
   });
 
-  test('el botón "Compra Ahora" redirige a shop.html', async ({ page }) => {
+  test('sección banner-services visible en home', async ({ page }) => {
     await page.goto('/');
+    const banner = page.locator('#banner-services');
+    await expect(banner).toBeVisible();
+    await expect(banner.locator('text=Envíos gratis')).toBeVisible();
+    await expect(banner.locator('text=Financiación en cuotas')).toBeVisible();
+    await expect(banner.locator('text=Compra de manera segura')).toBeVisible();
+  });
 
-    const buyButton = page.locator('button', { hasText: 'Compra Ahora' });
-    await expect(buyButton).toBeVisible();
+  test('sección brand con logos de bandas visible en home', async ({ page }) => {
+    await page.goto('/');
+    const brand = page.locator('#brand');
+    await expect(brand).toBeVisible();
+    const images = brand.locator('img');
+    await expect(images).toHaveCount(6);
   });
 });

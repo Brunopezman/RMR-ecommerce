@@ -16,8 +16,8 @@ const __dirname = path.dirname(__filename);
 /** Path to the SQLite database file (stored in server/data/) */
 const DB_PATH = path.join(__dirname, '..', 'data', 'rockmerch.db');
 
-/** Path to the seed JSON file (from react/db.json) */
-const SEED_JSON_PATH = path.join(__dirname, '..', '..', 'react', 'db.json');
+/** Path to the seed JSON file (from data/db.json) */
+const SEED_JSON_PATH = path.join(__dirname, '..', '..', 'data', 'db.json');
 
 type SqlJsDatabase = ReturnType<SqlJsStatic['Database']>;
 
@@ -208,5 +208,5 @@ function seedProducts(): void {
     );
   }
 
-  console.log(`[db] Seeded ${seedData.products.length} products from react/db.json`);
+  console.log(`[db] Seeded ${seedData.products.length} products from data/db.json`);
 }

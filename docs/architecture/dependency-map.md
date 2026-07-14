@@ -1,78 +1,109 @@
 # Mapa de dependencias – Rock Merch & Roll
 
-**Fecha:** 13 de julio de 2026
-**Autor:** @auditor
-**Versión del código analizado:** v1.0.0 (pre-migración, vanilla JS)
+**Fecha:** 14 de julio de 2026
+**Autor:** @refactor-architect
+**Versión del código analizado:** v1.1.0 (React + TypeScript + Vite + Tailwind)
 
 ---
 
-## Módulos / archivos
+## Árbol de componentes (React)
 
-| Archivo | Exporta / expone en `window.*` | Importa / depende de (funciones globales esperadas) | Dependencias externas | Notas |
-|---|---|---|---|---|
-| `src/config/env.js` | `window.Config` (objeto con `API_URL`, `APP_NAME`, `ITEMS_PER_PAGE`, `DATA_URL`, `USE_MOCK_AUTH`, `MOCK_AUTH_URL`) | Ninguna del proyecto | Ninguna | Se carga 3º en index.html y shop.html. 1º en checkout.html |
-| `src/components/modal.js` | Nada | `window.eliminarProductoCarrito` (desde cart.js) | Bootstrap JS (eventos), DOM: `#tienda`, `#btn-cerrar-carrito`, `.modal-contenedor`, `.modal-carrito` | No es IIFE. No expone nada. Delegación de eventos en `.modal-carrito` |
-| `src/components/navbar.js` | Nada | Ninguna del proyecto | Bootstrap JS, DOM: `#bar`, `.navbar-toggler`, `.nav-link` | Manipulación de navbar toggle + active class |
-| `src/components/cart.js` | `window.carrito` (array), `window.guardarCarritoStorage`, `window.obtenerCarritoStorage`, `window.pintarTotalCarrito`, `window.actualizarTotalCarrito`, `window.pintarProductoCarrito`, `window.actualizarCarrito`, `window.alertaCarritoVacio`, `window.eliminarProductoCarrito`, `window.vaciarCarrito`, `window.validarProductoRepetido` | `Toastify` (CDN global), DOM: `#contador-carrito`, `#precioTotal`, `#carrito-contenedor`, `#vaciarCarrito`, `.boton-eliminar`, `.productoEnCarrito` | Toastify CDN, Bootstrap | Contiene la lógica principal de la gestión del carrito de compras y almacenamiento local. |
-| `src/components/checkout.js` | Nada | `window.Config`, `window.carrito`, `window.obtenerCarritoStorage` | DOM: `.tarjeta-logo`, `.tarjeta-logo.activa` | Gestiona el proceso de pago y validación de formularios en la página de checkout. |
-| `src/components/auth.js` | Nada | `window.Config` | DOM: `.user-name-text-sibling`, `.logout-trigger` (creados dinámicamente) | Controla el estado de sesión del usuario, login, logout y renderizado dinámico de la interfaz de autenticación. |
-| `src/components/products.service.js` | `window.ProductsService` (objeto con `fetchProducts`, `filterByCategory`, `searchByName`) | `fetch` (API nativa) | Ninguna | Se carga 5º. IIFE. Sin dependencias del proyecto. |
-| `src/components/products.view.js` | `window.pintarProductos` (función) | `window.validarProductoRepetido` (desde cart.js), DOM: `#productosDestacados`, `.buy-btn` | Ninguna | Se carga 6º. IIFE. Renderiza productos en el DOM y asigna click handlers. |
-| `src/index.js` | Nada | `window.Config`, `window.ProductsService.fetchProducts`, `window.pintarProductos`, `window.carrito`, `window.obtenerCarritoStorage`, `window.actualizarCarrito`, `window.actualizarTotalCarrito` | `fetch` (API nativa), `localStorage` | Entry point principal. No es IIFE. Carga productos desde DATA_URL y restaura carrito desde localStorage. |
+```
+App
+└── AuthProvider (context/AuthContext.tsx)
+    └── CartProvider (context/CartContext.tsx)
+        └── AppContent
+            └── Router (SPA casero via useSyncExternalStore)
+                ├── [pathname incluye "/checkout"]
+                │   └── CheckoutPage (components/checkout/CheckoutPage.tsx)
+                │       ├── importa: checkoutService
+                │       └── usa: jsPDF (CDN global)
+                │
+                └── [caso contrario]
+                    └── ShopPage (state: view = 'home' | 'shop')
+                        ├── Header (props: onNavigate)
+                        │   ├── CartModal (components/cart/CartModal.tsx)
+                        │   │   └── CartItemRow[] (components/cart/CartItemRow.tsx)
+                        │   │       └── importa: cartService
+                        │   └── LoginModal (components/auth/LoginModal.tsx)
+                        │       └── importa: authService
+                        │
+                        ├── [view=home] HeroSection (props: onShopClick)
+                        ├── [view=home] BannerServices
+                        ├── [view=home] BrandSection
+                        │
+                        ├── [view=shop] ProductsSection
+                        │   └── ProductGrid (components/catalog/ProductGrid.tsx)
+                        │       └── ProductCard[] (components/ui/ProductCard.tsx)
+                        │           └── importa: types/product
+                        │
+                        └── Footer
+```
 
-## Archivos CSS cuyas clases/IDs son referenciados desde JS
+## Servicios (lógica pura, sin dependencias del DOM)
 
-| Selector CSS | Archivo(s) JS que lo usan |
-|---|---|
-| `.modal-contenedor` | modal.js |
-| `.modal-carrito` | modal.js |
-| `.boton-eliminar` | modal.js, cart.js |
-| `.productoEnCarrito` | cart.js |
-| `.tarjeta-logo` | checkout.js |
-| `.tarjeta-logo.activa` | checkout.js |
-| `#contador-carrito` | cart.js |
-| `#precioTotal` | cart.js |
-| `#carrito-contenedor` | cart.js |
-| `.user-name-text-sibling` | auth.js (creado dinámicamente) |
-| `.logout-trigger` | auth.js (creado dinámicamente) |
-| `#productosDestacados` | products.view.js |
-| `.buy-btn` | products.view.js |
+| Archivo | Exporta | Dependencias |
+|---|---|---|
+| `src/services/productService.ts` | `fetchProducts()`, `filterByCategory()`, `searchByName()` | `api.ts` (BASE_URL), `fetch` |
+| `src/services/cartService.ts` | `validarProductoRepetido()`, `eliminarProductoCarrito()`, `vaciarCarrito()`, `actualizarTotal()`, `guardarCarritoStorage()`, `obtenerCarritoStorage()` | `localStorage`, tipos `CartItem` |
+| `src/services/checkoutService.ts` | `detectCardType()`, `validarLuhn()`, `formatearNumeroTarjeta()`, `calcularTotalConInteres()`, `calcularEnvio()`, `calcularResumen()` | Ninguna (funciones puras) |
+| `src/services/authService.ts` | `login()`, `loadAuthState()`, `saveAuthState()`, `clearAuthState()` | `localStorage`, `api.ts` |
+| `src/services/api.ts` | `BASE_URL`, `PRODUCTS_API_URL` | Ninguna (constantes) |
 
-## Estado global detectado
+## Hooks
+
+| Archivo | Exporta | Usa |
+|---|---|---|
+| `src/hooks/useCatalog.ts` | `{ products, loading, error }` | `productService.fetchProducts` |
+| `src/hooks/useCart.ts` | lógica de carrito (add, remove, clear, count) | `cartService`, `CartContext` |
+| `src/hooks/useAuth.ts` | `{ isAuthenticated, user, login, logout }` | `authService`, `AuthContext` |
+
+## Contextos
+
+| Archivo | Estado | Persistencia |
+|---|---|---|
+| `src/context/CartContext.tsx` | `items: CartItem[]`, `addToCart()`, `removeFromCart()`, `clearCart()`, `itemCount` | `localStorage` (`carrito`) |
+| `src/context/AuthContext.tsx` | `user: User \| null`, `isAuthenticated`, `login()`, `logout()` | `localStorage` (`authToken`, `userEmail`) |
+
+## Estado global
 
 | Variable / key | Dónde vive | Quién lo escribe | Quién lo lee |
 |---|---|---|---|
-| `window.carrito` (array) | Memoria (window) | cart.js (validarProductoRepetido, eliminarProductoCarrito, vaciarCarrito) | cart.js, index.js, checkout.js |
-| `localStorage.carrito` (JSON string) | localStorage | cart.js (guardarCarritoStorage), checkout.js (removeItem al pagar) | cart.js (obtenerCarritoStorage), index.js, checkout.js |
-| `localStorage.authToken` | localStorage | auth.js (manejarLogin) | auth.js (actualizarInterfazUsuario, manejarLogout) |
-| `localStorage.userEmail` | localStorage | auth.js (manejarLogin) | auth.js (actualizarInterfazUsuario) |
-| `window.Config` (objeto) | Memoria (window) | env.js | index.js, auth.js, checkout.js |
+| `localStorage.carrito` (JSON) | localStorage | `CartContext` (via `cartService.guardarCarritoStorage`) | `CartContext` init, `checkoutService` |
+| `localStorage.authToken` | localStorage | `AuthContext` (via `authService`) | `AuthContext` init |
+| `localStorage.userEmail` | localStorage | `AuthContext` (via `authService`) | `AuthContext` init |
 
 ## Flujo: "agregar al carrito"
 
-1. Usuario hace clic en `.buy-btn` en `products.view.js`.
-2. `pintarProductos` asignó un event listener que llama a `window.validarProductoRepetido(e, data)`.
-3. `validarProductoRepetido` (en cart.js) busca el `e.target.id` en `window.carrito`:
-   - **Si no existe**: agrega el producto con `cantidad: 1` al array, llama a `window.pintarProductoCarrito`, `window.guardarCarritoStorage`, `window.actualizarTotalCarrito`.
-   - **Si ya existe**: incrementa `cantidad`, actualiza el texto en el DOM (`cantidad{id}`), llama a `window.actualizarTotalCarrito`.
-4. `actualizarTotalCarrito` recalcula totalCantidad + totalCompra, llama a `pintarTotalCarrito` (actualiza `#contador-carrito` y `#precioTotal`), y persiste a localStorage.
-5. El modal del carrito se actualiza en vivo (si está abierto).
+1. Usuario hace clic en `.buy-btn` en `ProductCard`.
+2. `ProductCard.onClick` llama a `addToCart(product)` provisto por `CartContext`.
+3. `CartContext.addToCart`:
+   - Busca el producto en `items` por `id`.
+   - **Si no existe**: agrega `{ ...product, cantidad: 1 }`.
+   - **Si existe**: incrementa `cantidad`.
+   - Actualiza estado React + persiste a `localStorage`.
+4. `CartContext.itemCount` se recalcula automáticamente.
+5. El contador en `Header` (`#contador-carrito`) se actualiza por contexto.
+6. Si `CartModal` está abierto, se actualiza en vivo.
 
 ## Flujo: "checkout"
 
-1. Usuario hace clic en `#btn-checkout` (en modal.js o cart.js).
-2. cart.js verifica `window.obtenerCarritoStorage()` — si vacío, muestra Toastify de error.
-3. Si hay productos, redirige a `pages/checkout.html`.
-4. checkout.js lee `localStorage.carrito`, renderiza el resumen en `#resumen-lista`, calcula total.
-5. Usuario completa formulario (tarjeta, cuotas, envío). La UI muestra logos de tarjeta y calcula cuotas + interés.
-6. Al submit: si tarjeta válida, muestra Toastify "Procesando pago...", tras 2s oculta formulario, muestra `#seccion-exito`, elimina `localStorage.carrito`.
-7. Tras 15s de cuenta regresiva, redirige a `index.html`.
+1. Usuario hace clic en `Finalizar Compra` dentro de `CartModal`.
+2. `CartContext` verifica si hay items — si vacío, muestra error.
+3. Si hay productos, navega a `/checkout` via `window.location.pathname`.
+4. `Router` detecta `/checkout` y renderiza `CheckoutPage`.
+5. `CheckoutPage` lee items del `CartContext` y renderiza resumen + formulario.
+6. Usuario completa formulario (tarjeta, cuotas, envío). Se ejecuta `detectCardType`, `validarLuhn`, `calcularEnvio`.
+7. Al submit exitoso: limpia carrito del contexto + localStorage, muestra confirmación con cuenta regresiva.
+8. Tras 15s redirige a `/`.
 
 ## Flujo: "login"
 
-1. Usuario abre modal (`#userModal`) desde navbar, completa email + password, hace submit.
-2. auth.js (`manejarLogin`):
-   - Si `Config.USE_MOCK_AUTH === true` o no hay `API_LOGIN_ENDPOINT`: guarda `authToken = 'demo-token'` + `userEmail` en localStorage, muestra bienvenida, cierra modal, llama a `actualizarInterfazUsuario`.
-   - Si hay endpoint real: hace POST a `${API_URL}/api/auth/login`, guarda token si response.ok.
-3. `actualizarInterfazUsuario` oculta `#login-nav-item`, muestra `#logout-nav-item` con nombre de usuario.
-4. Logout: clic en icono de logout → modal de confirmación → `manejarLogout` → limpia localStorage, actualiza UI.
+1. Usuario hace clic en icono de usuario en `Header` → abre `LoginModal`.
+2. Completa email + password, hace submit.
+3. `LoginModal` llama a `AuthContext.login(email, password)`.
+4. `login()` (en `authService`):
+   - Si `USE_MOCK_AUTH`: guarda `authToken = 'demo-token'` + `userEmail` en localStorage.
+   - Si hay endpoint real: POST a `${API_URL}/api/auth/login`.
+5. `AuthContext` actualiza estado → UI muestra nombre de usuario + botón logout.
+6. Logout: clic en icono de logout → modal de confirmación → `AuthContext.logout()` → limpia localStorage + actualiza UI.

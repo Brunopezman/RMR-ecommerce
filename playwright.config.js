@@ -12,9 +12,9 @@ export default defineConfig({
     screenshot: 'only-on-failure',
   },
   webServer: {
-    command: 'npx serve . -l 3000',
+    command: 'npm run dev',
     port: 3000,
     reuseExistingServer: true,
-    timeout: 10000,
+    timeout: 15000,
   },
 });

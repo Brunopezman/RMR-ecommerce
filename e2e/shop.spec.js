@@ -1,40 +1,40 @@
-/**
- * Tests e2e: Página de shop (pages/shop.html)
- */
-
 import { test, expect } from '@playwright/test';
 
-test.describe('Página de shop (pages/shop.html)', () => {
-  test('carga y muestra el título "Productos"', async ({ page }) => {
-    await page.goto('/pages/shop.html');
+test.describe('Vista shop (React SPA)', () => {
+  test('muestra productos al hacer clic en "Comprar Ahora"', async ({ page }) => {
+    await page.goto('/');
 
-    // Título de la sección
-    const sectionTitle = page.locator('h1.font-weight-bold');
-    await expect(sectionTitle).toHaveText('Productos');
+    await page.locator('button', { hasText: 'Compra Ahora' }).click();
+
+    const productSection = page.locator('#destacados');
+    await expect(productSection).toBeVisible();
+    await expect(productSection.locator('h1')).toHaveText('Productos');
   });
 
-  test('muestra el título de página correcto', async ({ page }) => {
-    await page.goto('/pages/shop.html');
-    await expect(page).toHaveTitle('Shop - Rock Merch & Roll');
+  test('oculta hero y banners al cambiar a vista shop', async ({ page }) => {
+    await page.goto('/');
+    await page.locator('button', { hasText: 'Compra Ahora' }).click();
+
+    await expect(page.locator('#home')).not.toBeVisible();
+    await expect(page.locator('#banner-services')).not.toBeVisible();
+    await expect(page.locator('#brand')).not.toBeVisible();
   });
 
-  test('renderiza productos en el contenedor', async ({ page }) => {
-    await page.goto('/pages/shop.html');
+  test('renderiza productos en el grid', async ({ page }) => {
+    await page.goto('/');
+    await page.locator('button', { hasText: 'Compra Ahora' }).click();
 
-    // Esperar a que los productos se rendericen (hay productos en stock.json)
-    const productContainer = page.locator('#productosDestacados');
-    await expect(productContainer).toBeVisible();
-
-    // Debería haber al menos un producto renderizado
-    const products = page.locator('#productosDestacados .product');
+    const productGrid = page.locator('#productosDestacados');
+    await expect(productGrid).toBeVisible();
+    const products = productGrid.locator('.product');
     await expect(products).not.toHaveCount(0);
   });
 
-  test('tiene botones de compra en los productos', async ({ page }) => {
-    await page.goto('/pages/shop.html');
+  test('cada producto tiene botón de compra', async ({ page }) => {
+    await page.goto('/');
+    await page.locator('button', { hasText: 'Compra Ahora' }).click();
 
-    // Esperar a que los botones .buy-btn aparezcan
-    const buyButtons = page.locator('.buy-btn');
-    await expect(buyButtons.first()).toBeVisible({ timeout: 5000 });
+    const buyButton = page.locator('.buy-btn').first();
+    await expect(buyButton).toBeVisible({ timeout: 5000 });
   });
 });
