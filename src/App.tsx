@@ -27,7 +27,7 @@ function Router({ children }: { children: React.ReactNode }) {
   return pathname.includes('/checkout') ? <CheckoutPage /> : <>{children}</>;
 }
 
-function Header() {
+function Header({ onNavigate }: { onNavigate: (view: 'home' | 'shop') => void }) {
   const { addToCart, itemCount } = useContext(CartContext)!;
   const { isAuthenticated, user, logout } = useAuth();
   const [cartOpen, setCartOpen] = useState(false);
@@ -59,28 +59,28 @@ function Header() {
             <div className="hidden lg:flex lg:items-center lg:gap-4" id="navbarNav">
               <ul className="flex items-center gap-4 list-none m-0 p-0">
                 <li className="nav-item">
-                  <a
-                    className="nav-link px-2 py-1 text-black no-underline transition-colors duration-300 hover:text-coral text-base"
-                    href="#home"
+                  <button
+                    className="nav-link px-2 py-1 text-black no-underline transition-colors duration-300 hover:text-coral text-base bg-transparent border-0 cursor-pointer"
+                    onClick={() => onNavigate('home')}
                   >
                     Inicio
-                  </a>
+                  </button>
                 </li>
                 <li className="nav-item">
-                  <a
-                    className="nav-link px-2 py-1 text-black no-underline transition-colors duration-300 hover:text-coral text-base"
-                    href="#productos"
+                  <button
+                    className="nav-link px-2 py-1 text-black no-underline transition-colors duration-300 hover:text-coral text-base bg-transparent border-0 cursor-pointer"
+                    onClick={() => onNavigate('shop')}
                   >
                     Productos
-                  </a>
+                  </button>
                 </li>
                 <li className="nav-item">
-                  <a
-                    className="nav-link px-2 py-1 text-black no-underline transition-colors duration-300 hover:text-coral text-base"
-                    href="#contacto"
+                  <button
+                    className="nav-link px-2 py-1 text-black no-underline transition-colors duration-300 hover:text-coral text-base bg-transparent border-0 cursor-pointer"
+                    onClick={() => onNavigate('home')}
                   >
                     Contacto
-                  </a>
+                  </button>
                 </li>
               </ul>
 
@@ -174,7 +174,7 @@ function Header() {
   );
 }
 
-function HeroSection() {
+function HeroSection({ onShopClick }: { onShopClick: () => void }) {
   return (
     <section
       id="home"
@@ -192,12 +192,91 @@ function HeroSection() {
         <h5 id="subtitle" className="text-white text-lg mt-2 font-display">
           Contenido para fanáticos
         </h5>
-        <a
-          href="#productos"
-          className="mt-6 inline-block bg-black hover:bg-coral text-white px-8 py-3 rounded font-medium transition-colors duration-300 uppercase tracking-wide font-bold text-sm"
+        <button
+          onClick={onShopClick}
+          className="mt-6 inline-block bg-black hover:bg-coral text-white px-8 py-3 rounded font-medium transition-colors duration-300 uppercase tracking-wide font-bold text-sm border-0 cursor-pointer"
         >
           Compra Ahora
-        </a>
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function BannerServices() {
+  return (
+    <section id="banner-services" className="bg-white">
+      <div className="container mx-auto px-4">
+        <div className="flex flex-wrap">
+          {/* Envíos gratis */}
+          <div className="service-item-container w-full md:w-1/3 p-0 px-0 md:px-3 py-5">
+            <div className="service-item mx-4 md:mx-0">
+              <div className="flex items-start mx-0">
+                <div className="px-5 flex-shrink-0">
+                  <i className="bx bxs-truck bx-md text-2xl" />
+                </div>
+                <div className="flex-1 p-0">
+                  <h4 className="text-lg font-semibold">Envíos gratis</h4>
+                  <p className="text-gray-600 text-sm">A partir de compras superiores a $20.000</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Financiación en cuotas */}
+          <div className="service-item-container w-full md:w-1/3 p-0 px-0 md:px-3 py-5">
+            <div className="service-item mx-4 md:mx-0">
+              <div className="flex items-start mx-0">
+                <div className="px-5 flex-shrink-0">
+                  <i className="bx bxs-credit-card bx-md text-2xl" />
+                </div>
+                <div className="flex-1 p-0">
+                  <h4 className="text-lg font-semibold">Financiación en cuotas</h4>
+                  <p className="text-gray-600 text-sm">
+                    <span className="inline-block bg-coral text-white px-2 py-0.5 rounded text-sm mr-1">
+                      3 cuotas &bull; 10%
+                    </span>
+                    <span className="inline-block bg-black text-white px-2 py-0.5 rounded text-sm mr-1">
+                      6 cuotas &bull; 15%
+                    </span>
+                    <br /><br />
+                    Pagando con tarjetas de crédito bancarias.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Compra segura */}
+          <div className="service-item-container w-full md:w-1/3 p-0 px-0 md:px-3 py-5">
+            <div className="service-item mx-4 md:mx-0">
+              <div className="flex items-start mx-0">
+                <div className="px-5 flex-shrink-0">
+                  <i className="bx bxs-user-check bx-md text-2xl" />
+                </div>
+                <div className="flex-1 p-0">
+                  <h4 className="text-lg font-semibold">Compra de manera segura</h4>
+                  <p className="text-gray-600 text-sm">Protegemos tus datos</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function BrandSection() {
+  return (
+    <section id="brand" className="container mx-auto px-4">
+      <div className="flex flex-wrap m-0 py-5">
+        <img className="img-fluid w-1/2 md:w-1/4 lg:w-1/6 p-2" src="/img/acdc-logo.jpg" alt="AC/DC" />
+        <img className="img-fluid w-1/2 md:w-1/4 lg:w-1/6 p-2" src="/img/aerosmith-logo.png" alt="Aerosmith" />
+        <img className="img-fluid w-1/2 md:w-1/4 lg:w-1/6 p-2" src="/img/Logo-Guns-N-Roses.png" alt="Guns N' Roses" />
+        <img className="img-fluid w-1/2 md:w-1/4 lg:w-1/6 p-2" src="/img/rolling-stones-logo.jpg" alt="Rolling Stones" />
+        <img className="img-fluid w-1/2 md:w-1/4 lg:w-1/6 p-2" src="/img/thebeatles-logo.png" alt="The Beatles" />
+        <img className="img-fluid w-1/2 md:w-1/4 lg:w-1/6 p-2" src="/img/thewho-logo.png" alt="The Who" />
       </div>
     </section>
   );
@@ -303,11 +382,20 @@ function Footer() {
 }
 
 function ShopPage() {
+  const [view, setView] = useState<'home' | 'shop'>('home');
+
   return (
     <div className="min-h-screen bg-white">
-      <Header />
-      <HeroSection />
-      <ProductsSection />
+      <Header onNavigate={setView} />
+      {view === 'home' ? (
+        <>
+          <HeroSection onShopClick={() => setView('shop')} />
+          <BannerServices />
+          <BrandSection />
+        </>
+      ) : (
+        <ProductsSection />
+      )}
       <Footer />
     </div>
   );
