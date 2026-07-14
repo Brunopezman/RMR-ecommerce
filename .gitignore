@@ -1,0 +1,44 @@
+# Dependencias
+node_modules/
+
+# Build / dist
+dist/
+dist-ssr/
+build/
+*.local
+
+# Vite
+.vite/
+
+# TypeScript
+*.tsbuildinfo
+vite.config.d.ts
+vite.config.js
+
+# Env / secretos
+.env
+.env.local
+.env.*.local
+
+# Testing
+coverage/
+playwright-report/
+test-results/
+.vitest-cache/
+
+# json-server (Fase 3 Paso A - api mock)
+db.json.bak
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor / OS
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# opencode (estado local, no compartir entre máquinas)
+.opencode/state/
+server/data/

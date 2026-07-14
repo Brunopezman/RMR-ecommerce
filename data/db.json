@@ -1,0 +1,157 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "nombre": "Remera The Beatles",
+      "tipo": "remera",
+      "img": "/img/remerathebeatles.png",
+      "descripcion": "The Beatles - negra - lisa",
+      "precio": 4000,
+      "cantidad": 1
+    },
+    {
+      "id": 2,
+      "nombre": "Remera AC/DC",
+      "tipo": "remera",
+      "img": "/img/remeraacdc.png",
+      "descripcion": "AC/DC - Negra - lisa",
+      "precio": 4000,
+      "cantidad": 1
+    },
+    {
+      "id": 3,
+      "nombre": "Remera Led Zepellin",
+      "tipo": "remera",
+      "img": "/img/remeraledzepellin.png",
+      "descripcion": "Led Zeppelin - negra - estampado",
+      "precio": 4500,
+      "cantidad": 1
+    },
+    {
+      "id": 4,
+      "nombre": "Remera Bon Jovi",
+      "tipo": "remera",
+      "img": "/img/remerabonjovi.png",
+      "descripcion": "Bon Jovi - azul marino - lisa",
+      "precio": 4000,
+      "cantidad": 1
+    },
+    {
+      "id": 5,
+      "nombre": "Remera Pink Floyd",
+      "tipo": "remera",
+      "img": "/img/remerapinkfloyd.png",
+      "descripcion": "Pink Floyd - gris oscuro - estampado",
+      "precio": 4500,
+      "cantidad": 1
+    },
+    {
+      "id": 6,
+      "nombre": "Remera Pink Floyd B",
+      "tipo": "remera",
+      "img": "/img/remerapinkfloydb.png",
+      "descripcion": "Pink Floyd - negra - estampado",
+      "precio": 4500,
+      "cantidad": 1
+    },
+    {
+      "id": 7,
+      "nombre": "Remera The Doors",
+      "tipo": "remera",
+      "img": "/img/remeradoors.png",
+      "descripcion": "The Doors - negra - estampado",
+      "precio": 4500,
+      "cantidad": 1
+    },
+    {
+      "id": 8,
+      "nombre": "Remera KISS B",
+      "tipo": "remera",
+      "img": "/img/remerakissb.jpg",
+      "descripcion": "KISS - negra",
+      "precio": 4500,
+      "cantidad": 1
+    },
+    {
+      "id": 9,
+      "nombre": "Remera Aerosmith W",
+      "tipo": "remera",
+      "img": "/img/remeraaerosmithw.jpeg",
+      "descripcion": "Aerosmith - blanca - estampado",
+      "precio": 4500,
+      "cantidad": 1
+    },
+    {
+      "id": 10,
+      "nombre": "Remera queen W",
+      "tipo": "remera",
+      "img": "/img/remeraqueenw.jpeg",
+      "descripcion": "queen - blanca - estampado",
+      "precio": 4500,
+      "cantidad": 1
+    },
+    {
+      "id": 11,
+      "nombre": "Remera Los Ramones R",
+      "tipo": "remera",
+      "img": "/img/remeralosramonesr.jpg",
+      "descripcion": "Los Ramones - roja - estampado",
+      "precio": 4500,
+      "cantidad": 1
+    },
+    {
+      "id": 12,
+      "nombre": "Buzo AC/DC",
+      "tipo": "buzo",
+      "img": "/img/busoacdc.png",
+      "descripcion": "AC/DC - negro - liso",
+      "precio": 4000,
+      "cantidad": 1
+    },
+    {
+      "id": 13,
+      "nombre": "Buzo Rolling Stones",
+      "tipo": "buzo",
+      "img": "/img/busorollingstones.jpg",
+      "descripcion": "Rolling Stones - negro con gris",
+      "precio": 5000,
+      "cantidad": 1
+    },
+    {
+      "id": 14,
+      "nombre": "Gorra Nirvana",
+      "tipo": "accesorio",
+      "img": "/img/gorranirvana.jpg",
+      "descripcion": "Nirvana - blanco - estampado",
+      "precio": 1500,
+      "cantidad": 1
+    },
+    {
+      "id": 15,
+      "nombre": "Gorro Red Hot Chili Peppers",
+      "tipo": "accesorio",
+      "img": "/img/gorraredhotchilipeppers.jpg",
+      "descripcion": "Red Hot Chili Peppers - blanca con negro - estampado",
+      "precio": 1500,
+      "cantidad": 1
+    },
+    {
+      "id": 16,
+      "nombre": "Chop Queen",
+      "tipo": "vaso",
+      "img": "/img/chopqueen.jpg",
+      "descripcion": "Chop Queen - blanco",
+      "precio": 1500,
+      "cantidad": 1
+    },
+    {
+      "id": 17,
+      "nombre": "Taza AC/DC",
+      "tipo": "vaso",
+      "img": "/img/tazaacdc.jpg",
+      "descripcion": "taza AC/DC - negra - estampado",
+      "precio": 1500,
+      "cantidad": 1
+    }
+  ]
+}
