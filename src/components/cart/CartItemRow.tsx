@@ -15,11 +15,12 @@ export function CartItemRow({ item, onRemove }: CartItemRowProps) {
       </p>
       <button
         id="btn-eliminar"
-        className="boton-eliminar text-coral border-none text-xl font-display cursor-pointer hover:opacity-80 bg-transparent"
+        className="boton-eliminar text-coral border-none text-xl font-display cursor-pointer hover:opacity-80 bg-transparent p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
         value={item.id}
         onClick={() => onRemove(item.id)}
+        aria-label={`Eliminar ${item.nombre} del carrito`}
       >
-        <i className="bx bx-x" />
+        <i className="bx bx-x" aria-hidden="true" />
       </button>
     </div>
   );

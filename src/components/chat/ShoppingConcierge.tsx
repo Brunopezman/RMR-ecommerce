@@ -185,6 +185,8 @@ export function ShoppingConcierge() {
       {isOpen && (
         <div
           className="fixed bottom-24 right-6 z-50 w-80 sm:w-96 h-[500px] max-h-[80vh] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden transition-all duration-300"
+          role="dialog"
+          aria-label="Chat de ventas"
           style={{ boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)' }}
         >
           {/* ─── Header ─── */}
@@ -214,7 +216,7 @@ export function ShoppingConcierge() {
           </div>
 
           {/* ─── Messages Area ─── */}
-          <div className="flex-1 overflow-y-auto px-4 py-3 space-y-1 bg-gray-50/50">
+          <div className="flex-1 overflow-y-auto px-4 py-3 space-y-1 bg-gray-50/50" aria-live="polite" aria-atomic="false">
             {messages.length === 0 && !isTyping && (
               <div className="flex items-center justify-center h-full text-gray-400 text-sm text-center px-4">
                 <p>Envíame un mensaje para empezar a buscar productos 🎸</p>

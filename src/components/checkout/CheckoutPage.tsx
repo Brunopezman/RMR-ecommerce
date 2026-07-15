@@ -23,6 +23,7 @@ export function CheckoutPage() {
   const [tarjetaValida, setTarjetaValida] = useState(false);
   const [pagoExitoso, setPagoExitoso] = useState(false);
   const [countdown, setCountdown] = useState(15);
+  const [submitting, setSubmitting] = useState(false);
 
   const { items: resumenItems, totalBase } = useMemo(
     () => calcularResumen(items),
@@ -80,9 +81,10 @@ export function CheckoutPage() {
       e.preventDefault();
 
       if (!tarjetaValida) {
-        // TODO: show toast error
         return;
       }
+
+      setSubmitting(true);
 
       // Simulate payment processing
       setTimeout(() => {
@@ -371,9 +373,10 @@ export function CheckoutPage() {
             <div className="col mt-3">
               <button
                 type="submit"
-                className="w-full bg-black text-white border-none py-3 px-4 font-display uppercase text-sm font-bold rounded cursor-pointer transition-colors duration-300 hover:bg-coral"
+                className="w-full bg-black text-white border-none py-3 px-4 font-display uppercase text-sm font-bold rounded cursor-pointer transition-colors duration-300 hover:bg-coral disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
+                disabled={submitting}
               >
-                Pagar Ahora
+                {submitting ? 'Procesando pago...' : 'Pagar Ahora'}
               </button>
             </div>
           </form>

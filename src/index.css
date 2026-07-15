@@ -57,7 +57,7 @@ hr {
   display: flex;
   justify-content: center;
   align-items: center;
-  transition: all 0.5s;
+  transition: all 0.3s;
   opacity: 0;
   visibility: hidden;
   background-color: rgba(0, 0, 0, 0.3);
@@ -75,7 +75,7 @@ hr {
   min-width: 500px;
   padding: 20px;
   margin-top: -100%;
-  transition: all 0.5s;
+  transition: all 0.3s;
   border-radius: 10px;
   box-shadow: rgba(0, 0, 0, 0.15) 0px 5px 15px 0px;
 }

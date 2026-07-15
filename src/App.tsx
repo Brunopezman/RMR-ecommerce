@@ -51,7 +51,6 @@ function Header({ onNavigate }: { onNavigate: (view: 'home' | 'shop') => void })
           <div className="flex items-center justify-between h-16">
             <h1
               className="text-2xl font-bold tracking-tight text-gray-900 font-display flex items-center gap-2 cursor-pointer"
-              id="title"
               onClick={() => onNavigate('home')}
             >
               <img src="/img/favicon.ico" alt="Rock Merch & Roll" className="h-8 w-8" />
@@ -60,15 +59,16 @@ function Header({ onNavigate }: { onNavigate: (view: 'home' | 'shop') => void })
 
             {/* Mobile toggle */}
             <button
-              className="navbar-toggler border-none outline-none lg:hidden p-2"
+              className="navbar-toggler border-none lg:hidden p-2 focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
               type="button"
               id="bar"
+              aria-label="Abrir menú de navegación"
               onClick={() => {
                 const el = document.getElementById('navbarNav');
                 if (el) el.classList.toggle('hidden');
               }}
             >
-              <i className="bx bx-menu" />
+              <i className="bx bx-menu" aria-hidden="true" />
             </button>
 
             {/* Nav links */}
@@ -76,7 +76,7 @@ function Header({ onNavigate }: { onNavigate: (view: 'home' | 'shop') => void })
               <ul className="flex items-center gap-4 list-none m-0 p-0">
                 <li className="nav-item">
                   <button
-                    className="nav-link px-2 py-1 text-black no-underline transition-colors duration-300 hover:text-coral text-base bg-transparent border-0 cursor-pointer"
+                    className="nav-link px-2 py-1 text-black no-underline transition-colors duration-300 hover:text-coral text-base bg-transparent border-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
                     onClick={() => {
                       document.getElementById('navbarNav')?.classList.add('hidden');
                       onNavigate('home');
@@ -87,7 +87,7 @@ function Header({ onNavigate }: { onNavigate: (view: 'home' | 'shop') => void })
                 </li>
                 <li className="nav-item">
                   <button
-                    className="nav-link px-2 py-1 text-black no-underline transition-colors duration-300 hover:text-coral text-base bg-transparent border-0 cursor-pointer"
+                    className="nav-link px-2 py-1 text-black no-underline transition-colors duration-300 hover:text-coral text-base bg-transparent border-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
                     onClick={() => {
                       document.getElementById('navbarNav')?.classList.add('hidden');
                       onNavigate('shop');
@@ -98,7 +98,7 @@ function Header({ onNavigate }: { onNavigate: (view: 'home' | 'shop') => void })
                 </li>
                 <li className="nav-item">
                   <button
-                    className="nav-link px-2 py-1 text-black no-underline transition-colors duration-300 hover:text-coral text-base bg-transparent border-0 cursor-pointer"
+                    className="nav-link px-2 py-1 text-black no-underline transition-colors duration-300 hover:text-coral text-base bg-transparent border-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
                     onClick={() => {
                       document.getElementById('navbarNav')?.classList.add('hidden');
                       onNavigate('home');
@@ -117,7 +117,8 @@ function Header({ onNavigate }: { onNavigate: (view: 'home' | 'shop') => void })
                       {user.name}
                     </span>
                     <button
-                      className="nav-link p-0 bg-transparent border-0"
+                      className="nav-link p-0 bg-transparent border-0 focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
+                      aria-label="Cerrar sesión"
                       onClick={() => {
                         const modalId = 'logoutConfirmModal';
                         const existing = document.getElementById(modalId);
@@ -132,7 +133,7 @@ function Header({ onNavigate }: { onNavigate: (view: 'home' | 'shop') => void })
                                   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
-                                  <p>¿Desea cerrar sesión?</p>
+                                  <p>¿Querés cerrar sesión?</p>
                                 </div>
                                 <div class="modal-footer">
                                   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -165,10 +166,11 @@ function Header({ onNavigate }: { onNavigate: (view: 'home' | 'shop') => void })
                 ) : (
                   <button
                     id="login-nav-item"
-                    className="nav-link bg-transparent border-0 p-0"
+                    className="nav-link bg-transparent border-0 p-0 focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
                     onClick={() => setLoginOpen(true)}
+                    aria-label="Iniciar sesión"
                   >
-                    <i className="bx bx-user navbar-icon" />
+                    <i className="bx bx-user navbar-icon" aria-hidden="true" />
                   </button>
                 )}
 
@@ -179,13 +181,15 @@ function Header({ onNavigate }: { onNavigate: (view: 'home' | 'shop') => void })
                   onClick={() => setCartOpen(true)}
                   aria-label="Abrir carrito"
                 >
-                  <i className="bx bxs-shopping-bag navbar-icon" />
-                  <span
-                    id="contador-carrito"
-                    className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
-                  >
-                    {itemCount}
-                  </span>
+                  <i className="bx bxs-shopping-bag navbar-icon" aria-hidden="true" />
+              <span
+                id="contador-carrito"
+                className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
+                aria-live="polite"
+                aria-atomic="true"
+              >
+                {itemCount}
+              </span>
                 </button>
               </div>
             </div>
@@ -202,7 +206,7 @@ function Header({ onNavigate }: { onNavigate: (view: 'home' | 'shop') => void })
 function HeroSection({ onShopClick }: { onShopClick: () => void }) {
   return (
     <section
-      id="home"
+      id="main-content"
       className="w-full h-screen flex flex-col justify-center items-start bg-cover bg-no-repeat"
       style={{
         backgroundImage:
@@ -211,17 +215,17 @@ function HeroSection({ onShopClick }: { onShopClick: () => void }) {
       }}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full">
-        <h1 id="title" className="text-4xl font-bold font-garamond text-white">
+        <h1 className="text-4xl font-bold font-garamond text-white">
           Rock Merch & Roll
         </h1>
-        <h5 id="subtitle" className="text-white text-lg mt-2 font-display">
+        <p className="text-white text-lg mt-2 font-display">
           Contenido para fanáticos
-        </h5>
+        </p>
         <button
           onClick={onShopClick}
           className="mt-6 inline-block bg-black hover:bg-coral text-white px-8 py-3 rounded font-medium transition-colors duration-300 uppercase tracking-wide font-bold text-sm border-0 cursor-pointer"
         >
-          Compra Ahora
+          Comprar ahora
         </button>
       </div>
     </section>
@@ -316,9 +320,9 @@ function ProductsSection() {
       <div className="container mt-2 py-5 mx-auto px-4">
         <h1 className="font-bold text-2xl font-display">Productos</h1>
         <hr />
-        <h5 className="text-muted">
-          Aca vas a poder observar los produtos con los mejores precios de la temporada.
-        </h5>
+        <p className="text-muted">
+          Acá vas a poder ver los productos con los mejores precios de la temporada.
+        </p>
       </div>
 
       <ProductGrid
@@ -385,21 +389,21 @@ function Footer() {
           <div>
             <h5 className="font-bold text-lg mb-4">Seguinos</h5>
             <div className="flex gap-2">
-              <a href="#" className="w-[38px] h-[38px] bg-[#d8d8d8] rounded-full flex items-center justify-center text-center transition-colors duration-300 hover:bg-coral no-underline text-black" style={{ lineHeight: '38px' }}>
-                <i className="bx bxl-facebook" />
+              <a href="#" className="w-[38px] h-[38px] bg-[#d8d8d8] rounded-full flex items-center justify-center text-center transition-colors duration-300 hover:bg-coral no-underline text-black" aria-label="Facebook" style={{ lineHeight: '38px' }}>
+                <i className="bx bxl-facebook" aria-hidden="true" />
               </a>
-              <a href="#" className="w-[38px] h-[38px] bg-[#d8d8d8] rounded-full flex items-center justify-center text-center transition-colors duration-300 hover:bg-coral no-underline text-black" style={{ lineHeight: '38px' }}>
-                <i className="bx bxl-instagram" />
+              <a href="#" className="w-[38px] h-[38px] bg-[#d8d8d8] rounded-full flex items-center justify-center text-center transition-colors duration-300 hover:bg-coral no-underline text-black" aria-label="Instagram" style={{ lineHeight: '38px' }}>
+                <i className="bx bxl-instagram" aria-hidden="true" />
               </a>
-              <a href="#" className="w-[38px] h-[38px] bg-[#d8d8d8] rounded-full flex items-center justify-center text-center transition-colors duration-300 hover:bg-coral no-underline text-black" style={{ lineHeight: '38px' }}>
-                <i className="bx bxl-twitter" />
+              <a href="#" className="w-[38px] h-[38px] bg-[#d8d8d8] rounded-full flex items-center justify-center text-center transition-colors duration-300 hover:bg-coral no-underline text-black" aria-label="Twitter" style={{ lineHeight: '38px' }}>
+                <i className="bx bxl-twitter" aria-hidden="true" />
               </a>
             </div>
           </div>
         </div>
         <hr className="my-4 border-gray-400 w-full" />
         <p className="text-center text-sm">
-          Rock Merch & Roll &copy; 2022. Todos los derechos reservados.
+          Rock Merch & Roll &copy; 2026. Todos los derechos reservados.
         </p>
       </div>
     </footer>
@@ -431,9 +435,14 @@ function ShopPage() {
 
 function AppContent() {
   return (
-    <Router>
-      <ShopPage />
-    </Router>
+    <>
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-[60] focus:bg-white focus:text-black focus:px-4 focus:py-2 focus:outline-none focus:ring-2 focus:ring-coral">
+        Saltar al contenido principal
+      </a>
+      <Router>
+        <ShopPage />
+      </Router>
+    </>
   );
 }
 

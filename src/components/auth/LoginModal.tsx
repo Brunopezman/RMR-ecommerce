@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 
 interface LoginModalProps {
@@ -12,6 +12,41 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const emailInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const prev = document.activeElement as HTMLElement | null;
+    setTimeout(() => emailInputRef.current?.focus(), 100);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (e.key !== 'Tab' || !modalRef.current) return;
+      const focusable = modalRef.current.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      prev?.focus();
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -39,9 +74,12 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
   return (
     <div
+      ref={modalRef}
       className="modal fade show d-block"
       tabIndex={-1}
       role="dialog"
+      aria-modal="true"
+      aria-labelledby="userModalLabel"
       style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
       onClick={onClose}
     >
@@ -57,7 +95,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
             </h5>
             <button
               type="button"
-              className="btn-close"
+              className="btn-close focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
               aria-label="Cerrar"
               onClick={onClose}
             />
@@ -68,7 +106,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
             </small>
 
             {error && (
-              <div className="alert alert-danger py-2" role="alert">
+              <div className="alert alert-danger py-2" role="alert" aria-live="polite">
                 {error}
               </div>
             )}
@@ -79,8 +117,9 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                   Correo electrónico
                 </label>
                 <input
+                  ref={emailInputRef}
                   type="email"
-                  className="form-control"
+                  className="form-control focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
                   id="inputEmail"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -93,7 +132,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 </label>
                 <input
                   type="password"
-                  className="form-control"
+                  className="form-control focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
                   id="inputPassword"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -102,7 +141,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
               </div>
               <button
                 type="submit"
-                className="w-full bg-black text-white border-none py-3 px-7 font-display uppercase font-bold text-sm transition-colors duration-300 hover:bg-coral cursor-pointer rounded"
+                className="w-full bg-black text-white border-none py-3 px-7 font-display uppercase font-bold text-sm transition-colors duration-300 hover:bg-coral cursor-pointer rounded focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
                 disabled={loading}
               >
                 {loading ? 'Ingresando...' : 'Iniciar Sesión'}
@@ -112,7 +151,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
           <div className="modal-footer justify-content-center border-t pt-3">
             <a
               href="#"
-              className="btn btn-link text-decoration-none text-black transition-colors duration-300 hover:text-coral"
+              className="btn btn-link text-decoration-none text-black transition-colors duration-300 hover:text-coral focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
               onClick={onClose}
             >
               ¿Olvidaste tu contraseña?
