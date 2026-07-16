@@ -1,3 +1,4 @@
+import { useRef, useEffect, useState } from 'react';
 import { useCart } from '../../hooks/useCart';
 import { CartItemRow } from './CartItemRow';
 
@@ -8,12 +9,49 @@ interface CartModalProps {
 
 export function CartModal({ isOpen, onClose }: CartModalProps) {
   const { items, summary, removeItem, clearCart } = useCart();
+  const modalRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const [toast, setToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const prev = document.activeElement as HTMLElement | null;
+    closeButtonRef.current?.focus();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (e.key !== 'Tab' || !modalRef.current) return;
+      const focusable = modalRef.current.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      prev?.focus();
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
   const handleCheckout = () => {
     if (items.length === 0) {
-      // TODO: show toastify notification
+      setToast('Agregá productos al carrito antes de finalizar la compra.');
+      setTimeout(() => setToast(null), 3000);
       return;
     }
     window.location.href = '/checkout';
@@ -21,22 +59,34 @@ export function CartModal({ isOpen, onClose }: CartModalProps) {
 
   return (
     <div
+      ref={modalRef}
       className={`modal-contenedor ${isOpen ? 'modal-active' : ''}`}
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="cart-modal-title"
     >
       <div className="modal-carrito" onClick={(e) => e.stopPropagation()}>
-        <h3 className="mb-3 font-display font-extrabold text-lg">Carrito</h3>
+        <h3 id="cart-modal-title" className="mb-3 font-display font-extrabold text-lg">Carrito</h3>
         <button
+          ref={closeButtonRef}
           id="btn-cerrar-carrito"
-          className="absolute top-3.5 right-3.5 text-xl text-coral border-none bg-white cursor-pointer"
+          className="absolute top-3.5 right-3.5 text-xl text-coral-dark border-none bg-white cursor-pointer p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
           onClick={onClose}
+          aria-label="Cerrar carrito"
         >
-          <i className="bx bxs-x-circle" />
+          <i className="bx bxs-x-circle" aria-hidden="true" />
         </button>
 
-        <div id="carrito-contenedor">
+        {toast && (
+          <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-2 rounded mb-3 text-sm" role="alert">
+            {toast}
+          </div>
+        )}
+
+        <div id="carrito-contenedor" aria-live="polite" aria-atomic="true">
           {items.length === 0 ? (
-            <p className="text-muted text-center py-4 font-display">El carrito está vacío</p>
+            <p className="text-gray-500 text-center py-4 font-display">Tu carrito está vacío. Explorá nuestro catálogo y llevate algo piola.</p>
           ) : (
             items.map((item) => (
               <CartItemRow key={item.id} item={item} onRemove={removeItem} />
@@ -44,13 +94,13 @@ export function CartModal({ isOpen, onClose }: CartModalProps) {
           )}
         </div>
 
-        <p className="mt-3 fw-bold font-display text-base">
+        <p className="mt-3 font-bold font-display text-base">
           Precio Total: $<span id="precioTotal">{summary.totalPrice}</span>
         </p>
 
         <button
           id="btn-checkout"
-          className="w-full bg-black text-white border-none py-3 mt-4 font-display uppercase tracking-wider rounded-md cursor-pointer transition-colors duration-300 hover:bg-coral text-sm font-bold"
+          className="w-full bg-black text-white border-none py-3 mt-4 font-display uppercase tracking-wider rounded-lg cursor-pointer transition-colors duration-300 hover:bg-coral-dark text-sm font-bold focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
           onClick={handleCheckout}
         >
           Finalizar Compra
@@ -58,7 +108,7 @@ export function CartModal({ isOpen, onClose }: CartModalProps) {
 
         <button
           id="vaciarCarrito"
-          className="w-full bg-transparent text-gray-500 border border-gray-300 py-2 mt-3 font-sans text-xs rounded-md cursor-pointer transition-all duration-300 hover:bg-gray-100 hover:text-coral hover:border-coral"
+          className="bg-transparent text-gray-400 border-0 py-1 px-0 mt-2 font-sans text-xs cursor-pointer transition-colors duration-300 hover:text-coral-dark hover:underline focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
           onClick={clearCart}
         >
           Limpiar carrito

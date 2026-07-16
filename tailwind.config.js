@@ -13,7 +13,7 @@ export default {
     extend: {
       colors: {
         coral: 'rgb(245, 146, 109)',
-        'coral-dark': 'rgb(220, 120, 80)',
+        'coral-dark': 'rgb(191, 80, 40)',
       },
       fontFamily: {
         sans: ['Oswald', 'Roboto', 'system-ui', 'sans-serif'],

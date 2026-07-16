@@ -23,6 +23,7 @@ export function CheckoutPage() {
   const [tarjetaValida, setTarjetaValida] = useState(false);
   const [pagoExitoso, setPagoExitoso] = useState(false);
   const [countdown, setCountdown] = useState(15);
+  const [submitting, setSubmitting] = useState(false);
 
   const { items: resumenItems, totalBase } = useMemo(
     () => calcularResumen(items),
@@ -80,9 +81,10 @@ export function CheckoutPage() {
       e.preventDefault();
 
       if (!tarjetaValida) {
-        // TODO: show toast error
         return;
       }
+
+      setSubmitting(true);
 
       // Simulate payment processing
       setTimeout(() => {
@@ -168,31 +170,31 @@ export function CheckoutPage() {
 
   if (pagoExitoso) {
     return (
-      <div className="container my-5 py-5 text-center mx-auto px-4">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 my-5 py-5 text-center">
         <i
-          className="bx bx-check-circle text-success my-5"
+          className="bx bx-check-circle text-green-500 my-5"
           style={{ fontSize: '5rem' }}
         />
         <h2 className="mt-3 font-display">¡Compra Realizada con Éxito!</h2>
-        <p className="lead font-display">
+        <p className="text-lg font-display">
           Hemos enviado el comprobante a tu correo electrónico.
         </p>
         <div className="mt-4">
           <button
             id="btn-descargar-pdf"
-            className="bg-transparent border border-gray-800 text-gray-800 hover:bg-gray-800 hover:text-white px-4 py-2 rounded me-2 font-display uppercase text-sm font-bold transition-colors duration-300"
+            className="bg-transparent border border-gray-800 text-gray-800 hover:bg-gray-800 hover:text-white px-4 py-2 rounded-lg mr-2 font-display uppercase text-sm font-bold transition-colors duration-300"
             onClick={handleDownloadPdf}
           >
             <i className="bx bx-download" /> Descargar Comprobante
           </button>
           <a
             href="/"
-            className="bg-black hover:bg-coral text-white px-4 py-2 rounded no-underline font-display uppercase text-sm font-bold transition-colors duration-300 inline-block"
+            className="bg-black hover:bg-coral-dark text-white px-4 py-2 rounded-lg no-underline font-display uppercase text-sm font-bold transition-colors duration-300 inline-block"
           >
             Volver a la Tienda
           </a>
         </div>
-        <p className="text-muted mt-5 font-display">
+        <p className="text-gray-500 mt-5 font-display">
           Serás redireccionado automáticamente en{' '}
           <span id="timer">{countdown}</span> segundos...
         </p>
@@ -202,62 +204,62 @@ export function CheckoutPage() {
 
   if (items.length === 0) {
     return (
-      <div className="container my-5 py-5 text-center mx-auto px-4">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 my-5 py-5 text-center">
         <h2 className="font-display">Tu carrito está vacío</h2>
-        <p className="text-muted font-display">Agregá productos antes de finalizar la compra.</p>
+        <p className="text-gray-500 font-display">Agregá productos antes de finalizar la compra.</p>
         <a
           href="/"
-          className="bg-black hover:bg-coral text-white px-4 py-2 rounded no-underline font-display uppercase text-sm font-bold transition-colors duration-300 inline-block"
-        >
-          Ir a la tienda
-        </a>
-      </div>
+className="bg-black hover:bg-coral-dark text-white px-4 py-2 rounded-lg no-underline font-display uppercase text-sm font-bold transition-colors duration-300 inline-block"
+          >
+            Volver a la Tienda
+          </a>
+        </div>
     );
   }
 
   return (
-    <div id="seccion-pago" className="container my-5 py-5 mx-auto px-4">
+    <div id="seccion-pago" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 my-5 py-5">
       <h2 className="mb-4 font-display">Finalizar Compra</h2>
-      <div className="row">
+      <div className="grid grid-cols-12 gap-4">
         {/* Order Summary */}
-        <div className="col-md-4 order-md-2 mb-4">
-          <h4 className="d-flex justify-content-between align-items-center mb-3 font-display">
-            <span className="text-muted">Tu Carrito</span>
+        <div className="md:col-span-4 md:order-2 mb-4">
+          <h4 className="flex justify-between items-center mb-3 font-display">
+            <span className="text-gray-500">Tu Carrito</span>
           </h4>
-          <ul className="list-group mb-3" id="resumen-lista">
+          <ul className="divide-y divide-gray-200 border border-gray-200 rounded-lg mb-3" id="resumen-lista">
             {items.map((item) => (
               <li
                 key={item.id}
-                className="list-group-item d-flex justify-content-between lh-sm"
+                className="flex justify-between leading-tight px-4 py-3"
               >
                 <div>
                   <h6 className="my-0 font-display">{item.nombre}</h6>
-                  <small className="text-muted">
+                  <small className="text-gray-500">
                     Cantidad: {item.cantidad}
                   </small>
                 </div>
-                <span className="text-muted">
+                <span className="text-gray-500">
                   ${(item.precio * item.cantidad).toFixed(2)}
                 </span>
               </li>
             ))}
           </ul>
-          <li className="list-group-item d-flex justify-content-between">
+          <li className="flex justify-between px-4 py-3 border border-gray-200 rounded-lg mt-2">
             <span className="font-display">Total final a pagar</span>
             <strong id="resumen-total">${totalFinal.toFixed(2)}</strong>
           </li>
         </div>
 
         {/* Payment Form */}
-        <div className="col-md-8 order-md-1">
+        <div className="md:col-span-8 md:order-1">
           <h4 className="mb-3 font-display">Método de Pago</h4>
           <form id="form-pago" onSubmit={handleSubmit}>
-            <div className="row">
-              <div className="col-md-6 mb-3">
-                <label htmlFor="cc-name" className="form-label font-display">Nombre en la tarjeta</label>
+            <div className="grid grid-cols-12 gap-4">
+              <div className="md:col-span-6 mb-3">
+                <label htmlFor="cc-name" className="block text-sm font-medium text-gray-700 mb-1 font-display">Nombre en la tarjeta</label>
                 <input
                   type="text"
-                  className="form-control"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-coral focus:border-coral"
                   id="cc-name"
                   required
                   placeholder="Juan Perez"
@@ -265,11 +267,11 @@ export function CheckoutPage() {
                   onChange={(e) => setCcName(e.target.value)}
                 />
               </div>
-              <div className="col-md-6 mb-3">
-                <label htmlFor="cc-number" className="form-label font-display">Número de tarjeta</label>
+              <div className="md:col-span-6 mb-3">
+                <label htmlFor="cc-number" className="block text-sm font-medium text-gray-700 mb-1 font-display">Número de tarjeta</label>
                 <input
                   type="text"
-                  className={`form-control ${!tarjetaValida && ccNumber ? 'is-invalid' : ''}`}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-coral ${!tarjetaValida && ccNumber ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
                   id="cc-number"
                   required
                   placeholder="XXXX XXXX XXXX XXXX"
@@ -277,7 +279,7 @@ export function CheckoutPage() {
                   onChange={(e) => handleCardInput(e.target.value)}
                 />
               </div>
-              <div className="col-12">
+              <div className="col-span-12">
                 <div id="logos" className="flex justify-start items-center gap-2 mt-2">
                 {(['VISA', 'MASTERCARD', 'AMERICAN EXPRESS'] as const).map(
                   (brand) => (
@@ -292,9 +294,9 @@ export function CheckoutPage() {
                 )}
               </div>
               </div>
-              <div className="mb-3 mt-2">
-                <small className="text-muted">Tarjeta seleccionada:</small>
-                <p id="tarjeta-resumen" className="fw-bold mb-0 font-display">
+              <div className="mb-3 mt-2 col-span-12">
+                <small className="text-gray-500">Tarjeta seleccionada:</small>
+                <p id="tarjeta-resumen" className="font-bold mb-0 font-display">
                   {tarjetaValida && cardBrand
                     ? `${cardBrand} •••• ${ccNumber.replace(/\D/g, '').slice(-4)}`
                     : '—'}
@@ -302,11 +304,11 @@ export function CheckoutPage() {
               </div>
             </div>
 
-            <div className="row">
-              <div className="col-md-6 mb-3">
-                <label htmlFor="cuotas" className="form-label font-display">Cuotas</label>
+            <div className="grid grid-cols-12 gap-4">
+              <div className="md:col-span-6 mb-3">
+                <label htmlFor="cuotas" className="block text-sm font-medium text-gray-700 mb-1 font-display">Cuotas</label>
                 <select
-                  className="form-select"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-coral focus:border-coral"
                   id="cuotas-select"
                   value={cuotas}
                   onChange={(e) => setCuotas(Number(e.target.value))}
@@ -316,22 +318,22 @@ export function CheckoutPage() {
                   <option value={6}>6 cuotas (15% interés)</option>
                 </select>
               </div>
-              <div className="col-md-6 mb-3">
-                <label className="form-label font-display">Valor de la cuota:</label>
-                <p id="valor-cuota" className="fw-bold mt-2 font-display">
+              <div className="md:col-span-6 mb-3">
+                <label className="block text-sm font-medium text-gray-700 mb-1 font-display">Valor de la cuota:</label>
+                <p id="valor-cuota" className="font-bold mt-2 font-display">
                   ${valorCuota.toFixed(2)}
                 </p>
               </div>
             </div>
 
             {/* Shipping */}
-            <ul className="list-group mb-3">
-              <li className="list-group-item">
-                <label htmlFor="envio-select" className="form-label font-display">
+            <ul className="divide-y divide-gray-200 border border-gray-200 rounded-lg mb-3">
+              <li className="px-4 py-3">
+                <label htmlFor="envio-select" className="block text-sm font-medium text-gray-700 mb-1 font-display">
                   Tipo de envío
                 </label>
                 <select
-                  className="form-select"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-coral focus:border-coral"
                   id="envio-select"
                   value={shippingType}
                   onChange={(e) => handleShippingChange(e.target.value)}
@@ -343,37 +345,38 @@ export function CheckoutPage() {
 
                 {shippingType !== 'tienda' && (
                   <div id="contenedor-direccion" className="mt-3">
-                    <label htmlFor="direccion-envio" className="form-label font-display">
+                    <label htmlFor="direccion-envio" className="block text-sm font-medium text-gray-700 mb-1 font-display">
                       Dirección de entrega
                     </label>
                     <input
                       type="text"
-                      className="form-control"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-coral focus:border-coral"
                       id="direccion-envio"
                       placeholder="Calle, Número, Piso, Localidad"
                       required
                       value={direccion}
                       onChange={(e) => setDireccion(e.target.value)}
                     />
-                    <small className="text-muted">
+                    <small className="text-gray-500">
                       Los envíos se realizan de 9 a 18 hs.
                     </small>
                   </div>
                 )}
               </li>
 
-              <li className="list-group-item d-flex justify-content-between my-3 py-3">
+              <li className="flex justify-between my-3 py-3 px-4">
                 <span className="font-display">Envío</span>
                 <strong id="resumen-envio">${envioCost.toFixed(2)}</strong>
               </li>
             </ul>
 
-            <div className="col mt-3">
+            <div className="col-span-12 mt-3">
               <button
                 type="submit"
-                className="w-full bg-black text-white border-none py-3 px-4 font-display uppercase text-sm font-bold rounded cursor-pointer transition-colors duration-300 hover:bg-coral"
+                className="w-full bg-black text-white border-none py-3 px-4 font-display uppercase text-sm font-bold rounded-lg cursor-pointer transition-colors duration-300 hover:bg-coral-dark disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
+                disabled={submitting}
               >
-                Pagar Ahora
+                {submitting ? 'Procesando pago...' : 'Pagar Ahora'}
               </button>
             </div>
           </form>

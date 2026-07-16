@@ -247,7 +247,10 @@ function formatSearchResponse(
 //  Hook
 // ──────────────────────────────────────────────
 
-export function useConcierge(addToCartFn: (product: Product) => void): UseConciergeReturn {
+export function useConcierge(
+  addToCartFn: (product: Product) => void,
+  onShowToast?: (message: string) => void,
+): UseConciergeReturn {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
@@ -334,6 +337,7 @@ export function useConcierge(addToCartFn: (product: Product) => void): UseConcie
   const addProductToCart = useCallback(
     (product: Product) => {
       addToCartFn(product);
+      onShowToast?.(`${product.nombre} agregado al carrito`);
       const msg: ChatMessage = {
         id: nextId(),
         role: 'assistant',
@@ -342,7 +346,7 @@ export function useConcierge(addToCartFn: (product: Product) => void): UseConcie
       };
       setMessages((prev) => [...prev, msg]);
     },
-    [addToCartFn],
+    [addToCartFn, onShowToast],
   );
 
   const sendMessage = useCallback(

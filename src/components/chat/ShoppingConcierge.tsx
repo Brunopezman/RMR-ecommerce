@@ -27,6 +27,7 @@ function formatPrice(price: number): string {
 
 function ChatBubble({
   message,
+  onShowToast,
 }: {
   message: {
     role: 'user' | 'assistant';
@@ -34,6 +35,7 @@ function ChatBubble({
     products?: Product[];
     timestamp: number;
   };
+  onShowToast?: (msg: string) => void;
 }) {
   const isUser = message.role === 'user';
 
@@ -53,7 +55,7 @@ function ChatBubble({
         {message.products && message.products.length > 0 && (
           <div className="mt-3 space-y-2 border-t border-gray-200 pt-2">
             {message.products.map((product) => (
-              <ProductMiniCard key={product.id} product={product} />
+              <ProductMiniCard key={product.id} product={product} onShowToast={onShowToast} />
             ))}
           </div>
         )}
@@ -66,12 +68,13 @@ function ChatBubble({
 //  Product Mini Card (inline recommendation)
 // ──────────────────────────────────────────────
 
-function ProductMiniCard({ product }: { product: Product }) {
+function ProductMiniCard({ product, onShowToast }: { product: Product; onShowToast?: (msg: string) => void }) {
   const ctx = useContext(CartContext);
 
   const handleAdd = useCallback(() => {
     ctx?.addToCart(product);
-  }, [ctx, product]);
+    onShowToast?.(`${product.nombre} agregado al carrito`);
+  }, [ctx, product, onShowToast]);
 
   return (
     <div className="flex items-center gap-2 bg-white rounded-lg p-2 border border-gray-200">
@@ -115,7 +118,7 @@ function ProductMiniCard({ product }: { product: Product }) {
 //  Main Component
 // ──────────────────────────────────────────────
 
-export function ShoppingConcierge() {
+export function ShoppingConcierge({ onShowToast }: { onShowToast?: (msg: string) => void }) {
   const ctx = useContext(CartContext)!;
   const {
     messages,
@@ -124,7 +127,7 @@ export function ShoppingConcierge() {
     catalogLoaded,
     toggle,
     sendMessage,
-  } = useConcierge(ctx.addToCart);
+  } = useConcierge(ctx.addToCart, onShowToast);
 
   const [inputText, setInputText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -185,6 +188,8 @@ export function ShoppingConcierge() {
       {isOpen && (
         <div
           className="fixed bottom-24 right-6 z-50 w-80 sm:w-96 h-[500px] max-h-[80vh] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden transition-all duration-300"
+          role="dialog"
+          aria-label="Chat de ventas"
           style={{ boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)' }}
         >
           {/* ─── Header ─── */}
@@ -214,7 +219,7 @@ export function ShoppingConcierge() {
           </div>
 
           {/* ─── Messages Area ─── */}
-          <div className="flex-1 overflow-y-auto px-4 py-3 space-y-1 bg-gray-50/50">
+          <div className="flex-1 overflow-y-auto px-4 py-3 space-y-1 bg-gray-50/50" aria-live="polite" aria-atomic="false">
             {messages.length === 0 && !isTyping && (
               <div className="flex items-center justify-center h-full text-gray-400 text-sm text-center px-4">
                 <p>Envíame un mensaje para empezar a buscar productos 🎸</p>
@@ -222,7 +227,7 @@ export function ShoppingConcierge() {
             )}
 
             {messages.map((msg) => (
-              <ChatBubble key={msg.id} message={msg} />
+              <ChatBubble key={msg.id} message={msg} onShowToast={onShowToast} />
             ))}
 
             {/* Typing indicator */}

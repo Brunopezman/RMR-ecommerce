@@ -45,4 +45,11 @@ La documentación técnica detallada se mantiene centralizada y debe usarse como
 - `coding-standards` — Guía de estilo de código, estructura y nomenclatura de archivos.
 - `testing-workflow` — Flujo de ejecución y escritura de tests unitarios y E2E.
 - `rag-product-catalog` — Indexador y buscador semántico local (TF-IDF + Cosine Similarity).
+- `ui-ux-review` — Revisión de interfaces: consistencia visual, jerarquía, micro-interacciones.
+- `accessibility` — Auditoría WCAG: contraste, roles ARIA, navegación por teclado.
+- `tailwind-design-system` — Sistema de diseño estructurado con Tailwind utility classes.
+- `responsive-design` — Verificación responsive Mobile-First (320px → 1280px+).
+- `react-best-practices` — Estándares React y arquitectura de componentes.
+- `performance-audit` — Web Vitals, bundle analysis, lazy loading y optimización de assets.
+- `ux-writing` — Microcopy, CTAs, tono de voz consistente en la interfaz.
 

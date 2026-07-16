@@ -48,6 +48,3 @@ tests/
 - Tests de hooks con lógica de negocio (`useCart`, etc.): `renderHook` de RTL, sin
   necesidad de montar un componente completo.
 - Tests e2e: simulan la interacción real del usuario y verifican el resultado visible.
-- Tests de caracterización (Fase 1, sobre el código vanilla previo a la migración): no se
-  "arreglan" para que pasen, documentan lo que el código hace hoy, tal cual. Estos quedan
-  como referencia de comportamiento esperado al migrar a React.
