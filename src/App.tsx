@@ -117,7 +117,7 @@ function Header({ onNavigate }: { onNavigate: (view: 'home' | 'shop') => void })
                       {user.name}
                     </span>
                     <button
-                      className="nav-link p-0 bg-transparent border-0 focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
+                      className="nav-link p-1.5 bg-transparent border-0 focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
                       aria-label="Cerrar sesión"
                       onClick={() => {
                         const modalId = 'logoutConfirmModal';
@@ -166,7 +166,7 @@ function Header({ onNavigate }: { onNavigate: (view: 'home' | 'shop') => void })
                 ) : (
                   <button
                     id="login-nav-item"
-                    className="nav-link bg-transparent border-0 p-0 focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
+                    className="nav-link bg-transparent border-0 p-1.5 focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
                     onClick={() => setLoginOpen(true)}
                     aria-label="Iniciar sesión"
                   >
@@ -177,7 +177,7 @@ function Header({ onNavigate }: { onNavigate: (view: 'home' | 'shop') => void })
                 {/* Cart icon */}
                 <button
                   id="tienda"
-                  className="relative bg-transparent border-0 cursor-pointer p-0"
+                  className="relative bg-transparent border-0 cursor-pointer p-1.5"
                   onClick={() => setCartOpen(true)}
                   aria-label="Abrir carrito"
                 >
@@ -389,13 +389,13 @@ function Footer() {
           <div>
             <h5 className="font-bold text-lg mb-4">Seguinos</h5>
             <div className="flex gap-2">
-              <a href="#" className="w-[38px] h-[38px] bg-[#d8d8d8] rounded-full flex items-center justify-center text-center transition-colors duration-300 hover:bg-coral no-underline text-black" aria-label="Facebook" style={{ lineHeight: '38px' }}>
+              <a href="#" className="w-11 h-11 bg-[#d8d8d8] rounded-full flex items-center justify-center text-center transition-colors duration-300 hover:bg-coral no-underline text-black" aria-label="Facebook">
                 <i className="bx bxl-facebook" aria-hidden="true" />
               </a>
-              <a href="#" className="w-[38px] h-[38px] bg-[#d8d8d8] rounded-full flex items-center justify-center text-center transition-colors duration-300 hover:bg-coral no-underline text-black" aria-label="Instagram" style={{ lineHeight: '38px' }}>
+              <a href="#" className="w-11 h-11 bg-[#d8d8d8] rounded-full flex items-center justify-center text-center transition-colors duration-300 hover:bg-coral no-underline text-black" aria-label="Instagram">
                 <i className="bx bxl-instagram" aria-hidden="true" />
               </a>
-              <a href="#" className="w-[38px] h-[38px] bg-[#d8d8d8] rounded-full flex items-center justify-center text-center transition-colors duration-300 hover:bg-coral no-underline text-black" aria-label="Twitter" style={{ lineHeight: '38px' }}>
+              <a href="#" className="w-11 h-11 bg-[#d8d8d8] rounded-full flex items-center justify-center text-center transition-colors duration-300 hover:bg-coral no-underline text-black" aria-label="Twitter">
                 <i className="bx bxl-twitter" aria-hidden="true" />
               </a>
             </div>
