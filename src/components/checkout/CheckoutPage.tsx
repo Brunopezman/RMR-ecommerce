@@ -182,14 +182,14 @@ export function CheckoutPage() {
         <div className="mt-4">
           <button
             id="btn-descargar-pdf"
-            className="bg-transparent border border-gray-800 text-gray-800 hover:bg-gray-800 hover:text-white px-4 py-2 rounded me-2 font-display uppercase text-sm font-bold transition-colors duration-300"
+            className="bg-transparent border border-gray-800 text-gray-800 hover:bg-gray-800 hover:text-white px-4 py-2 rounded-lg me-2 font-display uppercase text-sm font-bold transition-colors duration-300"
             onClick={handleDownloadPdf}
           >
             <i className="bx bx-download" /> Descargar Comprobante
           </button>
           <a
             href="/"
-            className="bg-black hover:bg-coral text-white px-4 py-2 rounded no-underline font-display uppercase text-sm font-bold transition-colors duration-300 inline-block"
+            className="bg-black hover:bg-coral text-white px-4 py-2 rounded-lg no-underline font-display uppercase text-sm font-bold transition-colors duration-300 inline-block"
           >
             Volver a la Tienda
           </a>
@@ -209,7 +209,7 @@ export function CheckoutPage() {
         <p className="text-muted font-display">Agregá productos antes de finalizar la compra.</p>
         <a
           href="/"
-          className="bg-black hover:bg-coral text-white px-4 py-2 rounded no-underline font-display uppercase text-sm font-bold transition-colors duration-300 inline-block"
+          className="bg-black hover:bg-coral text-white px-4 py-2 rounded-lg no-underline font-display uppercase text-sm font-bold transition-colors duration-300 inline-block"
         >
           Ir a la tienda
         </a>
@@ -373,7 +373,7 @@ export function CheckoutPage() {
             <div className="col mt-3">
               <button
                 type="submit"
-                className="w-full bg-black text-white border-none py-3 px-4 font-display uppercase text-sm font-bold rounded cursor-pointer transition-colors duration-300 hover:bg-coral disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
+                className="w-full bg-black text-white border-none py-3 px-4 font-display uppercase text-sm font-bold rounded-lg cursor-pointer transition-colors duration-300 hover:bg-coral disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
                 disabled={submitting}
               >
                 {submitting ? 'Procesando pago...' : 'Pagar Ahora'}

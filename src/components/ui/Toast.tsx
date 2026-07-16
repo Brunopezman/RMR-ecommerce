@@ -17,7 +17,7 @@ export function Toast({ toast, onClose }: ToastProps) {
       aria-live="assertive"
     >
       <div
-        className={`flex items-center gap-2 px-5 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${
+        className={`flex items-center gap-2 px-5 py-3 rounded-lg shadow-lg text-white text-sm font-medium ${
           toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'
         }`}
       >

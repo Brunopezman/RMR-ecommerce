@@ -100,7 +100,7 @@ export function CartModal({ isOpen, onClose }: CartModalProps) {
 
         <button
           id="btn-checkout"
-          className="w-full bg-black text-white border-none py-3 mt-4 font-display uppercase tracking-wider rounded-md cursor-pointer transition-colors duration-300 hover:bg-coral text-sm font-bold focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
+          className="w-full bg-black text-white border-none py-3 mt-4 font-display uppercase tracking-wider rounded-lg cursor-pointer transition-colors duration-300 hover:bg-coral text-sm font-bold focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
           onClick={handleCheckout}
         >
           Finalizar Compra
@@ -108,7 +108,7 @@ export function CartModal({ isOpen, onClose }: CartModalProps) {
 
         <button
           id="vaciarCarrito"
-          className="w-full bg-transparent text-gray-500 border border-gray-300 py-2 mt-3 font-sans text-xs rounded-md cursor-pointer transition-all duration-300 hover:bg-gray-100 hover:text-coral hover:border-coral focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
+          className="bg-transparent text-gray-400 border-0 py-1 px-0 mt-2 font-sans text-xs cursor-pointer transition-colors duration-300 hover:text-coral hover:underline focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
           onClick={clearCart}
         >
           Limpiar carrito

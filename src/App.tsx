@@ -226,7 +226,7 @@ function HeroSection({ onShopClick }: { onShopClick: () => void }) {
         </p>
         <button
           onClick={onShopClick}
-          className="mt-6 inline-block bg-black hover:bg-coral text-white px-8 py-3 rounded font-medium transition-colors duration-300 uppercase tracking-wide font-bold text-sm border-0 cursor-pointer"
+          className="mt-6 inline-block bg-black hover:bg-coral text-white px-8 py-3 rounded-lg font-medium transition-colors duration-300 uppercase tracking-wide font-bold text-sm border-0 cursor-pointer"
         >
           Comprar ahora
         </button>

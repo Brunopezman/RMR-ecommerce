@@ -141,7 +141,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
               </div>
               <button
                 type="submit"
-                className="w-full bg-black text-white border-none py-3 px-7 font-display uppercase font-bold text-sm transition-colors duration-300 hover:bg-coral cursor-pointer rounded focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
+                className="w-full bg-black text-white border-none py-3 px-7 font-display uppercase font-bold text-sm transition-colors duration-300 hover:bg-coral cursor-pointer rounded-lg focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
                 disabled={loading}
               >
                 {loading ? 'Ingresando...' : 'Iniciar Sesión'}
