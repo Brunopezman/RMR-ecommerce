@@ -25,6 +25,7 @@ coverage/
 playwright-report/
 test-results/
 .vitest-cache/
+.indexion/
 
 # Logs
 *.log
