@@ -25,6 +25,7 @@ coverage/
 playwright-report/
 test-results/
 .vitest-cache/
+.indexion/
 
 # json-server (Fase 3 Paso A - api mock)
 db.json.bak
