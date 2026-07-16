@@ -3,6 +3,7 @@ import { useCatalog } from './hooks/useCatalog';
 import { ProductGrid } from './components/catalog/ProductGrid';
 import { CartModal } from './components/cart/CartModal';
 import { LoginModal } from './components/auth/LoginModal';
+import { LogoutConfirmModal } from './components/auth/LogoutConfirmModal';
 import { CheckoutPage } from './components/checkout/CheckoutPage';
 import { CartProvider, CartContext } from './context/CartContext';
 import { AuthProvider, AuthContext } from './context/AuthContext';
@@ -46,10 +47,11 @@ function Header({ onNavigate }: { onNavigate: (view: 'home' | 'shop') => void })
   const { isAuthenticated, user, logout } = useAuth();
   const [cartOpen, setCartOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
 
   return (
     <>
-      <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-md sticky top-0 left-0 z-40" style={{ boxShadow: '0 5px 10px rgba(0, 0, 0, 0.1)' }}>
+      <nav className="bg-white shadow-md sticky top-0 left-0 z-40" style={{ boxShadow: '0 5px 10px rgba(0, 0, 0, 0.1)' }}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full">
           <div className="flex items-center justify-between h-16">
             <h1
@@ -62,7 +64,7 @@ function Header({ onNavigate }: { onNavigate: (view: 'home' | 'shop') => void })
 
             {/* Mobile toggle */}
             <button
-              className="navbar-toggler border-none lg:hidden p-2 focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
+              className="border-none lg:hidden p-2 focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
               type="button"
               id="bar"
               aria-label="Abrir menú de navegación"
@@ -77,9 +79,9 @@ function Header({ onNavigate }: { onNavigate: (view: 'home' | 'shop') => void })
             {/* Nav links */}
             <div className="hidden lg:flex lg:items-center lg:gap-4" id="navbarNav">
               <ul className="flex items-center gap-4 list-none m-0 p-0">
-                <li className="nav-item">
+                <li>
                   <button
-                    className="nav-link px-2 py-1 text-black no-underline transition-colors duration-300 hover:text-coral-dark text-base bg-transparent border-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
+                    className="inline-block px-2 py-1 text-black no-underline transition-colors duration-300 hover:text-coral-dark text-base bg-transparent border-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
                     onClick={() => {
                       document.getElementById('navbarNav')?.classList.add('hidden');
                       onNavigate('home');
@@ -88,9 +90,9 @@ function Header({ onNavigate }: { onNavigate: (view: 'home' | 'shop') => void })
                     Inicio
                   </button>
                 </li>
-                <li className="nav-item">
+                <li>
                   <button
-                    className="nav-link px-2 py-1 text-black no-underline transition-colors duration-300 hover:text-coral-dark text-base bg-transparent border-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
+                    className="inline-block px-2 py-1 text-black no-underline transition-colors duration-300 hover:text-coral-dark text-base bg-transparent border-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
                     onClick={() => {
                       document.getElementById('navbarNav')?.classList.add('hidden');
                       onNavigate('shop');
@@ -99,9 +101,9 @@ function Header({ onNavigate }: { onNavigate: (view: 'home' | 'shop') => void })
                     Productos
                   </button>
                 </li>
-                <li className="nav-item">
+                <li>
                   <button
-                    className="nav-link px-2 py-1 text-black no-underline transition-colors duration-300 hover:text-coral-dark text-base bg-transparent border-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
+                    className="inline-block px-2 py-1 text-black no-underline transition-colors duration-300 hover:text-coral-dark text-base bg-transparent border-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
                     onClick={() => {
                       document.getElementById('navbarNav')?.classList.add('hidden');
                       onNavigate('home');
@@ -116,60 +118,22 @@ function Header({ onNavigate }: { onNavigate: (view: 'home' | 'shop') => void })
                 {/* Auth */}
                 {isAuthenticated && user ? (
                   <div className="flex items-center gap-2">
-                    <span className="text-dark">
+                    <span className="text-gray-900">
                       {user.name}
                     </span>
                     <button
-                      className="nav-link p-1.5 bg-transparent border-0 focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
+                      className="p-1.5 bg-transparent border-0 focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
                       aria-label="Cerrar sesión"
-                      onClick={() => {
-                        const modalId = 'logoutConfirmModal';
-                        const existing = document.getElementById(modalId);
-                        if (existing) existing.remove();
-
-                        const modalHtml = `
-                          <div class="modal fade" id="${modalId}" tabindex="-1" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered">
-                              <div class="modal-content">
-                                <div class="modal-header">
-                                  <h5 class="modal-title">Confirmar cierre de sesión</h5>
-                                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                  <p>¿Querés cerrar sesión?</p>
-                                </div>
-                                <div class="modal-footer">
-                                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                  <button type="button" class="btn btn-danger" id="confirm-logout-btn">Sí, estoy seguro</button>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        `;
-                        const wrapper = document.createElement('div');
-                        wrapper.innerHTML = modalHtml;
-                        document.body.appendChild(wrapper.firstElementChild!);
-
-                        const modalEl = document.getElementById(modalId);
-                        if (modalEl) {
-                          const modalInstance = new (window as any).bootstrap.Modal(modalEl, { backdrop: 'static' });
-                          modalEl.addEventListener('hidden.bs.modal', () => modalEl.remove());
-                          modalEl.querySelector('#confirm-logout-btn')?.addEventListener('click', () => {
-                            modalInstance.hide();
-                            logout();
-                          });
-                          modalInstance.show();
-                        }
-                      }}
+                      onClick={() => setLogoutConfirmOpen(true)}
                       title="Cerrar sesión"
                     >
-                      <i className="bi bi-box-arrow-right align-middle logout-trigger navbar-icon text-xl" />
+                      <i className="bx bx-log-out-circle align-middle logout-trigger navbar-icon text-xl" />
                     </button>
                   </div>
                 ) : (
                   <button
                     id="login-nav-item"
-                    className="nav-link bg-transparent border-0 p-1.5 focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
+                    className="bg-transparent border-0 p-1.5 focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
                     onClick={() => setLoginOpen(true)}
                     aria-label="Iniciar sesión"
                   >
@@ -202,6 +166,14 @@ function Header({ onNavigate }: { onNavigate: (view: 'home' | 'shop') => void })
 
       <CartModal isOpen={cartOpen} onClose={() => setCartOpen(false)} />
       <LoginModal isOpen={loginOpen} onClose={() => setLoginOpen(false)} />
+      <LogoutConfirmModal
+        isOpen={logoutConfirmOpen}
+        onClose={() => setLogoutConfirmOpen(false)}
+        onConfirm={() => {
+          setLogoutConfirmOpen(false);
+          logout();
+        }}
+      />
     </>
   );
 }
@@ -303,12 +275,12 @@ function BrandSection() {
   return (
     <section id="brand" className="container mx-auto px-4">
       <div className="flex flex-wrap m-0 py-5">
-        <img className="img-fluid w-1/2 md:w-1/4 lg:w-1/6 p-2" src="/img/acdc-logo.jpg" alt="AC/DC" />
-        <img className="img-fluid w-1/2 md:w-1/4 lg:w-1/6 p-2" src="/img/aerosmith-logo.png" alt="Aerosmith" />
-        <img className="img-fluid w-1/2 md:w-1/4 lg:w-1/6 p-2" src="/img/Logo-Guns-N-Roses.png" alt="Guns N' Roses" />
-        <img className="img-fluid w-1/2 md:w-1/4 lg:w-1/6 p-2" src="/img/rolling-stones-logo.jpg" alt="Rolling Stones" />
-        <img className="img-fluid w-1/2 md:w-1/4 lg:w-1/6 p-2" src="/img/thebeatles-logo.png" alt="The Beatles" />
-        <img className="img-fluid w-1/2 md:w-1/4 lg:w-1/6 p-2" src="/img/thewho-logo.png" alt="The Who" />
+        <img className="max-w-full h-auto w-1/2 md:w-1/4 lg:w-1/6 p-2" src="/img/acdc-logo.jpg" alt="AC/DC" />
+        <img className="max-w-full h-auto w-1/2 md:w-1/4 lg:w-1/6 p-2" src="/img/aerosmith-logo.png" alt="Aerosmith" />
+        <img className="max-w-full h-auto w-1/2 md:w-1/4 lg:w-1/6 p-2" src="/img/Logo-Guns-N-Roses.png" alt="Guns N' Roses" />
+        <img className="max-w-full h-auto w-1/2 md:w-1/4 lg:w-1/6 p-2" src="/img/rolling-stones-logo.jpg" alt="Rolling Stones" />
+        <img className="max-w-full h-auto w-1/2 md:w-1/4 lg:w-1/6 p-2" src="/img/thebeatles-logo.png" alt="The Beatles" />
+        <img className="max-w-full h-auto w-1/2 md:w-1/4 lg:w-1/6 p-2" src="/img/thewho-logo.png" alt="The Who" />
       </div>
     </section>
   );
@@ -331,7 +303,7 @@ function ProductsSection({ onProductAdded }: { onProductAdded?: (name: string) =
       <div className="container mt-2 py-5 mx-auto px-4">
         <h1 className="font-bold text-2xl font-display">Productos</h1>
         <hr />
-        <p className="text-muted">
+        <p className="text-gray-500">
           Acá vas a poder ver los productos con los mejores precios de la temporada.
         </p>
       </div>

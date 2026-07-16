@@ -27,6 +27,7 @@ function formatPrice(price: number): string {
 
 function ChatBubble({
   message,
+  onShowToast,
 }: {
   message: {
     role: 'user' | 'assistant';
@@ -34,6 +35,7 @@ function ChatBubble({
     products?: Product[];
     timestamp: number;
   };
+  onShowToast?: (msg: string) => void;
 }) {
   const isUser = message.role === 'user';
 
@@ -225,7 +227,7 @@ export function ShoppingConcierge({ onShowToast }: { onShowToast?: (msg: string)
             )}
 
             {messages.map((msg) => (
-              <ChatBubble key={msg.id} message={msg} />
+              <ChatBubble key={msg.id} message={msg} onShowToast={onShowToast} />
             ))}
 
             {/* Typing indicator */}

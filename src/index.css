@@ -192,11 +192,6 @@ hr {
   }
 }
 
-/* ===== Bootstrap compatibility ===== */
-.is-invalid {
-  border-color: #dc3545 !important;
-}
-
 /* ===== Footer styles ===== */
 footer h5 {
   font-weight: 700;

@@ -10,7 +10,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
     <div className="product text-center mb-4">
       <img
         id={`product-img-${product.id}`}
-        className="img-fluid mb-3 w-full h-36 sm:h-48 object-cover object-center"
+        className="max-w-full h-auto mb-3 w-full h-36 sm:h-48 object-cover object-center"
         src={product.img}
         alt={product.descripcion ?? product.nombre}
       />

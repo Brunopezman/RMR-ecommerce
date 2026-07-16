@@ -86,7 +86,7 @@ export function CartModal({ isOpen, onClose }: CartModalProps) {
 
         <div id="carrito-contenedor" aria-live="polite" aria-atomic="true">
           {items.length === 0 ? (
-            <p className="text-muted text-center py-4 font-display">Tu carrito está vacío. Explorá nuestro catálogo y llevate algo piola.</p>
+            <p className="text-gray-500 text-center py-4 font-display">Tu carrito está vacío. Explorá nuestro catálogo y llevate algo piola.</p>
           ) : (
             items.map((item) => (
               <CartItemRow key={item.id} item={item} onRemove={removeItem} />
@@ -94,7 +94,7 @@ export function CartModal({ isOpen, onClose }: CartModalProps) {
           )}
         </div>
 
-        <p className="mt-3 fw-bold font-display text-base">
+        <p className="mt-3 font-bold font-display text-base">
           Precio Total: $<span id="precioTotal">{summary.totalPrice}</span>
         </p>
 

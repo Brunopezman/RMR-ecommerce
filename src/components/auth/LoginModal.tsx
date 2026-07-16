@@ -75,64 +75,64 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   return (
     <div
       ref={modalRef}
-      className="modal fade show d-block"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
       tabIndex={-1}
       role="dialog"
       aria-modal="true"
       aria-labelledby="userModalLabel"
-      style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
       onClick={onClose}
     >
       <div
-        className="modal-dialog modal-dialog-centered"
+        className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 relative"
         role="document"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="modal-content">
-          <div className="modal-header">
-            <h5 className="modal-title font-display" id="userModalLabel">
+          <div className="flex items-center justify-between p-4 border-b">
+            <h5 className="text-lg font-semibold font-display" id="userModalLabel">
               Acceso / Registro
             </h5>
             <button
               type="button"
-              className="btn-close focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
+              className="text-gray-400 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none p-1"
               aria-label="Cerrar"
               onClick={onClose}
-            />
+            >
+              ×
+            </button>
           </div>
-          <div className="modal-body">
-            <small className="text-muted d-block mb-3">
+          <div className="p-4">
+            <small className="text-gray-500 block mb-3">
               * Login demostrativo (sin validación real)
             </small>
 
             {error && (
-              <div className="alert alert-danger py-2" role="alert" aria-live="polite">
+              <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-2 rounded" role="alert" aria-live="polite">
                 {error}
               </div>
             )}
 
             <form id="loginForm" onSubmit={handleSubmit}>
-              <div className="mb-3">
-                <label htmlFor="inputEmail" className="form-label">
+              <div className="mb-4">
+                <label htmlFor="inputEmail" className="block text-sm font-medium text-gray-700 mb-1">
                   Correo electrónico
                 </label>
                 <input
                   ref={emailInputRef}
                   type="email"
-                  className="form-control focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-coral"
                   id="inputEmail"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={loading}
                 />
               </div>
-              <div className="mb-3">
-                <label htmlFor="inputPassword" className="form-label">
+              <div className="mb-4">
+                <label htmlFor="inputPassword" className="block text-sm font-medium text-gray-700 mb-1">
                   Contraseña
                 </label>
                 <input
                   type="password"
-                  className="form-control focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-coral"
                   id="inputPassword"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -148,10 +148,10 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
               </button>
             </form>
           </div>
-          <div className="modal-footer justify-content-center border-t pt-3">
+          <div className="flex justify-center p-4 border-t">
             <a
               href="#"
-              className="btn btn-link text-decoration-none text-black transition-colors duration-300 hover:text-coral-dark focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
+              className="text-sm text-gray-600 hover:text-coral-dark transition-colors duration-300 focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none no-underline"
               onClick={onClose}
             >
               ¿Olvidaste tu contraseña?
@@ -159,6 +159,5 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
           </div>
         </div>
       </div>
-    </div>
   );
 }
