@@ -4,11 +4,12 @@ import { ProductCard } from '../ui/ProductCard';
 interface ProductGridProps {
   products: Product[];
   onAddToCart: (product: Product) => void;
+  onProductClick?: (id: number) => void;
   loading?: boolean;
   error?: string | null;
 }
 
-export function ProductGrid({ products, onAddToCart, loading, error }: ProductGridProps) {
+export function ProductGrid({ products, onAddToCart, onProductClick, loading, error }: ProductGridProps) {
   if (loading) {
     return (
       <div className="text-center py-5">
@@ -44,6 +45,7 @@ export function ProductGrid({ products, onAddToCart, loading, error }: ProductGr
           key={product.id}
           product={product}
           onAddToCart={onAddToCart}
+          onProductClick={onProductClick}
         />
       ))}
     </div>

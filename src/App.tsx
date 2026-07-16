@@ -1,4 +1,4 @@
-import { useState, useContext, useSyncExternalStore, useMemo, useCallback } from 'react';
+import { useState, useContext, useSyncExternalStore, useMemo, useCallback, useEffect } from 'react';
 import { useCatalog } from './hooks/useCatalog';
 import { ProductGrid } from './components/catalog/ProductGrid';
 import { FilterSidebar } from './components/catalog/FilterSidebar';
@@ -9,6 +9,9 @@ import { CartProvider, CartContext } from './context/CartContext';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 import { useAuth } from './hooks/useAuth';
 import { ShoppingConcierge } from './components/chat/ShoppingConcierge';
+import { ProductDetailPage } from './components/catalog/ProductDetailPage';
+import { fetchProductById } from './services/api';
+import type { Product } from './types/product';
 
 function getPath() {
   return window.location.pathname;
@@ -29,13 +32,135 @@ function Router({ children }: { children: React.ReactNode }) {
     getPath,
   );
 
-  return pathname.includes('/checkout') ? (
+  if (pathname.includes('/checkout')) {
+    return (
+      <>
+        <Header onNavigate={(v) => navigate(v === 'shop' ? '/shop' : '/')} />
+        <CheckoutPage />
+      </>
+    );
+  }
+
+  const productMatch = pathname.match(/^\/product\/(\d+)/);
+  if (productMatch) {
+    const productId = parseInt(productMatch[1], 10);
+    return <ProductDetailRoute productId={productId} />;
+  }
+
+  return <>{children}</>;
+}
+
+/* ──────────────────────────────────────────────────────────────
+ *  ProductDetailRoute — carga producto por ID y renderiza detalle
+ * ────────────────────────────────────────────────────────────── */
+function ProductDetailRoute({ productId }: { productId: number }) {
+  const { addToCart } = useContext(CartContext)!;
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    fetchProductById(productId)
+      .then((data) => {
+        if (!cancelled) {
+          setProduct(data);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setError(err.message || 'Error al cargar el producto');
+          setLoading(false);
+        }
+      });
+    return () => { cancelled = true; };
+  }, [productId]);
+
+  const handleAddToCart = useCallback(
+    (p: Product, quantity: number, _size?: string) => {
+      for (let i = 0; i < quantity; i++) {
+        addToCart(p);
+      }
+    },
+    [addToCart],
+  );
+
+  const handleBuyNow = useCallback(
+    (p: Product, quantity: number, _size?: string) => {
+      for (let i = 0; i < quantity; i++) {
+        addToCart(p);
+      }
+      navigate('/checkout');
+    },
+    [addToCart],
+  );
+
+  const handleBack = useCallback(() => {
+    navigate('/shop');
+  }, []);
+
+  // Loading — mostrar skeleton de ProductDetailPage
+  if (loading) {
+    return (
+      <>
+        <Header onNavigate={(v) => navigate(v === 'shop' ? '/shop' : '/')} />
+        <ProductDetailPage
+          product={{ id: 0, nombre: '', img: '', precio: 0 } as Product}
+          onAddToCart={() => {}}
+          onBuyNow={() => {}}
+          onBack={handleBack}
+        />
+        <Footer />
+      </>
+    );
+  }
+
+  // Error — producto no encontrado o error de red
+  if (error || !product) {
+    return (
+      <>
+        <Header onNavigate={(v) => navigate(v === 'shop' ? '/shop' : '/')} />
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="text-center px-4">
+            <div className="text-6xl mb-4 text-gray-300">
+              <svg className="w-24 h-24 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">
+              Producto no encontrado
+            </h2>
+            <p className="text-gray-500 mb-6 max-w-md mx-auto">
+              {error || 'El producto que buscas no existe o fue removido.'}
+            </p>
+            <button
+              onClick={() => navigate('/shop')}
+              className="inline-block bg-coral hover:bg-coral-dark text-white px-8 py-3 rounded font-medium transition-colors duration-300 cursor-pointer border-0"
+            >
+              Volver a la tienda
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </>
+    );
+  }
+
+  // Success
+  return (
     <>
       <Header onNavigate={(v) => navigate(v === 'shop' ? '/shop' : '/')} />
-      <CheckoutPage />
+      <ProductDetailPage
+        product={product}
+        onAddToCart={handleAddToCart}
+        onBuyNow={handleBuyNow}
+        onBack={handleBack}
+      />
+      <Footer />
     </>
-  ) : (
-    <>{children}</>
   );
 }
 
@@ -352,6 +477,10 @@ function ProductsSection() {
     filterByPrice(null);
   }, [filterByCategories, filterByPrice]);
 
+  const handleProductClick = useCallback((id: number) => {
+    navigate(`/product/${id}`);
+  }, []);
+
   return (
     <section id="destacados" className="my-5 py-5">
       <div className="container mt-2 py-5 mx-auto px-4">
@@ -379,6 +508,7 @@ function ProductsSection() {
           <ProductGrid
             products={products}
             onAddToCart={addToCart}
+            onProductClick={handleProductClick}
             loading={loading}
             error={error}
           />
