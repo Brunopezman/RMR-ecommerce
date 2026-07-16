@@ -141,7 +141,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
               </div>
               <button
                 type="submit"
-                className="w-full bg-black text-white border-none py-3 px-7 font-display uppercase font-bold text-sm transition-colors duration-300 hover:bg-coral cursor-pointer rounded-lg focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
+                className="w-full bg-black text-white border-none py-3 px-7 font-display uppercase font-bold text-sm transition-colors duration-300 hover:bg-coral-dark cursor-pointer rounded-lg focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
                 disabled={loading}
               >
                 {loading ? 'Ingresando...' : 'Iniciar Sesión'}
@@ -151,7 +151,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
           <div className="modal-footer justify-content-center border-t pt-3">
             <a
               href="#"
-              className="btn btn-link text-decoration-none text-black transition-colors duration-300 hover:text-coral focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
+              className="btn btn-link text-decoration-none text-black transition-colors duration-300 hover:text-coral-dark focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
               onClick={onClose}
             >
               ¿Olvidaste tu contraseña?

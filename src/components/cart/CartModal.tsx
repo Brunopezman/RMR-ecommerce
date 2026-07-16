@@ -71,7 +71,7 @@ export function CartModal({ isOpen, onClose }: CartModalProps) {
         <button
           ref={closeButtonRef}
           id="btn-cerrar-carrito"
-          className="absolute top-3.5 right-3.5 text-xl text-coral border-none bg-white cursor-pointer p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
+          className="absolute top-3.5 right-3.5 text-xl text-coral-dark border-none bg-white cursor-pointer p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
           onClick={onClose}
           aria-label="Cerrar carrito"
         >
@@ -100,7 +100,7 @@ export function CartModal({ isOpen, onClose }: CartModalProps) {
 
         <button
           id="btn-checkout"
-          className="w-full bg-black text-white border-none py-3 mt-4 font-display uppercase tracking-wider rounded-lg cursor-pointer transition-colors duration-300 hover:bg-coral text-sm font-bold focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
+          className="w-full bg-black text-white border-none py-3 mt-4 font-display uppercase tracking-wider rounded-lg cursor-pointer transition-colors duration-300 hover:bg-coral-dark text-sm font-bold focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
           onClick={handleCheckout}
         >
           Finalizar Compra
@@ -108,7 +108,7 @@ export function CartModal({ isOpen, onClose }: CartModalProps) {
 
         <button
           id="vaciarCarrito"
-          className="bg-transparent text-gray-400 border-0 py-1 px-0 mt-2 font-sans text-xs cursor-pointer transition-colors duration-300 hover:text-coral hover:underline focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
+          className="bg-transparent text-gray-400 border-0 py-1 px-0 mt-2 font-sans text-xs cursor-pointer transition-colors duration-300 hover:text-coral-dark hover:underline focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
           onClick={clearCart}
         >
           Limpiar carrito

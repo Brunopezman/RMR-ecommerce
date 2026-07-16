@@ -79,7 +79,7 @@ function Header({ onNavigate }: { onNavigate: (view: 'home' | 'shop') => void })
               <ul className="flex items-center gap-4 list-none m-0 p-0">
                 <li className="nav-item">
                   <button
-                    className="nav-link px-2 py-1 text-black no-underline transition-colors duration-300 hover:text-coral text-base bg-transparent border-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
+                    className="nav-link px-2 py-1 text-black no-underline transition-colors duration-300 hover:text-coral-dark text-base bg-transparent border-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
                     onClick={() => {
                       document.getElementById('navbarNav')?.classList.add('hidden');
                       onNavigate('home');
@@ -90,7 +90,7 @@ function Header({ onNavigate }: { onNavigate: (view: 'home' | 'shop') => void })
                 </li>
                 <li className="nav-item">
                   <button
-                    className="nav-link px-2 py-1 text-black no-underline transition-colors duration-300 hover:text-coral text-base bg-transparent border-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
+                    className="nav-link px-2 py-1 text-black no-underline transition-colors duration-300 hover:text-coral-dark text-base bg-transparent border-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
                     onClick={() => {
                       document.getElementById('navbarNav')?.classList.add('hidden');
                       onNavigate('shop');
@@ -101,7 +101,7 @@ function Header({ onNavigate }: { onNavigate: (view: 'home' | 'shop') => void })
                 </li>
                 <li className="nav-item">
                   <button
-                    className="nav-link px-2 py-1 text-black no-underline transition-colors duration-300 hover:text-coral text-base bg-transparent border-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
+                    className="nav-link px-2 py-1 text-black no-underline transition-colors duration-300 hover:text-coral-dark text-base bg-transparent border-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
                     onClick={() => {
                       document.getElementById('navbarNav')?.classList.add('hidden');
                       onNavigate('home');
@@ -226,7 +226,7 @@ function HeroSection({ onShopClick }: { onShopClick: () => void }) {
         </p>
         <button
           onClick={onShopClick}
-          className="mt-6 inline-block bg-black hover:bg-coral text-white px-8 py-3 rounded-lg font-medium transition-colors duration-300 uppercase tracking-wide font-bold text-sm border-0 cursor-pointer"
+          className="mt-6 inline-block bg-black hover:bg-coral-dark text-white px-8 py-3 rounded-lg font-medium transition-colors duration-300 uppercase tracking-wide font-bold text-sm border-0 cursor-pointer"
         >
           Comprar ahora
         </button>
@@ -265,7 +265,7 @@ function BannerServices() {
                 <div className="flex-1 p-0">
                   <h4 className="text-lg font-semibold">Financiación en cuotas</h4>
                   <p className="text-gray-600 text-sm">
-                    <span className="inline-block bg-coral text-white px-2 py-0.5 rounded text-sm mr-1">
+                    <span className="inline-block bg-coral-dark text-white px-2 py-0.5 rounded text-sm mr-1">
                       3 cuotas &bull; 10%
                     </span>
                     <span className="inline-block bg-black text-white px-2 py-0.5 rounded text-sm mr-1">
@@ -361,17 +361,17 @@ function Footer() {
             <h5 className="font-bold text-lg mb-4">Productos</h5>
             <ul className="list-none p-0">
               <li className="mb-2">
-                <a href="#" className="text-sm text-black no-underline transition-colors duration-300 hover:bg-coral hover:text-white block px-2 py-1 rounded">
+                <a href="#" className="text-sm text-black no-underline transition-colors duration-300 hover:bg-coral-dark hover:text-white block px-2 py-1 rounded">
                   Remeras
                 </a>
               </li>
               <li className="mb-2">
-                <a href="#" className="text-sm text-black no-underline transition-colors duration-300 hover:bg-coral hover:text-white block px-2 py-1 rounded">
+                <a href="#" className="text-sm text-black no-underline transition-colors duration-300 hover:bg-coral-dark hover:text-white block px-2 py-1 rounded">
                   Gorras
                 </a>
               </li>
               <li className="mb-2">
-                <a href="#" className="text-sm text-black no-underline transition-colors duration-300 hover:bg-coral hover:text-white block px-2 py-1 rounded">
+                <a href="#" className="text-sm text-black no-underline transition-colors duration-300 hover:bg-coral-dark hover:text-white block px-2 py-1 rounded">
                   Accesorios
                 </a>
               </li>
@@ -381,17 +381,17 @@ function Footer() {
             <h5 className="font-bold text-lg mb-4">Ayuda</h5>
             <ul className="list-none p-0">
               <li className="mb-2">
-                <a href="#" className="text-sm text-black no-underline transition-colors duration-300 hover:bg-coral hover:text-white block px-2 py-1 rounded">
+                <a href="#" className="text-sm text-black no-underline transition-colors duration-300 hover:bg-coral-dark hover:text-white block px-2 py-1 rounded">
                   Preguntas frecuentes
                 </a>
               </li>
               <li className="mb-2">
-                <a href="#" className="text-sm text-black no-underline transition-colors duration-300 hover:bg-coral hover:text-white block px-2 py-1 rounded">
+                <a href="#" className="text-sm text-black no-underline transition-colors duration-300 hover:bg-coral-dark hover:text-white block px-2 py-1 rounded">
                   Envíos
                 </a>
               </li>
               <li className="mb-2">
-                <a href="#" className="text-sm text-black no-underline transition-colors duration-300 hover:bg-coral hover:text-white block px-2 py-1 rounded">
+                <a href="#" className="text-sm text-black no-underline transition-colors duration-300 hover:bg-coral-dark hover:text-white block px-2 py-1 rounded">
                   Devoluciones
                 </a>
               </li>
