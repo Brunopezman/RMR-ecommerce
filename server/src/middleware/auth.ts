@@ -14,11 +14,12 @@ const JWT_SECRET = process.env.JWT_SECRET || 'rmr-dev-secret';
 export interface AuthPayload {
   userId: number;
   email: string;
+  role: string;
 }
 
 /**
  * Express middleware: verifies JWT Bearer token.
- * Sets res.locals.auth with { userId, email } on success.
+ * Sets res.locals.auth with { userId, email, role } on success.
  */
 export function authenticateToken(
   req: Request,
@@ -42,4 +43,23 @@ export function authenticateToken(
   } catch (err) {
     res.status(401).json({ error: 'Token inválido o expirado' });
   }
+}
+
+/**
+ * Express middleware: requires the authenticated user to have admin role.
+ * Must be used after authenticateToken.
+ */
+export function requireAdmin(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
+  const auth = res.locals.auth as AuthPayload | undefined;
+
+  if (!auth || auth.role !== 'admin') {
+    res.status(403).json({ error: 'Acceso denegado. Se requiere rol de administrador.' });
+    return;
+  }
+
+  next();
 }

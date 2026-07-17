@@ -48,6 +48,7 @@ export async function initDb(): Promise<SqlJsDatabase> {
   createTables();
   migrateUsersTable();
   seedProducts();
+  seedAdminUser();
   persist();
 
   return sqlDb;
@@ -184,6 +185,7 @@ function migrateUsersTable(): void {
     'sexo TEXT DEFAULT \'\'',
     'telefono TEXT DEFAULT \'\'',
     'password_hash TEXT DEFAULT \'\'',
+    "role TEXT NOT NULL DEFAULT 'user'",
   ];
 
   for (const colDef of newColumns) {
@@ -193,6 +195,33 @@ function migrateUsersTable(): void {
       // Column already exists — safe to ignore
     }
   }
+}
+
+/**
+ * Seed admin user from ADMIN_EMAIL env var if set.
+ */
+function seedAdminUser(): void {
+  const adminEmail = process.env.ADMIN_EMAIL;
+  if (!adminEmail) return;
+
+  const existing = queryOne('SELECT id, role FROM users WHERE email = ?', [adminEmail]);
+
+  if (existing) {
+    if (existing.role !== 'admin') {
+      run('UPDATE users SET role = ? WHERE email = ?', ['admin', adminEmail]);
+      persist();
+      console.log(`[db] Promoted ${adminEmail} to admin.`);
+    }
+    return;
+  }
+
+  run(
+    `INSERT INTO users (email, name, role, password_hash)
+     VALUES (?, ?, ?, ?)`,
+    [adminEmail, 'Admin', 'admin', ''],
+  );
+  persist();
+  console.log(`[db] Created admin user: ${adminEmail}`);
 }
 
 /**

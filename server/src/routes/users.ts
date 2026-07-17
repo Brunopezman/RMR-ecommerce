@@ -7,8 +7,8 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { queryOne, run, lastInsertId, persist } from '../db.js';
-import { authenticateToken } from '../middleware/auth.js';
+import { queryAll, queryOne, run, lastInsertId, persist } from '../db.js';
+import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 
 /**
  * Convert SQLite datetime string to ISO 8601 format.
@@ -26,6 +26,7 @@ function shapeUser(row: Record<string, unknown>) {
     id: row.id as number,
     email: row.email as string,
     name: row.name as string,
+    role: (row.role as string) || 'user',
     apellido: (row.apellido as string) || '',
     address: (row.address as string | null) ?? undefined,
     codigoPostal: (row.codigo_postal as string) || '',
@@ -73,6 +74,19 @@ router.post('/', (req: Request, res: Response) => {
     res.status(201).json(created ? shapeUser(created) : { id: newId, email, name, address: address ?? undefined, createdAt: new Date().toISOString() });
   } catch (err) {
     console.error('[users] Error creating user:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * GET /users — list all users (admin only)
+ */
+router.get('/', authenticateToken, requireAdmin, (_req: Request, res: Response) => {
+  try {
+    const rows = queryAll('SELECT * FROM users ORDER BY created_at DESC');
+    res.json(rows.map(shapeUser));
+  } catch (err) {
+    console.error('[users] Error listing users:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

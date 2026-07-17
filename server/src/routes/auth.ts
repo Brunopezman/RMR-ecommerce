@@ -25,8 +25,8 @@ function toIsoDate(sqliteDate: string): string {
 /**
  * Build a JWT token for a given user.
  */
-function generateToken(userId: number, email: string): string {
-  return jwt.sign({ userId, email }, JWT_SECRET, { expiresIn: '7d' });
+function generateToken(userId: number, email: string, role: string): string {
+  return jwt.sign({ userId, email, role }, JWT_SECRET, { expiresIn: '7d' });
 }
 
 /**
@@ -37,6 +37,7 @@ function shapeUser(row: Record<string, unknown>) {
     id: row.id as number,
     email: row.email as string,
     name: row.name as string,
+    role: (row.role as string) || 'user',
     apellido: (row.apellido as string) || '',
     address: (row.address as string | null) ?? undefined,
     codigoPostal: (row.codigo_postal as string) || '',
@@ -105,7 +106,7 @@ router.post('/register', (req: Request, res: Response) => {
     }
 
     const user = shapeUser(created);
-    const token = generateToken(newId, email);
+    const token = generateToken(newId, email, user.role);
 
     res.status(201).json({ user, token });
   } catch (err) {
@@ -146,7 +147,7 @@ router.post('/login', (req: Request, res: Response) => {
     }
 
     const user = shapeUser(row);
-    const token = generateToken(row.id as number, email);
+    const token = generateToken(row.id as number, email, user.role);
 
     res.json({ user, token });
   } catch (err) {
