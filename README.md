@@ -40,43 +40,28 @@ E-commerce de merchandising de bandas de rock con frontend React, backend Expres
 
 ```
 /
-├── index.html                    # Entry point HTML
-├── src/
-│   ├── main.tsx                  # Punto de entrada React
-│   ├── App.tsx                   # Componente raíz + router SPA
-│   ├── components/
-│   │   ├── auth/                 # LoginModal, LogoutConfirmModal
-│   │   ├── cart/                 # CartModal, CartItemRow
-│   │   ├── catalog/              # ProductGrid
-│   │   ├── chat/                 # ShoppingConcierge (chatbot)
-│   │   ├── checkout/             # CheckoutPage
-│   │   └── ui/                   # ProductCard, Toast
-│   ├── context/
-│   │   ├── AuthContext.tsx       # Estado de autenticación
-│   │   └── CartContext.tsx       # Estado del carrito + localStorage
-│   ├── hooks/
-│   │   ├── useAuth.ts            # Login/logout
-│   │   ├── useCart.ts            # Operaciones del carrito
-│   │   ├── useCatalog.ts         # Fetch de productos
-│   │   └── useConcierge.ts       # Lógica del chatbot
-│   ├── services/
-│   │   ├── api.ts                # Cliente HTTP (fetch)
-│   │   ├── authService.ts        # Autenticación mock/real
-│   │   ├── cartService.ts        # CRUD carrito + localStorage
-│   │   ├── checkoutService.ts    # Validación de tarjeta, cálculos
-│   │   ├── productSearch.ts      # Búsqueda semántica TF-IDF
-│   │   └── productService.ts     # Catálogo: fetch, filtros, búsqueda
-│   ├── types/                    # Interfaces TypeScript
-│   └── __tests__/                # Tests unitarios
+├── src/                          # Código fuente del frontend React
+│   ├── components/               # Componentes React organizados por dominio
+│   │   ├── auth/                 # Login, registro, logout
+│   │   ├── cart/                 # Modal del carrito
+│   │   ├── catalog/              # Grilla de productos
+│   │   ├── chat/                 # Shopping Concierge (chatbot)
+│   │   ├── checkout/             # Página de finalización de compra
+│   │   └── ui/                   # Componentes reutilizables (ProductCard, Toast)
+│   ├── context/                  # Contextos React con estado global (Auth, Cart)
+│   ├── hooks/                    # Custom hooks con lógica de negocio
+│   ├── services/                 # Lógica pura sin dependencias del DOM (API, auth, cart, checkout, búsqueda)
+│   ├── types/                    # Interfaces y tipos TypeScript compartidos
+│   ├── __tests__/                # Tests unitarios (Vitest)
+│   └── test/                     # Utilidades y helpers de testing
 ├── server/                       # Backend Express + SQLite
 │   └── src/
-│       ├── index.ts              # Servidor Express (puerto 4000)
-│       ├── db.ts                 # Inicialización SQLite
-│       ├── routes/               # products, users, orders
+│       ├── routes/               # Rutas: products, users, orders, auth
 │       └── types.ts              # Tipos del backend
-├── data/db.json                  # Datos semilla para json-server
+├── data/                         # Datos semilla (db.json) para json-server
 ├── public/img/                   # Imágenes del catálogo
-└── e2e/                          # Tests Playwright
+├── docs/                         # Documentación técnica (arquitectura, API, reportes)
+└── e2e/                          # Tests end-to-end (Playwright)
 ```
 
 ## Arquitectura
@@ -135,32 +120,38 @@ El frontend se conecta al backend real (Express, puerto 4000) por defecto. Para 
 
 ## Testing
 
-### Unitarios / Integración (Vitest) — 70 tests
+### Unitarios / Integración (Vitest)
 
 ```bash
 npm test              # Ejecuta toda la suite
 npm run test:watch    # Modo watch
 ```
 
-| Suite | Tests | Cobertura |
+| Área | Suites | Cobertura |
 |---|---|---|
-| `checkout.test.js` | 24 | detectCardType, validarLuhn, formatearNumeroTarjeta, calcularTotalConInteres, calcularEnvio, calcularResumen |
-| `products.service.test.js` | 14 | fetchProducts, filterByCategory, searchByName |
-| `cart.test.js` | 13 | validarProductoRepetido, eliminarProductoCarrito, vaciarCarrito, actualizarTotal |
-| `auth.test.js` | 8 | login mock, loadAuthState, saveAuthState, clearAuthState |
+| **Checkout** | `checkout.test.js` | detectCardType, validarLuhn, formatearNumeroTarjeta, cálculos de cuotas y envío, resumen |
+| **Catálogo** | `products.service.test.js`, `FilterSidebar.test.jsx`, `ProductGrid.test.jsx`, `ProductCard.test.jsx`, `ProductDetailPage.test.jsx` | fetch, filtros, búsqueda, renderizado de grilla y cards |
+| **Carrito** | `cart.test.js` | agregar/eliminar/vaciar productos, persistencia localStorage |
+| **Auth** | `auth.test.js`, `LoginModal.test.jsx`, `RegisterPage.test.jsx` | login contra API, registro, formularios, estados de carga/error |
+| **Catálogo hook** | `useCatalog.test.jsx` | fetch con loading/error, datos de productos |
+| **Concierge** | `concierge.test.js` | parseo de intención, búsqueda semántica TF-IDF |
+| **Navegación** | `navigation.test.jsx` | router SPA, cambio de vistas |
 
-### End-to-End (Playwright) — 14 tests
+### End-to-End (Playwright)
 
 ```bash
 npm run test:e2e
 ```
 
-| Suite | Tests | Flujo |
+| Área | Suites | Flujo |
 |---|---|---|
-| `home.spec.js` | 4 | Carga SPA, navbar, banner-services visible, brand con 6 logos |
-| `shop.spec.js` | 4 | Click "Compra Ahora" → productos visibles, banners ocultos, grid con botones |
-| `cart.spec.js` | 3 | Contador inicial 0, agregar producto, incrementar cantidad |
-| `navigation.spec.js` | 3 | Nav "Productos"/"Inicio", botón "Compra Ahora" |
+| **Home** | `home.spec.js` | Carga SPA, navbar, banner-services visible, brand con logos |
+| **Tienda** | `shop.spec.js` | Navegación a productos, grilla visible, botones de compra |
+| **Carrito** | `cart.spec.js` | Contador, agregar producto, incrementar cantidad |
+| **Navegación** | `navigation.spec.js` | Nav "Productos"/"Inicio", botón "Compra Ahora" |
+| **Checkout** | `checkout.spec.js` | Flujo completo de compra con formulario de pago |
+| **Filtros** | `filters.spec.js` | Filtros de catálogo por categoría |
+| **Full flow** | `full-flow.spec.js` | Recorrido completo: home → shop → carrito → checkout → confirmación |
 
 ## Desarrollo
 
