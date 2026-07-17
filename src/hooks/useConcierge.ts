@@ -15,7 +15,7 @@
  * chat igual con un mensaje de error amigable.
  */
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, type MutableRefObject } from 'react';
 import type { Product } from '../types/product';
 import { buildIndex, searchSimilar, isIndexReady, clearIndex, searchByName } from '../services/productSearch';
 import { PRODUCTS_API_URL } from '../services/productService';
@@ -102,10 +102,11 @@ export interface ConciergeActions {
 
 export type UseConciergeReturn = ConciergeState & ConciergeActions;
 
-let messageCounter = 0;
-function nextId(): string {
-  messageCounter += 1;
-  return `msg-${Date.now()}-${messageCounter}`;
+function createNextId(counterRef: MutableRefObject<number>): () => string {
+  return function nextId(): string {
+    counterRef.current += 1;
+    return `msg-${Date.now()}-${counterRef.current}`;
+  };
 }
 
 // ──────────────────────────────────────────────
@@ -258,6 +259,8 @@ export function useConcierge(
   const [catalogLoaded, setCatalogLoaded] = useState(false);
   const mountedRef = useRef(false);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const messageCounterRef = useRef(0);
+  const nextId = createNextId(messageCounterRef);
 
   // Safety net: force catalogLoaded after 4s no matter what
   useEffect(() => {

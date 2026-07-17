@@ -23,6 +23,7 @@ La documentación técnica detallada se mantiene centralizada y debe usarse como
 
 - **Falsabilidad**: Todo plan de desarrollo debe incluir criterios de aceptación claros y falsables (Given/When/Then o checklist).
 - **Cobertura de Tests**: Cualquier cambio en el comportamiento de la app requiere escribir un test correspondiente (unitario o de integración) y validar que pasa.
+- **Commit por fase/inciso**: Al terminar cada fase o sub-inciso, hacer commit con mensaje claro. Pedir aprobación del usuario antes de pushear. Actualizar `.opencode-handoff.md` al finalizar cada fase.
 - **Entregables**:
   - Decisiones de arquitectura y mapas: `docs/architecture/`
   - Reportes de deuda técnica incremental: `docs/reports/auditor/`
@@ -30,7 +31,7 @@ La documentación técnica detallada se mantiene centralizada y debe usarse como
 
 ## Testing y Calidad
 
-- **Unitarios / Integración (Vitest + jsdom)**: `npm test` para correr la suite completa (70 tests activos).
+- **Unitarios / Integración (Vitest + jsdom)**: `npm test` para correr la suite completa (107 tests activos).
 - **End-to-End (Playwright)**: `npm run test:e2e` para levantar la app y correr flujos complejos (14 tests).
 - **Obligatorio**: Todo agente que modifique código en `src/` debe correr `npm test` exitosamente antes de finalizar.
 

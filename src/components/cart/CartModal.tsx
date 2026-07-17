@@ -1,5 +1,6 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect } from 'react';
 import { useCart } from '../../hooks/useCart';
+import { useToast } from '../ui/Toast';
 import { CartItemRow } from './CartItemRow';
 
 interface CartModalProps {
@@ -9,9 +10,9 @@ interface CartModalProps {
 
 export function CartModal({ isOpen, onClose }: CartModalProps) {
   const { items, summary, removeItem, clearCart } = useCart();
+  const { showToast } = useToast();
   const modalRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -50,8 +51,7 @@ export function CartModal({ isOpen, onClose }: CartModalProps) {
 
   const handleCheckout = () => {
     if (items.length === 0) {
-      setToast('Agregá productos al carrito antes de finalizar la compra.');
-      setTimeout(() => setToast(null), 3000);
+      showToast('Agregá productos al carrito antes de finalizar la compra', 'error');
       return;
     }
     window.location.href = '/checkout';
@@ -78,18 +78,16 @@ export function CartModal({ isOpen, onClose }: CartModalProps) {
           <i className="bx bxs-x-circle" aria-hidden="true" />
         </button>
 
-        {toast && (
-          <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-2 rounded mb-3 text-sm" role="alert">
-            {toast}
-          </div>
-        )}
-
         <div id="carrito-contenedor" aria-live="polite" aria-atomic="true">
           {items.length === 0 ? (
             <p className="text-gray-500 text-center py-4 font-display">Tu carrito está vacío. Explorá nuestro catálogo y llevate algo piola.</p>
           ) : (
             items.map((item) => (
-              <CartItemRow key={item.id} item={item} onRemove={removeItem} />
+              <CartItemRow
+                key={`${item.id}-${item.talleSeleccionado ?? 'nosize'}`}
+                item={item}
+                onRemove={removeItem}
+              />
             ))
           )}
         </div>

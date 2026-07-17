@@ -28,16 +28,12 @@ describe('searchByName (productSearch.ts)', () => {
   });
 
   it('token-level fallback: filtra ruido "al carrito", encuentra por token "ac/dc"', () => {
-    // "ac/dc al carrito" → exact includes "ac/dc al carrito" fails on all products.
-    // Token-level filters "al" + "carrito", keeps "ac/dc" → matches "Remera AC/DC" and "Buzo AC/DC"
     const result = searchByName('ac/dc al carrito', PRODUCTS);
     expect(result.length).toBeGreaterThanOrEqual(1);
     expect(result.some(p => p.id === 2)).toBe(true);
   });
 
   it('token-level fallback: encuentra por token individual cuando la query completa no coincide', () => {
-    // "remera acdc" → exact fails (no product has "acdc").
-    // Token-level keeps "remera" + "acdc", matches any product with "remera"
     const result = searchByName('remera acdc', PRODUCTS);
     expect(result.length).toBeGreaterThanOrEqual(1);
     expect(result.some(p => p.id === 2)).toBe(true);
@@ -67,6 +63,10 @@ describe('useConcierge — addToCart flow', () => {
     // Suppress console.warn from safety net
     consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
+    // Use fake timers to control setTimeout-based state updates
+    // (typing delay in sendMessage, safety net, abort timeout).
+    vi.useFakeTimers();
+
     // Mock fetch: first call (API, port 4000) fails; second call (fallback /data/db.json) succeeds
     let callCount = 0;
     global.fetch = vi.fn().mockImplementation((url) => {
@@ -87,41 +87,49 @@ describe('useConcierge — addToCart flow', () => {
   afterEach(() => {
     consoleWarnSpy.mockRestore();
     vi.restoreAllMocks();
+    vi.useRealTimers();
     clearIndex();
   });
+
+  /**
+   * Helper: advance fake timers by ms milliseconds inside act().
+   * This fires any due timers and drains the microtask queue (promises),
+   * ensuring all async state updates happen inside act().
+   */
+  async function advanceTimersInsideAct(ms = 100) {
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(ms);
+    });
+  }
 
   it('carga el catálogo desde el fallback /data/db.json cuando la API falla', async () => {
     const { result } = renderHook(() => useConcierge(addToCartMock));
 
-    // Wait for async loadCatalog to complete
-    await vi.waitFor(
-      () => {
-        expect(result.current.catalogLoaded).toBe(true);
-      },
-      { timeout: 5000 },
-    );
+    // Advance timers to drain microtasks from the mocked fetch chain;
+    // the promise rejections/resolutions from fetch occur as microtasks,
+    // and vi.advanceTimersByTimeAsync processes them inside act().
+    await advanceTimersInsideAct(100);
 
+    expect(result.current.catalogLoaded).toBe(true);
     expect(result.current.products.length).toBeGreaterThan(0);
   });
 
   it('sendMessage con "agregá Remera AC/DC al carrito" llama a addToCart con el producto correcto', async () => {
     const { result } = renderHook(() => useConcierge(addToCartMock));
 
-    // Wait for catalog
-    await vi.waitFor(() => expect(result.current.catalogLoaded).toBe(true), { timeout: 5000 });
+    // Wait for catalog to load
+    await advanceTimersInsideAct(100);
+    expect(result.current.catalogLoaded).toBe(true);
 
-    // Send the add-to-cart message
+    // sendMessage is synchronous for the initial state updates (user message, isTyping)
     act(() => {
       result.current.sendMessage('agregá Remera AC/DC al carrito');
     });
 
-    // Wait for typing delay (600ms) + processing
-    await vi.waitFor(
-      () => {
-        expect(addToCartMock).toHaveBeenCalled();
-      },
-      { timeout: 2000 },
-    );
+    // Advance past the 600ms typing delay so the timeout callback fires inside act()
+    await advanceTimersInsideAct(700);
+
+    expect(addToCartMock).toHaveBeenCalled();
 
     // Verify the correct product was added
     expect(addToCartMock).toHaveBeenCalledWith(
@@ -132,13 +140,16 @@ describe('useConcierge — addToCart flow', () => {
   it('sendMessage con "agregá Buzo AC/DC" (sin "al carrito") llama a addToCart correctamente', async () => {
     const { result } = renderHook(() => useConcierge(addToCartMock));
 
-    await vi.waitFor(() => expect(result.current.catalogLoaded).toBe(true), { timeout: 5000 });
+    await advanceTimersInsideAct(100);
+    expect(result.current.catalogLoaded).toBe(true);
 
     act(() => {
       result.current.sendMessage('agregá Buzo AC/DC');
     });
 
-    await vi.waitFor(() => expect(addToCartMock).toHaveBeenCalled(), { timeout: 2000 });
+    await advanceTimersInsideAct(700);
+
+    expect(addToCartMock).toHaveBeenCalled();
 
     expect(addToCartMock).toHaveBeenCalledWith(
       expect.objectContaining({ id: 12, nombre: 'Buzo AC/DC' }),
@@ -148,19 +159,15 @@ describe('useConcierge — addToCart flow', () => {
   it('sendMessage con producto inexistente muestra mensaje de error, no llama addToCart', async () => {
     const { result } = renderHook(() => useConcierge(addToCartMock));
 
-    await vi.waitFor(() => expect(result.current.catalogLoaded).toBe(true), { timeout: 5000 });
+    await advanceTimersInsideAct(100);
+    expect(result.current.catalogLoaded).toBe(true);
 
     act(() => {
       result.current.sendMessage('agregá Producto Inexistente X al carrito');
     });
 
-    // Wait a bit to ensure the typing delay passes
-    await vi.waitFor(
-      () => {
-        expect(result.current.messages.length).toBeGreaterThanOrEqual(2); // user msg + assistant
-      },
-      { timeout: 2000 },
-    );
+    // Advance past the 600ms typing delay
+    await advanceTimersInsideAct(700);
 
     expect(addToCartMock).not.toHaveBeenCalled();
 
@@ -173,7 +180,8 @@ describe('useConcierge — addToCart flow', () => {
   it('recibe mensaje de bienvenida al abrir el chat después de cargar catálogo', async () => {
     const { result } = renderHook(() => useConcierge(addToCartMock));
 
-    await vi.waitFor(() => expect(result.current.catalogLoaded).toBe(true), { timeout: 5000 });
+    await advanceTimersInsideAct(100);
+    expect(result.current.catalogLoaded).toBe(true);
 
     act(() => {
       result.current.open();

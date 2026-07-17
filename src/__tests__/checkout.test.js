@@ -94,29 +94,60 @@ describe('calcularTotalConInteres', () => {
 
 describe('calcularEnvio', () => {
   it('retiro en tienda: gratis', () => {
-    const result = calcularEnvio(10000, 'tienda', 1);
+    const result = calcularEnvio(10000, 'tienda', 1, 0);
     expect(result.envioCost).toBe(0);
     expect(result.totalFinal).toBe(10000);
     expect(result.valorCuota).toBe(10000);
+    expect(result.freeShipping).toBe(false);
   });
 
-  it('envío estándar: $1500', () => {
-    const result = calcularEnvio(10000, 'estandar', 1);
-    expect(result.envioCost).toBe(1500);
-    expect(result.totalFinal).toBe(11500);
-    expect(result.valorCuota).toBe(11500);
+  it('envío estándar: $10000', () => {
+    const result = calcularEnvio(10000, 'estandar', 1, 50000);
+    expect(result.envioCost).toBe(10000);
+    expect(result.totalFinal).toBe(20000);
+    expect(result.valorCuota).toBe(20000);
+    expect(result.freeShipping).toBe(false);
   });
 
-  it('envío express: $3000', () => {
-    const result = calcularEnvio(10000, 'express', 1);
-    expect(result.envioCost).toBe(3000);
-    expect(result.totalFinal).toBe(13000);
-    expect(result.valorCuota).toBe(13000);
+  it('envío express: $18000', () => {
+    const result = calcularEnvio(10000, 'express', 1, 50000);
+    expect(result.envioCost).toBe(18000);
+    expect(result.totalFinal).toBe(28000);
+    expect(result.valorCuota).toBe(28000);
+    expect(result.freeShipping).toBe(false);
   });
 
   it('divide totalFinal entre cantidad de cuotas', () => {
-    const result = calcularEnvio(10000, 'tienda', 3);
+    const result = calcularEnvio(10000, 'tienda', 3, 0);
     expect(result.valorCuota).toBeCloseTo(3333.33, 2);
+    expect(result.freeShipping).toBe(false);
+  });
+
+  it('envío gratis cuando totalBase >= 100000 (estándar)', () => {
+    const result = calcularEnvio(120000, 'estandar', 1, 100000);
+    expect(result.freeShipping).toBe(true);
+    expect(result.envioCost).toBe(0);
+    expect(result.totalFinal).toBe(120000);
+  });
+
+  it('envío gratis cuando totalBase >= 100000 (express)', () => {
+    const result = calcularEnvio(150000, 'express', 3, 150000);
+    expect(result.freeShipping).toBe(true);
+    expect(result.envioCost).toBe(0);
+    expect(result.totalFinal).toBe(150000);
+  });
+
+  it('NO hay envío gratis si totalBase < 100000', () => {
+    const result = calcularEnvio(80000, 'estandar', 1, 99999);
+    expect(result.freeShipping).toBe(false);
+    expect(result.envioCost).toBe(10000);
+    expect(result.totalFinal).toBe(90000);
+  });
+
+  it('envío gratis exactamente en el umbral de 100000', () => {
+    const result = calcularEnvio(110000, 'estandar', 1, 100000);
+    expect(result.freeShipping).toBe(true);
+    expect(result.envioCost).toBe(0);
   });
 });
 

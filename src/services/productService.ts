@@ -24,8 +24,8 @@ export async function fetchProducts(
 }
 
 /**
- * Filter products by category (case-insensitive).
- * Supports both `categoria` and `category` fields.
+ * Filter products by a single category (case-insensitive).
+ * Supports `categoria`, `category`, and `tipo` fields.
  * Returns all products if category is falsy.
  */
 export function filterByCategory(
@@ -36,8 +36,37 @@ export function filterByCategory(
   const q = String(category).toLowerCase();
   return products.filter(
     (p) =>
-      (p.categoria ?? p.category ?? '').toLowerCase() === q,
+      (p.categoria ?? p.category ?? p.tipo ?? '').toLowerCase() === q,
   );
+}
+
+/**
+ * Filter products by multiple categories (case-insensitive).
+ * Supports `categoria`, `category`, and `tipo` fields.
+ * Returns all products if categories array is empty.
+ */
+export function filterByCategories(
+  products: Product[],
+  categories: string[],
+): Product[] {
+  if (categories.length === 0) return products;
+  const q = categories.map((c) => c.toLowerCase());
+  return products.filter((p) => {
+    const cat = (p.categoria ?? p.category ?? p.tipo ?? '').toLowerCase();
+    return q.includes(cat);
+  });
+}
+
+/**
+ * Filter products by maximum price.
+ * Returns all products if maxPrice is null.
+ */
+export function filterByMaxPrice(
+  products: Product[],
+  maxPrice: number | null,
+): Product[] {
+  if (maxPrice === null) return products;
+  return products.filter((p) => p.precio <= maxPrice);
 }
 
 /**

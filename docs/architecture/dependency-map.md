@@ -107,3 +107,15 @@ App
    - Si hay endpoint real: POST a `${API_URL}/api/auth/login`.
 5. `AuthContext` actualiza estado → UI muestra nombre de usuario + botón logout.
 6. Logout: clic en icono de logout → modal de confirmación → `AuthContext.logout()` → limpia localStorage + actualiza UI.
+
+---
+
+## ⚠️ Problemas de arquitectura detectados (Auditoría Fase 1 — 2026-07-16)
+
+1. **CheckoutPage** hace bypass directo a localStorage (línea 91): `localStorage.removeItem('carrito')` en vez de usar `clearCart()` del contexto.
+2. **ToastContext** creado en `src/components/ui/Toast.tsx` pero nunca integrado en el árbol de componentes (`App.tsx`).
+3. **Header** y otros 5 componentes (HeroSection, BannerServices, BrandSection, ProductsSection, Footer) definidos inline en `App.tsx` (~450 líneas totales).
+4. **jsPDF** cargado desde CDN global (`index.html`) en vez de `npm install`, sin manejo de error si el CDN falla.
+5. **`(window as any).bootstrap.Modal`** — manipulación DOM imperativa dentro de React, viola TypeScript `strict: true`.
+
+> 📄 Ver reporte completo en `docs/reports/auditor/auditoria-fase1-2026-07-16.md`

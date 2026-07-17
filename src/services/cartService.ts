@@ -2,22 +2,34 @@ import type { Product, CartItem, CartSummary } from '../types';
 
 /**
  * Add a product to cart items.
- * If product already exists, increment its quantity.
- * Otherwise, add new item with quantity 1.
+ * Matches by id + talleSeleccionado so the same product in different sizes
+ * are treated as separate line items.
+ *
+ * @param items  Current cart items
+ * @param product  Product to add
+ * @param size  Selected size (undefined for non-talleable products)
+ * @param quantity  Number of units to add (default 1)
  */
 export function addToCart(
   items: CartItem[],
   product: Product,
+  size?: string,
+  quantity: number = 1,
 ): CartItem[] {
-  const existing = items.find((item) => item.id === product.id);
+  // Find existing item with same id AND same talleSeleccionado
+  const existing = items.find(
+    (item) => item.id === product.id && item.talleSeleccionado === size,
+  );
+
   if (existing) {
     return items.map((item) =>
-      item.id === product.id
-        ? { ...item, cantidad: item.cantidad + 1 }
+      item.id === product.id && item.talleSeleccionado === size
+        ? { ...item, cantidad: item.cantidad + quantity }
         : item,
     );
   }
-  return [...items, { ...product, cantidad: 1 }];
+
+  return [...items, { ...product, cantidad: quantity, talleSeleccionado: size }];
 }
 
 /**

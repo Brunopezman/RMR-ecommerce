@@ -4,16 +4,28 @@ const AUTH_TOKEN_KEY = 'authToken';
 const USER_EMAIL_KEY = 'userEmail';
 
 /**
- * Check if mock auth is enabled via window.Config (for legacy compat).
+ * Optional configuration that can be injected via window.__RMR_CONFIG__
+ * to toggle mock authentication mode.
+ */
+interface RmrConfig {
+  USE_MOCK_AUTH?: boolean;
+}
+
+/**
+ * Retrieve the app configuration from the global scope in a type-safe way.
+ */
+function getConfig(): RmrConfig {
+  if (typeof window === 'undefined') return {};
+  const cfg = (window as { __RMR_CONFIG__?: RmrConfig }).__RMR_CONFIG__;
+  return cfg ?? {};
+}
+
+/**
+ * Check if mock auth is enabled via window.__RMR_CONFIG__.
  */
 function isMockAuth(): boolean {
   try {
-    return (
-      typeof window !== 'undefined' &&
-      (window as unknown as Record<string, unknown>).Config != null &&
-      ((window as unknown as Record<string, unknown>).Config as Record<string, unknown>)
-        .USE_MOCK_AUTH === true
-    );
+    return getConfig().USE_MOCK_AUTH === true;
   } catch {
     return false;
   }

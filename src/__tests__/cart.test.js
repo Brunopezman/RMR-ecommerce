@@ -71,6 +71,51 @@ describe('addToCart', () => {
     expect(items).toHaveLength(3);
     expect(items.map(p => p.id)).toEqual(['1', '2', '3']);
   });
+
+  describe('con talles', () => {
+    const REMERA = { id: '1', nombre: 'Remera The Beatles', precio: 4000, categoria: 'remera' };
+
+    it('agrega un producto con talle como item separado', () => {
+      const result = addToCart([], REMERA, 'M');
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('1');
+      expect(result[0].talleSeleccionado).toBe('M');
+      expect(result[0].cantidad).toBe(1);
+    });
+
+    it('mismo producto + mismo talle → incrementa cantidad', () => {
+      const items = [{ ...REMERA, cantidad: 1, talleSeleccionado: 'M' }];
+      const result = addToCart(items, REMERA, 'M');
+      expect(result).toHaveLength(1);
+      expect(result[0].talleSeleccionado).toBe('M');
+      expect(result[0].cantidad).toBe(2);
+    });
+
+    it('mismo producto + distinto talle → crea item separado', () => {
+      const items = [{ ...REMERA, cantidad: 1, talleSeleccionado: 'M' }];
+      const result = addToCart(items, REMERA, 'L');
+      expect(result).toHaveLength(2);
+      expect(result[0].talleSeleccionado).toBe('M');
+      expect(result[0].cantidad).toBe(1);
+      expect(result[1].talleSeleccionado).toBe('L');
+      expect(result[1].cantidad).toBe(1);
+    });
+
+    it('producto con talle y sin talle conviven por separado', () => {
+      const items = [{ ...REMERA, cantidad: 1 }]; // sin talle
+      const result = addToCart(items, REMERA, 'XL');
+      expect(result).toHaveLength(2);
+      expect(result[0].talleSeleccionado).toBeUndefined();
+      expect(result[1].talleSeleccionado).toBe('XL');
+    });
+
+    it('addToCart con quantity > 1 agrega esa cantidad de una vez', () => {
+      const result = addToCart([], REMERA, 'L', 3);
+      expect(result).toHaveLength(1);
+      expect(result[0].cantidad).toBe(3);
+      expect(result[0].talleSeleccionado).toBe('L');
+    });
+  });
 });
 
 describe('removeFromCart', () => {
