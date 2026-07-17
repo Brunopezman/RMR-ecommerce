@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { jsPDF } from 'jspdf';
 import { useCart } from '../../hooks/useCart';
+import { useToast } from '../ui/Toast';
 import {
   detectCardType,
   validarLuhn,
@@ -13,6 +14,7 @@ import {
 
 export function CheckoutPage() {
   const { items, summary, clearCart } = useCart();
+  const { showToast } = useToast();
 
   // Form state
   const [ccName, setCcName] = useState('');
@@ -81,7 +83,7 @@ export function CheckoutPage() {
       e.preventDefault();
 
       if (!tarjetaValida) {
-        // TODO: show toast error
+        showToast('Revisá los datos de la tarjeta', 'error');
         return;
       }
 
@@ -89,7 +91,6 @@ export function CheckoutPage() {
       setTimeout(() => {
         setPagoExitoso(true);
         clearCart();
-        localStorage.removeItem('carrito');
       }, 2000);
     },
     [tarjetaValida, clearCart],

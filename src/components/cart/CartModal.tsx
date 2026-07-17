@@ -1,4 +1,5 @@
 import { useCart } from '../../hooks/useCart';
+import { useToast } from '../ui/Toast';
 import { CartItemRow } from './CartItemRow';
 
 interface CartModalProps {
@@ -8,12 +9,13 @@ interface CartModalProps {
 
 export function CartModal({ isOpen, onClose }: CartModalProps) {
   const { items, summary, removeItem, clearCart } = useCart();
+  const { showToast } = useToast();
 
   if (!isOpen) return null;
 
   const handleCheckout = () => {
     if (items.length === 0) {
-      // TODO: show toastify notification
+      showToast('Agregá productos al carrito antes de finalizar la compra', 'error');
       return;
     }
     window.location.href = '/checkout';

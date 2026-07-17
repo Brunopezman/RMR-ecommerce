@@ -1,12 +1,15 @@
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import { ToastProvider } from './components/ui/Toast';
 import { AppContent } from './components/layout/AppContent';
 
 function App() {
   return (
     <AuthProvider>
       <CartProvider>
-        <AppContent />
+        <ToastProvider>
+          <AppContent />
+        </ToastProvider>
       </CartProvider>
     </AuthProvider>
   );
