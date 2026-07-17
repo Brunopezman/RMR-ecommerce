@@ -121,10 +121,6 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
         </div>
 
         <div className="p-4">
-          <small className="text-gray-500 block mb-3">
-            * Login demostrativo (sin validación real)
-          </small>
-
           {loginError && (
             <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-2 rounded mb-3" role="alert" aria-live="polite">
               {loginError}

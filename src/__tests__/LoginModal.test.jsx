@@ -49,11 +49,6 @@ describe('LoginModal — Modo Login (comportamiento existente)', () => {
     expect(screen.getByRole('button', { name: 'Iniciar Sesión' })).toBeInTheDocument();
   });
 
-  it('muestra el disclaimer de login demostrativo', () => {
-    renderModal();
-    expect(screen.getByText('* Login demostrativo (sin validación real)')).toBeInTheDocument();
-  });
-
   it('renderiza el link para crear cuenta', () => {
     renderModal();
     expect(screen.getByText('¿No tenés cuenta? Crear una')).toBeInTheDocument();

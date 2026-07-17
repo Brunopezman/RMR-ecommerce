@@ -123,10 +123,19 @@ export function CheckoutPage() {
     return () => clearInterval(interval);
   }, [pagoExitoso]);
 
-  // PDF download handler
+  // PDF download handler — receipt with full user info
   const handleDownloadPdf = useCallback(() => {
     const pdf = new jsPDF();
     const nroTarjeta = ccNumber.replace(/\D/g, '');
+    const nroRecibo = `RMR-${Date.now().toString(36).toUpperCase()}`;
+    const fecha = new Date().toLocaleString('es-AR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
     const shippingLabel =
       shippingType === 'tienda'
         ? 'Retiro en tienda'
@@ -134,44 +143,169 @@ export function CheckoutPage() {
           ? 'Envío estándar'
           : 'Envío express';
 
+    const shippingAddressStr =
+      shippingType === 'tienda'
+        ? 'Av. Corrientes 1234, CABA'
+        : direccion || (user?.address ?? '—');
+
+    const rightMargin = 190;
     let y = 20;
+
+    // ── Header ────────────────────────────────────
+    pdf.setFont('courier', 'bold');
+    pdf.setFontSize(16);
+    pdf.text('ROCK MERCH & ROLL', 105, y, { align: 'center' });
+    y += 7;
     pdf.setFont('courier', 'normal');
+    pdf.setFontSize(8);
+    pdf.text('Tu tienda de merchandising rock', 105, y, { align: 'center' });
+    y += 10;
+
+    // Separator line
+    pdf.setDrawColor(0);
+    pdf.setLineWidth(0.5);
+    pdf.line(14, y, rightMargin, y);
+    y += 8;
+
+    // Receipt header
+    pdf.setFont('courier', 'bold');
     pdf.setFontSize(11);
+    pdf.text('COMPROBANTE DE PAGO', 105, y, { align: 'center' });
+    y += 8;
 
-    pdf.text('COMPROBANTE DE PAGO - RMR', 20, y);
+    pdf.setFont('courier', 'normal');
+    pdf.setFontSize(9);
+    pdf.text(`Nro. Recibo: ${nroRecibo}`, 20, y);
+    pdf.text(`Fecha: ${fecha}`, rightMargin, y, { align: 'right' });
     y += 10;
-    pdf.text(`Fecha: ${new Date().toLocaleString()}`, 20, y);
+
+    // ── Customer info ─────────────────────────────
+    pdf.setFont('courier', 'bold');
+    pdf.setFontSize(9);
+    pdf.text('DATOS DEL CLIENTE', 20, y);
+    y += 6;
+    pdf.setFont('courier', 'normal');
+    pdf.setFontSize(8.5);
+    pdf.text(`Nombre: ${user?.name || ccName} ${user?.apellido || ''}`.trim(), 20, y);
+    y += 5;
+    pdf.text(`Email: ${user?.email || '—'}`, 20, y);
+    y += 5;
+    pdf.text(
+      `Dirección: ${shippingType === 'tienda' ? shippingAddressStr : `${shippingAddressStr} (${shippingLabel})`}`,
+      20, y,
+    );
     y += 8;
-    pdf.text(`Cliente: ${ccName}`, 20, y);
-    y += 8;
+
+    // ── Payment info ──────────────────────────────
+    pdf.setFont('courier', 'bold');
+    pdf.setFontSize(9);
+    pdf.text('DATOS DEL PAGO', 20, y);
+    y += 6;
+
+    pdf.setFont('courier', 'normal');
+    pdf.setFontSize(8.5);
     pdf.text(`Tarjeta: **** **** **** ${nroTarjeta.slice(-4)}`, 20, y);
-    y += 8;
-    pdf.text(`Dirección de entrega: ${shippingLabel}`, 20, y);
+    pdf.text(`Titular: ${ccName}`, 75, y);
+    y += 5;
+    pdf.text(`Cuotas: ${cuotas} ${cuotas === 1 ? '(Sin interés)' : `(${(cuotas - 1) * 5}% interés)`}`, 20, y);
+    pdf.text(`Valor cuota: $${valorCuota.toFixed(2)}`, 75, y);
     y += 10;
 
-    pdf.text('Detalle de productos:', 20, y);
-    y += 8;
+    // ── Products table ────────────────────────────
+    pdf.setDrawColor(0);
+    pdf.setLineWidth(0.3);
+    pdf.line(14, y, rightMargin, y);
+    y += 5;
+
+    // Table header
+    pdf.setFont('courier', 'bold');
+    pdf.setFontSize(8.5);
+    pdf.text('Producto', 20, y);
+    pdf.text('Cant.', 120, y);
+    pdf.text('P. Unit.', 145, y);
+    pdf.text('Subtotal', rightMargin, y, { align: 'right' });
+    y += 4;
+    pdf.setDrawColor(180);
+    pdf.line(14, y, rightMargin, y);
+    y += 4;
+
+    // Table rows
+    pdf.setFont('courier', 'normal');
+    pdf.setFontSize(8);
 
     resumenItems.forEach((item) => {
-      const line = `- ${item.name} x${item.quantity} $${item.subtotal.toFixed(2)}`;
-      pdf.text(line, 20, y);
-      y += 7;
-
-      if (y > 270) {
+      if (y > 265) {
         pdf.addPage();
         y = 20;
       }
+
+      const name =
+        item.name.length > 28 ? item.name.slice(0, 26) + '..' : item.name;
+      pdf.text(name, 20, y);
+      pdf.text(String(item.quantity), 120, y);
+      pdf.text(`$${(item.total / item.quantity).toFixed(0)}`, 145, y);
+      pdf.text(`$${item.subtotal.toFixed(2)}`, rightMargin, y, { align: 'right' });
+      y += 5;
     });
 
-    y += 5;
-    pdf.text('------------------------------------', 20, y);
-    y += 8;
-    pdf.text(`Total Pagado: $${totalFinal.toFixed(2)}`, 20, y);
-    y += 10;
-    pdf.text('¡Gracias por su compra!', 20, y);
+    // ── Summary ───────────────────────────────────
+    y += 3;
+    pdf.setDrawColor(0);
+    pdf.setLineWidth(0.3);
+    pdf.line(14, y, rightMargin, y);
+    y += 6;
 
-    pdf.save(`Comprobante_RMR_${Date.now()}.pdf`);
-  }, [ccNumber, ccName, shippingType, resumenItems, totalFinal]);
+    pdf.setFont('courier', 'normal');
+    pdf.setFontSize(8.5);
+    pdf.text('Subtotal', 20, y);
+    pdf.text(`$${totalBase.toFixed(2)}`, rightMargin, y, { align: 'right' });
+    y += 5;
+
+    if (cuotas > 1) {
+      const interesPorcentaje = (cuotas - 1) * 5;
+      pdf.text(`Interés (${interesPorcentaje}% / ${cuotas} cuotas)`, 20, y);
+      pdf.text(
+        `+ $${(totalConInteres - totalBase).toFixed(2)}`,
+        rightMargin, y, { align: 'right' },
+      );
+      y += 5;
+    }
+
+    pdf.text('Envío', 20, y);
+    pdf.text(
+      freeShipping ? '¡Gratis!' : `$${envioCost.toFixed(2)}`,
+      rightMargin, y, { align: 'right' },
+    );
+    y += 6;
+
+    // Total row (bold)
+    pdf.setDrawColor(0);
+    pdf.setLineWidth(0.5);
+    pdf.line(14, y, rightMargin, y);
+    y += 6;
+    pdf.setFont('courier', 'bold');
+    pdf.setFontSize(11);
+    pdf.text('TOTAL', 20, y);
+    pdf.text(`$${totalFinal.toFixed(2)}`, rightMargin, y, { align: 'right' });
+    y += 4;
+    pdf.setLineWidth(0.5);
+    pdf.line(14, y, rightMargin, y);
+    y += 10;
+
+    // ── Footer ────────────────────────────────────
+    pdf.setFont('courier', 'normal');
+    pdf.setFontSize(8);
+    pdf.text('¡Gracias por tu compra!', 105, y, { align: 'center' });
+    y += 5;
+    pdf.setFontSize(7);
+    pdf.text('Ante cualquier consulta, respondé este comprobante.', 105, y, { align: 'center' });
+
+    pdf.save(`Comprobante_RMR_${nroRecibo}.pdf`);
+  }, [
+    ccNumber, ccName, shippingType, direccion, resumenItems,
+    totalFinal, totalBase, totalConInteres, envioCost, cuotas,
+    valorCuota, freeShipping, user,
+  ]);
 
   if (pagoExitoso) {
     return (

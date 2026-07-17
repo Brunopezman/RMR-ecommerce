@@ -1,4 +1,5 @@
 import type { AuthUser, AuthState } from '../types/auth';
+import { BASE_URL } from './api';
 
 const AUTH_TOKEN_KEY = 'authToken';
 const USER_EMAIL_KEY = 'userEmail';
@@ -11,42 +12,12 @@ const USER_SEXO_KEY = 'userSexo';
 const USER_TELEFONO_KEY = 'userTelefono';
 
 /**
- * Optional configuration that can be injected via window.__RMR_CONFIG__
- * to toggle mock authentication mode.
- */
-interface RmrConfig {
-  USE_MOCK_AUTH?: boolean;
-}
-
-/**
- * Retrieve the app configuration from the global scope in a type-safe way.
- */
-function getConfig(): RmrConfig {
-  if (typeof window === 'undefined') return {};
-  const cfg = (window as { __RMR_CONFIG__?: RmrConfig }).__RMR_CONFIG__;
-  return cfg ?? {};
-}
-
-/**
- * Check if mock auth is enabled via window.__RMR_CONFIG__.
- */
-function isMockAuth(): boolean {
-  try {
-    return getConfig().USE_MOCK_AUTH === true;
-  } catch {
-    return false;
-  }
-}
-
-/**
  * Attempt login with email/password.
- * In mock mode, accepts any credentials and stores a demo token.
- * In real mode, makes a POST request to the configured API endpoint.
+ * Always hits the real API endpoint which validates credentials against the DB.
  */
 export async function login(
   email: string,
   password: string,
-  apiBase?: string,
 ): Promise<{ user: AuthUser; token: string }> {
   const trimmedEmail = email.trim();
   const trimmedPassword = password.trim();
@@ -55,19 +26,7 @@ export async function login(
     throw new Error('Email y contraseña son obligatorios.');
   }
 
-  if (isMockAuth() || !apiBase) {
-    // Demo mode: accept any credentials
-    const token = 'demo-token';
-    const user: AuthUser = {
-      id: Date.now(),
-      email: trimmedEmail,
-      name: trimmedEmail.split('@')[0] || trimmedEmail,
-    };
-    return { user, token };
-  }
-
-  // Real API login
-  const endpoint = `${apiBase}/api/auth/login`;
+  const endpoint = `${BASE_URL}/api/auth/login`;
   const response = await fetch(endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -88,21 +47,14 @@ export async function login(
   }
 
   const token = (data.token as string) || (data.accessToken as string) || '';
-  // Use the full user object from the API response when available
-  const user: AuthUser =
-    (data.user as AuthUser) ?? {
-      id: Date.now(),
-      email: trimmedEmail,
-      name: trimmedEmail.split('@')[0] || trimmedEmail,
-    };
+  const user = data.user as AuthUser;
 
   return { user, token };
 }
 
 /**
  * Register a new user account.
- * In mock mode, accepts any data and returns a demo token.
- * In real mode, POSTs to /api/auth/register.
+ * Always hits the real API endpoint.
  */
 export async function register(
   email: string,
@@ -115,7 +67,6 @@ export async function register(
     sexo?: string;
     telefono?: string;
   },
-  apiBase?: string,
 ): Promise<{ user: AuthUser; token: string }> {
   const trimmedEmail = email.trim();
 
@@ -123,24 +74,7 @@ export async function register(
     throw new Error('Email, contraseña y nombre son obligatorios.');
   }
 
-  if (isMockAuth() || !apiBase) {
-    // Demo mode: accept any data
-    const token = 'demo-token';
-    const user: AuthUser = {
-      id: Date.now(),
-      email: trimmedEmail,
-      name: profileData.name,
-      apellido: profileData.apellido,
-      address: profileData.address,
-      codigoPostal: profileData.codigoPostal,
-      sexo: profileData.sexo,
-      telefono: profileData.telefono,
-    };
-    return { user, token };
-  }
-
-  // Real API register
-  const endpoint = `${apiBase}/api/auth/register`;
+  const endpoint = `${BASE_URL}/api/auth/register`;
   const response = await fetch(endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
