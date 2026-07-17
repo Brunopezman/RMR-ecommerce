@@ -11,7 +11,7 @@ export function BannerServices() {
                 </div>
                 <div className="flex-1 p-0">
                   <h4 className="text-lg font-semibold">Envíos gratis</h4>
-                  <p className="text-gray-600 text-sm">A partir de compras superiores a $20.000</p>
+                  <p className="text-gray-600 text-sm">A partir de compras superiores a $100.000</p>
                 </div>
               </div>
             </div>

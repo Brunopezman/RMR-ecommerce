@@ -37,9 +37,9 @@ export function CheckoutPage() {
     [totalBase, cuotas],
   );
 
-  const { envioCost, totalFinal, valorCuota } = useMemo(
-    () => calcularEnvio(totalConInteres, shippingType, cuotas),
-    [totalConInteres, shippingType, cuotas],
+  const { envioCost, totalFinal, valorCuota, freeShipping } = useMemo(
+    () => calcularEnvio(totalConInteres, shippingType, cuotas, totalBase),
+    [totalConInteres, shippingType, cuotas, totalBase],
   );
 
   // Card input handler
@@ -335,8 +335,8 @@ export function CheckoutPage() {
                   onChange={(e) => handleShippingChange(e.target.value)}
                 >
                   <option value="tienda">Retiro en tienda (Gratis)</option>
-                  <option value="estandar">Envío estándar ($1.500)</option>
-                  <option value="express">Envío express ($3.000)</option>
+                  <option value="estandar">Envío estándar ($10.000)</option>
+                  <option value="express">Envío express ($18.000)</option>
                 </select>
 
                 {shippingType !== 'tienda' && (
@@ -362,7 +362,13 @@ export function CheckoutPage() {
 
               <li className="list-group-item d-flex justify-content-between my-3 py-3">
                 <span className="font-display">Envío</span>
-                <strong id="resumen-envio">${envioCost.toFixed(2)}</strong>
+                <strong id="resumen-envio">
+                  {freeShipping ? (
+                    <span className="text-success">¡Envío gratis!</span>
+                  ) : (
+                    `$${envioCost.toFixed(2)}`
+                  )}
+                </strong>
               </li>
             </ul>
 
