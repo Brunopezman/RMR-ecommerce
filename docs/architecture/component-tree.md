@@ -1,16 +1,18 @@
 # Árbol de componentes (referencia rápida)
 
-> **⚠️ Puede no estar 100% actualizado — confirmar con `src/` antes de asumir estructura.**
-
 ```
 App
 ├── AuthProvider
 │   └── CartProvider
 │       └── AppContent
 │           └── Router
+│               ├── [path=/register] RegisterPage
+│               ├── [path=/admin] AdminRoute
+│               │   └── AdminPanel (solo si role=admin)
 │               ├── [path=/checkout] CheckoutPage
 │               └── ShopPage
 │                   ├── Header
+│                   │   ├── [admin] link Admin
 │                   │   ├── CartModal
 │                   │   └── LoginModal
 │                   ├── HeroSection (solo view=home)
