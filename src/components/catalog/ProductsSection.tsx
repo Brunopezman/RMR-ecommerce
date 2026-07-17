@@ -8,6 +8,7 @@ import { FilterSidebar } from './FilterSidebar';
 export function ProductsSection() {
   const {
     products,
+    allProducts,
     loading,
     error,
     filterByCategories,
@@ -18,12 +19,12 @@ export function ProductsSection() {
   const { addToCart } = useContext(CartContext)!;
 
   const priceRange = useMemo(() => {
-    const prices = products.map((p) => p.precio);
+    const prices = allProducts.map((p) => p.precio);
     return {
       minPrice: prices.length > 0 ? Math.min(...prices) : 0,
       maxPriceLimit: prices.length > 0 ? Math.max(...prices) : 10000,
     };
-  }, [products]);
+  }, [allProducts]);
 
   const handleCategoryChange = useCallback(
     (categories: string[]) => {

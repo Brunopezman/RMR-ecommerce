@@ -12,6 +12,7 @@ const DEFAULT_DATA_URL = PRODUCTS_API_URL;
 
 export interface UseCatalogReturn {
   products: Product[];
+  allProducts: Product[];
   loading: boolean;
   error: string | null;
   filterByCategory: (category: string | null | undefined) => void;
@@ -90,6 +91,7 @@ export function useCatalog(dataUrl: string = DEFAULT_DATA_URL): UseCatalogReturn
 
   return {
     products: filteredProducts,
+    allProducts,
     loading,
     error,
     filterByCategory: handleFilterByCategory,

@@ -177,7 +177,7 @@ describe('FilterSidebar', () => {
     expect(onPriceChange).toHaveBeenCalled();
   });
 
-  it('sincroniza el slider cuando cambia maxPrice prop externamente', () => {
+  it('no sincroniza localPrice cuando maxPrice prop cambia externamente (feedback loop eliminado)', () => {
     const { rerender } = render(
       <FilterSidebar
         {...DEFAULT_PROPS}
@@ -195,7 +195,9 @@ describe('FilterSidebar', () => {
         maxPriceLimit={10000}
       />,
     );
-    expect(within(sidebar).getByText('$3.000')).toBeInTheDocument();
+    // localPrice NO debe cambiar porque eliminamos el useEffect que sincronizaba
+    // la prop externa con el estado local del slider
+    expect(within(sidebar).getByText('$5.000')).toBeInTheDocument();
   });
 
   it('renderiza el badge de filtros activos en el botón mobile', () => {

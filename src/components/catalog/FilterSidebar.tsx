@@ -47,11 +47,6 @@ export function FilterSidebar({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
 
-  /* — Sincronizar localPrice cuando la prop cambie externamente — */
-  useEffect(() => {
-    setLocalPrice(maxPrice ?? maxPriceLimit);
-  }, [maxPrice, maxPriceLimit]);
-
   /* — Cerrar con Escape y bloquear scroll en mobile — */
   useEffect(() => {
     if (!mobileOpen) return;
