@@ -9,6 +9,7 @@ import type { SqlJsStatic } from 'sql.js';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import bcrypt from 'bcryptjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -204,24 +205,40 @@ function seedAdminUser(): void {
   const adminEmail = process.env.ADMIN_EMAIL;
   if (!adminEmail) return;
 
-  const existing = queryOne('SELECT id, role FROM users WHERE email = ?', [adminEmail]);
+  const existing = queryOne('SELECT id, role, password_hash FROM users WHERE email = ?', [adminEmail]);
 
   if (existing) {
+    let updated = false;
+
     if (existing.role !== 'admin') {
       run('UPDATE users SET role = ? WHERE email = ?', ['admin', adminEmail]);
-      persist();
+      updated = true;
       console.log(`[db] Promoted ${adminEmail} to admin.`);
     }
+
+    // If the existing user has no password (empty or null), set a default one
+    const pwHash = (existing.password_hash as string) || '';
+    if (!pwHash) {
+      const defaultPassword = process.env.ADMIN_PASSWORD || 'admin123';
+      const newHash = bcrypt.hashSync(defaultPassword, 10);
+      run('UPDATE users SET password_hash = ? WHERE email = ?', [newHash, adminEmail]);
+      updated = true;
+      console.log(`[db] Set default password for ${adminEmail} (password: ${defaultPassword})`);
+    }
+
+    if (updated) persist();
     return;
   }
 
+  const defaultPassword = process.env.ADMIN_PASSWORD || 'admin123';
+  const passwordHash = bcrypt.hashSync(defaultPassword, 10);
   run(
     `INSERT INTO users (email, name, role, password_hash)
      VALUES (?, ?, ?, ?)`,
-    [adminEmail, 'Admin', 'admin', ''],
+    [adminEmail, 'Admin', 'admin', passwordHash],
   );
   persist();
-  console.log(`[db] Created admin user: ${adminEmail}`);
+  console.log(`[db] Created admin user: ${adminEmail} (password: ${defaultPassword})`);
 }
 
 /**
