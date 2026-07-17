@@ -11,17 +11,32 @@
 ```
 App
 └── AuthProvider (context/AuthContext.tsx)
-    └── CartProvider (context/CartContext.tsx)
+    └── CartProvider (context/CartProvider.tsx)
         └── AppContent
             └── Router (SPA casero via useSyncExternalStore)
+                ├── [pathname = "/register"]
+                │   └── RegisterPage (components/auth/RegisterPage.tsx)
+                │
+                ├── [pathname = "/admin"]
+                │   └── AdminRoute (inline en Router.tsx)
+                │       ├── verifica isAuthenticated + role === 'admin'
+                │       ├── [ok] → Header + AdminPanel
+                │       └── [denied] → "Acceso denegado"
+                │           └── AdminPanel (components/admin/AdminPanel.tsx)
+                │               └── importa: userService.fetchAllUsers
+                │
                 ├── [pathname incluye "/checkout"]
                 │   └── CheckoutPage (components/checkout/CheckoutPage.tsx)
                 │       ├── importa: checkoutService
                 │       └── usa: jsPDF (CDN global)
                 │
+                ├── [pathname = "/product/:id"]
+                │   └── ProductDetailRoute (components/router/ProductDetailRoute.tsx)
+                │
                 └── [caso contrario]
                     └── ShopPage (state: view = 'home' | 'shop')
                         ├── Header (props: onNavigate)
+                        │   ├── [admin] link "Admin" condicional
                         │   ├── CartModal (components/cart/CartModal.tsx)
                         │   │   └── CartItemRow[] (components/cart/CartItemRow.tsx)
                         │   │       └── importa: cartService
@@ -48,6 +63,7 @@ App
 | `src/services/cartService.ts` | `validarProductoRepetido()`, `eliminarProductoCarrito()`, `vaciarCarrito()`, `actualizarTotal()`, `guardarCarritoStorage()`, `obtenerCarritoStorage()` | `localStorage`, tipos `CartItem` |
 | `src/services/checkoutService.ts` | `detectCardType()`, `validarLuhn()`, `formatearNumeroTarjeta()`, `calcularTotalConInteres()`, `calcularEnvio()`, `calcularResumen()` | Ninguna (funciones puras) |
 | `src/services/authService.ts` | `login()`, `loadAuthState()`, `saveAuthState()`, `clearAuthState()` | `localStorage`, `api.ts` |
+| `src/services/userService.ts` | `fetchAllUsers(token)` | `api.ts` (BASE_URL), `fetch` |
 | `src/services/api.ts` | `BASE_URL`, `PRODUCTS_API_URL` | Ninguna (constantes) |
 
 ## Hooks
@@ -109,6 +125,17 @@ App
 6. Logout: clic en icono de logout → modal de confirmación → `AuthContext.logout()` → limpia localStorage + actualiza UI.
 
 ---
+
+## Flujo: "admin — listar usuarios"
+
+1. Usuario admin navega a `/admin` (o clic en link "Admin" en Header).
+2. `Router` detecta `/admin` y renderiza `AdminRoute`.
+3. `AdminRoute` verifica `isAuthenticated` + `user.role === 'admin'` — si no, muestra "Acceso denegado".
+4. Si es admin, renderiza `Header` + `AdminPanel`.
+5. `AdminPanel` llama a `userService.fetchAllUsers(token)`.
+6. `fetchAllUsers` hace `GET /users` con `Authorization: Bearer <token>`.
+7. Backend: `authenticateToken` verifica JWT → `requireAdmin` verifica role → `queryAll('SELECT * FROM users ORDER BY created_at DESC')` → devuelve array.
+8. `AdminPanel` renderiza tabla con todos los usuarios.
 
 ## ⚠️ Problemas de arquitectura detectados (Auditoría Fase 1 — 2026-07-16)
 
