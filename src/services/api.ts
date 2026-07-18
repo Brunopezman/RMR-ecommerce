@@ -86,6 +86,31 @@ export async function updateUser(
   return res.json();
 }
 
+/** PATCH /products/:id/stock — update product stock (requires auth) */
+export async function updateProductStock(
+  id: number,
+  stock: number,
+): Promise<Product> {
+  const token = localStorage.getItem('authToken');
+  const res = await fetch(`${BASE_URL}/products/${id}/stock`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ stock }),
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(
+      (data.error as string) || `Error al actualizar stock: HTTP ${res.status}`,
+    );
+  }
+
+  return res.json();
+}
+
 // ──────────────────────────────────────────────
 //  Orders
 // ──────────────────────────────────────────────
