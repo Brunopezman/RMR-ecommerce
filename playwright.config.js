@@ -19,8 +19,8 @@ export default defineConfig({
       timeout: 15000,
     },
     {
-      command: 'npx json-server --watch data/db.json --port 3001',
-      port: 3001,
+      command: 'npm run server',
+      port: 4000,
       reuseExistingServer: true,
       timeout: 15000,
     },

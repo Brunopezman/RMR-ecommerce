@@ -1,5 +1,9 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
+import { jsPDF } from 'jspdf';
+import { useAuth } from '../../hooks/useAuth';
 import { useCart } from '../../hooks/useCart';
+import { useToast } from '../ui/Toast';
+import { createOrder } from '../../services/api';
 import {
   detectCardType,
   validarLuhn,
@@ -12,17 +16,24 @@ import {
 
 export function CheckoutPage() {
   const { items, summary, clearCart } = useCart();
+  const { showToast } = useToast();
+  const { isAuthenticated, user } = useAuth();
 
   // Form state
-  const [ccName, setCcName] = useState('');
+  const [ccName, setCcName] = useState(
+    isAuthenticated && user ? `${user.name} ${user.apellido || ''}`.trim() : ''
+  );
   const [ccNumber, setCcNumber] = useState('');
   const [cuotas, setCuotas] = useState(1);
   const [shippingType, setShippingType] = useState('tienda');
-  const [direccion, setDireccion] = useState('');
+  const [direccion, setDireccion] = useState(
+    isAuthenticated && user?.address ? user.address : ''
+  );
   const [cardBrand, setCardBrand] = useState<CardBrand>(null);
   const [tarjetaValida, setTarjetaValida] = useState(false);
   const [pagoExitoso, setPagoExitoso] = useState(false);
   const [countdown, setCountdown] = useState(15);
+  const [submitting, setSubmitting] = useState(false);
 
   const { items: resumenItems, totalBase } = useMemo(
     () => calcularResumen(items),
@@ -34,9 +45,9 @@ export function CheckoutPage() {
     [totalBase, cuotas],
   );
 
-  const { envioCost, totalFinal, valorCuota } = useMemo(
-    () => calcularEnvio(totalConInteres, shippingType, cuotas),
-    [totalConInteres, shippingType, cuotas],
+  const { envioCost, totalFinal, valorCuota, freeShipping } = useMemo(
+    () => calcularEnvio(totalConInteres, shippingType, cuotas, totalBase),
+    [totalConInteres, shippingType, cuotas, totalBase],
   );
 
   // Card input handler
@@ -76,22 +87,55 @@ export function CheckoutPage() {
 
   // Form submission
   const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
+    async (e: React.FormEvent) => {
       e.preventDefault();
 
       if (!tarjetaValida) {
-        // TODO: show toast error
+        showToast('Revisá los datos de la tarjeta', 'error');
         return;
       }
 
-      // Simulate payment processing
-      setTimeout(() => {
+      if (!isAuthenticated || !user?.id) {
+        showToast('Debés iniciar sesión para comprar', 'error');
+        return;
+      }
+
+      setSubmitting(true);
+
+      try {
+        await createOrder({
+          userId: user.id,
+          items: items.map((item) => ({
+            productId: item.id,
+            nombre: item.nombre,
+            precio: item.precio,
+            cantidad: item.cantidad,
+          })),
+          total: totalFinal,
+          shippingAddress:
+            shippingType === 'tienda' ? undefined : direccion,
+        });
+
         setPagoExitoso(true);
         clearCart();
-        localStorage.removeItem('carrito');
-      }, 2000);
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : 'Error al procesar la compra';
+        showToast(message, 'error');
+        setSubmitting(false);
+      }
     },
-    [tarjetaValida, clearCart],
+    [
+      tarjetaValida,
+      isAuthenticated,
+      user,
+      items,
+      totalFinal,
+      shippingType,
+      direccion,
+      clearCart,
+      showToast,
+    ],
   );
 
   // Countdown redirect
@@ -112,14 +156,19 @@ export function CheckoutPage() {
     return () => clearInterval(interval);
   }, [pagoExitoso]);
 
-  // PDF download handler
+  // PDF download handler — receipt with full user info
   const handleDownloadPdf = useCallback(() => {
-    const { jsPDF } = window.jspdf;
-
-    if (!jsPDF) return;
-
     const pdf = new jsPDF();
     const nroTarjeta = ccNumber.replace(/\D/g, '');
+    const nroRecibo = `RMR-${Date.now().toString(36).toUpperCase()}`;
+    const fecha = new Date().toLocaleString('es-AR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
     const shippingLabel =
       shippingType === 'tienda'
         ? 'Retiro en tienda'
@@ -127,72 +176,197 @@ export function CheckoutPage() {
           ? 'Envío estándar'
           : 'Envío express';
 
+    const shippingAddressStr =
+      shippingType === 'tienda'
+        ? 'Av. Corrientes 1234, CABA'
+        : direccion || (user?.address ?? '—');
+
+    const rightMargin = 190;
     let y = 20;
+
+    // ── Header ────────────────────────────────────
+    pdf.setFont('courier', 'bold');
+    pdf.setFontSize(16);
+    pdf.text('ROCK MERCH & ROLL', 105, y, { align: 'center' });
+    y += 7;
     pdf.setFont('courier', 'normal');
+    pdf.setFontSize(8);
+    pdf.text('Tu tienda de merchandising rock', 105, y, { align: 'center' });
+    y += 10;
+
+    // Separator line
+    pdf.setDrawColor(0);
+    pdf.setLineWidth(0.5);
+    pdf.line(14, y, rightMargin, y);
+    y += 8;
+
+    // Receipt header
+    pdf.setFont('courier', 'bold');
     pdf.setFontSize(11);
+    pdf.text('COMPROBANTE DE PAGO', 105, y, { align: 'center' });
+    y += 8;
 
-    pdf.text('COMPROBANTE DE PAGO - RMR', 20, y);
+    pdf.setFont('courier', 'normal');
+    pdf.setFontSize(9);
+    pdf.text(`Nro. Recibo: ${nroRecibo}`, 20, y);
+    pdf.text(`Fecha: ${fecha}`, rightMargin, y, { align: 'right' });
     y += 10;
-    pdf.text(`Fecha: ${new Date().toLocaleString()}`, 20, y);
+
+    // ── Customer info ─────────────────────────────
+    pdf.setFont('courier', 'bold');
+    pdf.setFontSize(9);
+    pdf.text('DATOS DEL CLIENTE', 20, y);
+    y += 6;
+    pdf.setFont('courier', 'normal');
+    pdf.setFontSize(8.5);
+    pdf.text(`Nombre: ${user?.name || ccName} ${user?.apellido || ''}`.trim(), 20, y);
+    y += 5;
+    pdf.text(`Email: ${user?.email || '—'}`, 20, y);
+    y += 5;
+    pdf.text(
+      `Dirección: ${shippingType === 'tienda' ? shippingAddressStr : `${shippingAddressStr} (${shippingLabel})`}`,
+      20, y,
+    );
     y += 8;
-    pdf.text(`Cliente: ${ccName}`, 20, y);
-    y += 8;
+
+    // ── Payment info ──────────────────────────────
+    pdf.setFont('courier', 'bold');
+    pdf.setFontSize(9);
+    pdf.text('DATOS DEL PAGO', 20, y);
+    y += 6;
+
+    pdf.setFont('courier', 'normal');
+    pdf.setFontSize(8.5);
     pdf.text(`Tarjeta: **** **** **** ${nroTarjeta.slice(-4)}`, 20, y);
-    y += 8;
-    pdf.text(`Dirección de entrega: ${shippingLabel}`, 20, y);
+    pdf.text(`Titular: ${ccName}`, 75, y);
+    y += 5;
+    pdf.text(`Cuotas: ${cuotas} ${cuotas === 1 ? '(Sin interés)' : `(${(cuotas - 1) * 5}% interés)`}`, 20, y);
+    pdf.text(`Valor cuota: $${valorCuota.toFixed(2)}`, 75, y);
     y += 10;
 
-    pdf.text('Detalle de productos:', 20, y);
-    y += 8;
+    // ── Products table ────────────────────────────
+    pdf.setDrawColor(0);
+    pdf.setLineWidth(0.3);
+    pdf.line(14, y, rightMargin, y);
+    y += 5;
+
+    // Table header
+    pdf.setFont('courier', 'bold');
+    pdf.setFontSize(8.5);
+    pdf.text('Producto', 20, y);
+    pdf.text('Cant.', 120, y);
+    pdf.text('P. Unit.', 145, y);
+    pdf.text('Subtotal', rightMargin, y, { align: 'right' });
+    y += 4;
+    pdf.setDrawColor(180);
+    pdf.line(14, y, rightMargin, y);
+    y += 4;
+
+    // Table rows
+    pdf.setFont('courier', 'normal');
+    pdf.setFontSize(8);
 
     resumenItems.forEach((item) => {
-      const line = `- ${item.name} x${item.quantity} $${item.subtotal.toFixed(2)}`;
-      pdf.text(line, 20, y);
-      y += 7;
-
-      if (y > 270) {
+      if (y > 265) {
         pdf.addPage();
         y = 20;
       }
+
+      const name =
+        item.name.length > 28 ? item.name.slice(0, 26) + '..' : item.name;
+      pdf.text(name, 20, y);
+      pdf.text(String(item.quantity), 120, y);
+      pdf.text(`$${(item.subtotal / item.quantity).toFixed(0)}`, 145, y);
+      pdf.text(`$${item.subtotal.toFixed(2)}`, rightMargin, y, { align: 'right' });
+      y += 5;
     });
 
-    y += 5;
-    pdf.text('------------------------------------', 20, y);
-    y += 8;
-    pdf.text(`Total Pagado: $${totalFinal.toFixed(2)}`, 20, y);
-    y += 10;
-    pdf.text('¡Gracias por su compra!', 20, y);
+    // ── Summary ───────────────────────────────────
+    y += 3;
+    pdf.setDrawColor(0);
+    pdf.setLineWidth(0.3);
+    pdf.line(14, y, rightMargin, y);
+    y += 6;
 
-    pdf.save(`Comprobante_RMR_${Date.now()}.pdf`);
-  }, [ccNumber, ccName, shippingType, resumenItems, totalFinal]);
+    pdf.setFont('courier', 'normal');
+    pdf.setFontSize(8.5);
+    pdf.text('Subtotal', 20, y);
+    pdf.text(`$${totalBase.toFixed(2)}`, rightMargin, y, { align: 'right' });
+    y += 5;
+
+    if (cuotas > 1) {
+      const interesPorcentaje = (cuotas - 1) * 5;
+      pdf.text(`Interés (${interesPorcentaje}% / ${cuotas} cuotas)`, 20, y);
+      pdf.text(
+        `+ $${(totalConInteres - totalBase).toFixed(2)}`,
+        rightMargin, y, { align: 'right' },
+      );
+      y += 5;
+    }
+
+    pdf.text('Envío', 20, y);
+    pdf.text(
+      freeShipping ? '¡Gratis!' : `$${envioCost.toFixed(2)}`,
+      rightMargin, y, { align: 'right' },
+    );
+    y += 6;
+
+    // Total row (bold)
+    pdf.setDrawColor(0);
+    pdf.setLineWidth(0.5);
+    pdf.line(14, y, rightMargin, y);
+    y += 6;
+    pdf.setFont('courier', 'bold');
+    pdf.setFontSize(11);
+    pdf.text('TOTAL', 20, y);
+    pdf.text(`$${totalFinal.toFixed(2)}`, rightMargin, y, { align: 'right' });
+    y += 4;
+    pdf.setLineWidth(0.5);
+    pdf.line(14, y, rightMargin, y);
+    y += 10;
+
+    // ── Footer ────────────────────────────────────
+    pdf.setFont('courier', 'normal');
+    pdf.setFontSize(8);
+    pdf.text('¡Gracias por tu compra!', 105, y, { align: 'center' });
+    y += 5;
+    pdf.setFontSize(7);
+    pdf.text('Ante cualquier consulta, respondé este comprobante.', 105, y, { align: 'center' });
+
+    pdf.save(`Comprobante_RMR_${nroRecibo}.pdf`);
+  }, [
+    ccNumber, ccName, shippingType, direccion, resumenItems,
+    totalFinal, totalBase, totalConInteres, envioCost, cuotas,
+    valorCuota, freeShipping, user,
+  ]);
 
   if (pagoExitoso) {
     return (
-      <div className="container my-5 py-5 text-center mx-auto px-4">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 my-5 py-5 text-center">
         <i
-          className="bx bx-check-circle text-success my-5"
+          className="bx bx-check-circle text-green-500 my-5"
           style={{ fontSize: '5rem' }}
         />
         <h2 className="mt-3 font-display">¡Compra Realizada con Éxito!</h2>
-        <p className="lead font-display">
+        <p className="text-lg font-display">
           Hemos enviado el comprobante a tu correo electrónico.
         </p>
         <div className="mt-4">
           <button
             id="btn-descargar-pdf"
-            className="bg-transparent border border-gray-800 text-gray-800 hover:bg-gray-800 hover:text-white px-4 py-2 rounded me-2 font-display uppercase text-sm font-bold transition-colors duration-300"
+            className="bg-transparent border border-gray-800 text-gray-800 hover:bg-gray-800 hover:text-white px-4 py-2 rounded-lg mr-2 font-display uppercase text-sm font-bold transition-colors duration-300"
             onClick={handleDownloadPdf}
           >
             <i className="bx bx-download" /> Descargar Comprobante
           </button>
           <a
             href="/"
-            className="bg-black hover:bg-coral text-white px-4 py-2 rounded no-underline font-display uppercase text-sm font-bold transition-colors duration-300 inline-block"
+            className="bg-black hover:bg-coral-dark text-white px-4 py-2 rounded-lg no-underline font-display uppercase text-sm font-bold transition-colors duration-300 inline-block"
           >
             Volver a la Tienda
           </a>
         </div>
-        <p className="text-muted mt-5 font-display">
+        <p className="text-gray-500 mt-5 font-display">
           Serás redireccionado automáticamente en{' '}
           <span id="timer">{countdown}</span> segundos...
         </p>
@@ -202,12 +376,12 @@ export function CheckoutPage() {
 
   if (items.length === 0) {
     return (
-      <div className="container my-5 py-5 text-center mx-auto px-4">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 my-5 py-5 text-center">
         <h2 className="font-display">Tu carrito está vacío</h2>
-        <p className="text-muted font-display">Agregá productos antes de finalizar la compra.</p>
+        <p className="text-gray-500 font-display">Agregá productos antes de finalizar la compra.</p>
         <a
           href="/"
-          className="bg-black hover:bg-coral text-white px-4 py-2 rounded no-underline font-display uppercase text-sm font-bold transition-colors duration-300 inline-block"
+          className="bg-black hover:bg-coral-dark text-white px-4 py-2 rounded-lg no-underline font-display uppercase text-sm font-bold transition-colors duration-300 inline-block"
         >
           Ir a la tienda
         </a>
@@ -216,51 +390,48 @@ export function CheckoutPage() {
   }
 
   return (
-    <div id="seccion-pago" className="container my-5 py-5 mx-auto px-4">
+    <div id="seccion-pago" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 my-5 py-5">
       <h2 className="mb-4 font-display">Finalizar Compra</h2>
-      <div className="row">
+      <div className="grid grid-cols-12 gap-4">
         {/* Order Summary */}
-        <div className="col-md-4 order-md-2 mb-4">
-          <h4 className="d-flex justify-content-between align-items-center mb-3 font-display">
-            <span className="text-muted">Tu Carrito</span>
+        <div className="md:col-span-4 md:order-2 mb-4">
+          <h4 className="flex justify-between items-center mb-3 font-display">
+            <span className="text-gray-500">Tu Carrito</span>
           </h4>
-          <ul className="list-group mb-3" id="resumen-lista">
+          <ul className="divide-y divide-gray-200 border border-gray-200 rounded-lg mb-3" id="resumen-lista">
             {items.map((item) => (
               <li
                 key={item.id}
-                className="list-group-item d-flex justify-content-between lh-sm"
+                className="flex justify-between leading-tight px-4 py-3"
               >
                 <div>
-                  <h6 className="my-0 font-display">
-                    {item.nombre}
-                    {item.talle && <span className="text-sm text-gray-500 ml-1">— Talle {item.talle}</span>}
-                  </h6>
-                  <small className="text-muted">
+                  <h6 className="my-0 font-display">{item.nombre}</h6>
+                  <small className="text-gray-500">
                     Cantidad: {item.cantidad}
                   </small>
                 </div>
-                <span className="text-muted">
+                <span className="text-gray-500">
                   ${(item.precio * item.cantidad).toFixed(2)}
                 </span>
               </li>
             ))}
           </ul>
-          <li className="list-group-item d-flex justify-content-between">
+          <li className="flex justify-between px-4 py-3 border border-gray-200 rounded-lg mt-2">
             <span className="font-display">Total final a pagar</span>
             <strong id="resumen-total">${totalFinal.toFixed(2)}</strong>
           </li>
         </div>
 
         {/* Payment Form */}
-        <div className="col-md-8 order-md-1">
+        <div className="md:col-span-8 md:order-1">
           <h4 className="mb-3 font-display">Método de Pago</h4>
           <form id="form-pago" onSubmit={handleSubmit}>
-            <div className="row">
-              <div className="col-md-6 mb-3">
-                <label htmlFor="cc-name" className="form-label font-display">Nombre en la tarjeta</label>
+            <div className="grid grid-cols-12 gap-4">
+              <div className="md:col-span-6 mb-3">
+                <label htmlFor="cc-name" className="block text-sm font-medium text-gray-700 mb-1 font-display">Nombre en la tarjeta</label>
                 <input
                   type="text"
-                  className="form-control"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-coral focus:border-coral"
                   id="cc-name"
                   required
                   placeholder="Juan Perez"
@@ -268,11 +439,11 @@ export function CheckoutPage() {
                   onChange={(e) => setCcName(e.target.value)}
                 />
               </div>
-              <div className="col-md-6 mb-3">
-                <label htmlFor="cc-number" className="form-label font-display">Número de tarjeta</label>
+              <div className="md:col-span-6 mb-3">
+                <label htmlFor="cc-number" className="block text-sm font-medium text-gray-700 mb-1 font-display">Número de tarjeta</label>
                 <input
                   type="text"
-                  className={`form-control ${!tarjetaValida && ccNumber ? 'is-invalid' : ''}`}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-coral ${!tarjetaValida && ccNumber ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
                   id="cc-number"
                   required
                   placeholder="XXXX XXXX XXXX XXXX"
@@ -280,23 +451,24 @@ export function CheckoutPage() {
                   onChange={(e) => handleCardInput(e.target.value)}
                 />
               </div>
-              <div id="logos" className="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2">
+              <div className="col-span-12">
+                <div id="logos" className="flex justify-start items-center gap-2 mt-2">
                 {(['VISA', 'MASTERCARD', 'AMERICAN EXPRESS'] as const).map(
                   (brand) => (
                     <img
                       key={brand}
                       src={`/img/${brand === 'AMERICAN EXPRESS' ? 'amex' : brand.toLowerCase()}.png`}
                       id={`logo-${brand === 'AMERICAN EXPRESS' ? 'amex' : brand.toLowerCase()}`}
-                      className={`tarjeta-logo ${cardBrand === brand ? 'activa' : ''}`}
+                      className={`h-8 ${cardBrand === brand ? 'opacity-100 scale-105' : 'opacity-90'}`}
                       alt={brand}
-                      style={{ height: 32 }}
                     />
                   ),
                 )}
               </div>
-              <div className="mb-3 mt-2">
-                <small className="text-muted">Tarjeta seleccionada:</small>
-                <p id="tarjeta-resumen" className="fw-bold mb-0 font-display">
+              </div>
+              <div className="mb-3 mt-2 col-span-12">
+                <small className="text-gray-500">Tarjeta seleccionada:</small>
+                <p id="tarjeta-resumen" className="font-bold mb-0 font-display">
                   {tarjetaValida && cardBrand
                     ? `${cardBrand} •••• ${ccNumber.replace(/\D/g, '').slice(-4)}`
                     : '—'}
@@ -304,11 +476,11 @@ export function CheckoutPage() {
               </div>
             </div>
 
-            <div className="row">
-              <div className="col-md-6 mb-3">
-                <label htmlFor="cuotas" className="form-label font-display">Cuotas</label>
+            <div className="grid grid-cols-12 gap-4">
+              <div className="md:col-span-6 mb-3">
+                <label htmlFor="cuotas" className="block text-sm font-medium text-gray-700 mb-1 font-display">Cuotas</label>
                 <select
-                  className="form-select"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-coral focus:border-coral"
                   id="cuotas-select"
                   value={cuotas}
                   onChange={(e) => setCuotas(Number(e.target.value))}
@@ -318,62 +490,71 @@ export function CheckoutPage() {
                   <option value={6}>6 cuotas (15% interés)</option>
                 </select>
               </div>
-              <div className="col-md-6 mb-3">
-                <label className="form-label font-display">Valor de la cuota:</label>
-                <p id="valor-cuota" className="fw-bold mt-2 font-display">
+              <div className="md:col-span-6 mb-3">
+                <label className="block text-sm font-medium text-gray-700 mb-1 font-display">Valor de la cuota:</label>
+                <p id="valor-cuota" className="font-bold mt-2 font-display">
                   ${valorCuota.toFixed(2)}
                 </p>
               </div>
             </div>
 
             {/* Shipping */}
-            <li className="list-group-item mb-3">
-              <label htmlFor="envio-select" className="form-label font-display">
-                Tipo de envío
-              </label>
-              <select
-                className="form-select"
-                id="envio-select"
-                value={shippingType}
-                onChange={(e) => handleShippingChange(e.target.value)}
-              >
-                <option value="tienda">Retiro en tienda (Gratis)</option>
-                <option value="estandar">Envío estándar ($1.500)</option>
-                <option value="express">Envío express ($3.000)</option>
-              </select>
+            <ul className="divide-y divide-gray-200 border border-gray-200 rounded-lg mb-3">
+              <li className="px-4 py-3">
+                <label htmlFor="envio-select" className="block text-sm font-medium text-gray-700 mb-1 font-display">
+                  Tipo de envío
+                </label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-coral focus:border-coral"
+                  id="envio-select"
+                  value={shippingType}
+                  onChange={(e) => handleShippingChange(e.target.value)}
+                >
+                  <option value="tienda">Retiro en tienda (Gratis)</option>
+                  <option value="estandar">Envío estándar ($10.000)</option>
+                  <option value="express">Envío express ($18.000)</option>
+                </select>
 
-              {shippingType !== 'tienda' && (
-                <div id="contenedor-direccion" className="mt-3">
-                  <label htmlFor="direccion-envio" className="form-label font-display">
-                    Dirección de entrega
-                  </label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="direccion-envio"
-                    placeholder="Calle, Número, Piso, Localidad"
-                    required
-                    value={direccion}
-                    onChange={(e) => setDireccion(e.target.value)}
-                  />
-                  <small className="text-muted">
-                    Los envíos se realizan de 9 a 18 hs.
-                  </small>
-                </div>
-              )}
-
-              <li className="list-group-item d-flex justify-content-between my-3 py-3">
-                <span className="font-display">Envío</span>
-                <strong id="resumen-envio">${envioCost.toFixed(2)}</strong>
+                {shippingType !== 'tienda' && (
+                  <div id="contenedor-direccion" className="mt-3">
+                    <label htmlFor="direccion-envio" className="block text-sm font-medium text-gray-700 mb-1 font-display">
+                      Dirección de entrega
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-coral focus:border-coral"
+                      id="direccion-envio"
+                      placeholder="Calle, Número, Piso, Localidad"
+                      required
+                      value={direccion}
+                      onChange={(e) => setDireccion(e.target.value)}
+                    />
+                    <small className="text-gray-500">
+                      Los envíos se realizan de 9 a 18 hs.
+                    </small>
+                  </div>
+                )}
               </li>
-            </li>
 
-            <div className="col mt-3">
+              <li className="flex justify-between my-3 py-3 px-4">
+                <span className="font-display">Envío</span>
+                <strong id="resumen-envio">
+                  {freeShipping ? (
+                    <span className="text-green-500">¡Envío gratis!</span>
+                  ) : (
+                    `$${envioCost.toFixed(2)}`
+                  )}
+                </strong>
+              </li>
+            </ul>
+
+            <div className="col-span-12 mt-3">
               <button
                 type="submit"
-                className="w-full bg-black text-white border-none py-3 px-4 font-display uppercase text-sm font-bold rounded cursor-pointer transition-colors duration-300 hover:bg-coral"
+                className="w-full bg-black text-white border-none py-3 px-4 font-display uppercase text-sm font-bold rounded-lg cursor-pointer transition-colors duration-300 hover:bg-coral-dark disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-coral focus-visible:outline-none"
+                disabled={submitting}
               >
-                Pagar Ahora
+                {submitting ? 'Procesando pago...' : 'Pagar Ahora'}
               </button>
             </div>
           </form>

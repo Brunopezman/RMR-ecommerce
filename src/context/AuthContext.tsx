@@ -8,6 +8,7 @@ import {
 import type { AuthUser, AuthState } from '../types/auth';
 import {
   login as apiLogin,
+  register as apiRegister,
   loadAuthState,
   saveAuthState,
   clearAuthState,
@@ -15,6 +16,18 @@ import {
 
 export interface AuthContextValue extends AuthState {
   login: (email: string, password: string) => Promise<void>;
+  register: (
+    email: string,
+    password: string,
+    profileData: {
+      name: string;
+      apellido?: string;
+      address?: string;
+      codigoPostal?: string;
+      sexo?: string;
+      telefono?: string;
+    },
+  ) => Promise<void>;
   logout: () => void;
 }
 
@@ -37,6 +50,30 @@ export function AuthProvider({ children }: AuthProviderProps) {
     });
   }, []);
 
+  const register = useCallback(
+    async (
+      email: string,
+      password: string,
+      profileData: {
+        name: string;
+        apellido?: string;
+        address?: string;
+        codigoPostal?: string;
+        sexo?: string;
+        telefono?: string;
+      },
+    ) => {
+      const result = await apiRegister(email, password, profileData);
+      saveAuthState(result.user, result.token);
+      setAuthState({
+        user: result.user,
+        token: result.token,
+        isAuthenticated: true,
+      });
+    },
+    [],
+  );
+
   const logout = useCallback(() => {
     clearAuthState();
     setAuthState({ user: null, token: null, isAuthenticated: false });
@@ -57,6 +94,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       value={{
         ...authState,
         login,
+        register,
         logout,
       }}
     >

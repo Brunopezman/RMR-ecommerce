@@ -1,124 +1,56 @@
 # AGENTS.md — E-Commerce Rock Merch & Roll (Squad de Agentes)
 
-Este archivo lo lee todo agente/subagente de opencode antes de trabajar. Contiene las reglas globales del repo. Las reglas específicas de cada rol viven en `.opencode/agent/*.md`.
+Este archivo contiene las directrices globales de desarrollo para todo agente o subagente de opencode antes de comenzar una tarea.
 
 ## Qué es este repo
 
-E-commerce de merchandising de rock. **Stack actual:** React 18+, TypeScript (`strict: true`), Vite, Tailwind CSS. Sin backend en producción: los datos viven en `data/db.json` y se cargan vía `fetch`. El proyecto incluye mock API (json-server) y backend real (Express + SQLite en `server/`).
+E-commerce de merchandising de rock. **Stack actual:** React 18+, TypeScript (`strict: true`), Vite, Tailwind CSS. El frontend carga datos desde `data/db.json` (mock API) o se conecta al backend real en `server/` (Express + SQLite).
 
-## Estado de las fases
+## Convenciones de código y Estándares
 
-| Fase | Estado |
-|---|---|
-| **Fase 1 — Diagnóstico** | ✅ Completa (mapa de dependencias, deuda técnica, tests de caracterización) |
-| **Fase 2 — Migración a React** | ✅ Completa (React 18 + TS + Vite + Tailwind) |
-| **Fase 3 — Datos** | ✅ Parcial (mock API lista en `data/db.json`, backend real en `server/`) |
-| **Fase 4 — Producto/IA** | ✅ Parcial (shopping-concierge implementado, conversion-optimizer descartado) |
+- **Separación de responsabilidades**: Componentes puramente funcionales. Toda la lógica de negocio debe vivir en hooks personalizados (`src/hooks/`) o servicios de JS puro (`src/services/`). Nunca mezclar lógica compleja en el JSX.
+- **TypeScript**: `strict: true`, prohibido el uso de `any`.
+- Ver el skill `coding-standards` para el detalle de la estructura de carpetas y nomenclatura.
 
-## Convenciones de código
+## Arquitectura y Contratos de API
 
-- Componentes funcionales, lógica de negocio en hooks/`services/`, nunca mezclada con JSX.
-- TypeScript `strict: true`, sin `any`.
-- Ver skill `coding-standards` para estructura de carpetas y naming detallado.
-- Todo cambio de comportamiento visible (no solo refactor) requiere un test nuevo o actualizado en la misma tarea.
-- **Todos los commits deben ser aprobados por el usuario antes de ser ejecutados.** Mostrar siempre el plan de commit (archivos + mensaje) y esperar confirmación.
+La documentación técnica detallada se mantiene centralizada y debe usarse como única fuente de verdad:
+- **Flujos y Mapa de Dependencias**: `docs/architecture/dependency-map.md`
+- **Contrato de API y Base de Datos**: `docs/architecture/api-contract.md`
+- **Shopping Assistant (Concierge)**: `docs/architecture/shopping-concierge.md`
 
-## Arquitectura actual
+## Proceso de Tareas y Entrega
 
-### Frontend
+- **Falsabilidad**: Todo plan de desarrollo debe incluir criterios de aceptación claros y falsables (Given/When/Then o checklist).
+- **Cobertura de Tests**: Cualquier cambio en el comportamiento de la app requiere escribir un test correspondiente (unitario o de integración) y validar que pasa.
+- **Commit por fase/inciso**: Al terminar cada fase o sub-inciso, hacer commit con mensaje claro. Pedir aprobación del usuario antes de pushear. Actualizar `.opencode-handoff.md` al finalizar cada fase.
+- **Entregables**:
+  - Decisiones de arquitectura y mapas: `docs/architecture/`
+  - Reportes de deuda técnica incremental: `docs/reports/auditor/`
+  - Métricas de cobertura y tests: `docs/reports/qa/`
 
-- **Entry point**: `index.html` → `src/main.tsx` → `src/App.tsx`
-- **Router**: SPA casero vía `useSyncExternalStore` (sin React Router). Detecta `/checkout` para mostrar `CheckoutPage`, sino `ShopPage`.
-- **ShopPage**: maneja dos vistas con estado local (`view: 'home' | 'shop'`):
-  - `home`: Header + Hero + BannerServices + BrandSection + Footer
-  - `shop`: Header + ProductsSection + Footer
-- **Estado global**: React Context (`CartContext`, `AuthContext`) + persistencia en `localStorage`.
+## Testing y Calidad
 
-### Árbol de componentes
+- **Unitarios / Integración (Vitest + jsdom)**: `npm test` para correr la suite completa (107 tests activos).
+- **End-to-End (Playwright)**: `npm run test:e2e` para levantar la app y correr flujos complejos (14 tests).
+- **Obligatorio**: Todo agente que modifique código en `src/` debe correr `npm test` exitosamente antes de finalizar.
 
-```
-App
-├── AuthProvider
-│   └── CartProvider
-│       └── AppContent
-│           └── Router
-│               ├── [path=/checkout] CheckoutPage
-│               └── ShopPage
-│                   ├── Header
-│                   │   ├── CartModal
-│                   │   └── LoginModal
-│                   ├── HeroSection (solo view=home)
-│                   ├── BannerServices (solo view=home)
-│                   ├── BrandSection (solo view=home)
-│                   └── ProductsSection (solo view=shop)
-│                       └── ProductGrid
-│                           └── ProductCard[]
-└── Footer
-```
+## Reglas de Seguridad y Commits
 
-### Servicios (lógica pura, sin JSX)
+- **Aprobación de Commits**: Todos los commits deben ser explicados y aprobados por el usuario antes de ejecutarse.
+- **Control de Cambios**: Trabajar siempre sobre ramas de feature y crear PRs hacia `develop`/`main`. Nunca hacer commits directos ni `push --force` sin autorización.
+- **Secretos**: Prohibido commitear credenciales, variables `.env`, tokens o claves API.
 
-| Servicio | Responsabilidad |
-|---|---|
-| `productService.ts` | fetchProducts, filterByCategory, searchByName |
-| `cartService.ts` | validarProductoRepetido, eliminarProductoCarrito, vaciarCarrito, actualizarTotal, persistencia localStorage |
-| `checkoutService.ts` | detectCardType, validarLuhn, calcularTotalConInteres, calcularEnvio, calcularResumen |
-| `authService.ts` | login/logout, load/save/clearAuthState en localStorage |
-| `api.ts` | Configuración de URLs base (`BASE_URL`, `PRODUCTS_API_URL`) |
+## Skills Disponibles
 
-### Hooks
+- `coding-standards` — Guía de estilo de código, estructura y nomenclatura de archivos.
+- `testing-workflow` — Flujo de ejecución y escritura de tests unitarios y E2E.
+- `rag-product-catalog` — Indexador y buscador semántico local (TF-IDF + Cosine Similarity).
+- `ui-ux-review` — Revisión de interfaces: consistencia visual, jerarquía, micro-interacciones.
+- `accessibility` — Auditoría WCAG: contraste, roles ARIA, navegación por teclado.
+- `tailwind-design-system` — Sistema de diseño estructurado con Tailwind utility classes.
+- `responsive-design` — Verificación responsive Mobile-First (320px → 1280px+).
+- `react-best-practices` — Estándares React y arquitectura de componentes.
+- `performance-audit` — Web Vitals, bundle analysis, lazy loading y optimización de assets.
+- `ux-writing` — Microcopy, CTAs, tono de voz consistente en la interfaz.
 
-| Hook | Uso |
-|---|---|
-| `useCatalog.ts` | Carga productos desde API, expone products/loading/error |
-| `useCart.ts` | Lógica del carrito (add, remove, clear, count) |
-| `useAuth.ts` | Estado de autenticación, login/logout |
-
-### Tipos compartidos (`src/types/`)
-
-`product.ts`, `cart.ts`, `auth.ts`, `user.ts`, `order.ts`, `index.ts`, `jspdf.d.ts`
-
-## Datos
-
-- `data/db.json` — 17 productos en formato json-server (`{"products": [...]}`).
-- La app React los carga directamente vía `fetch` a `/data/db.json`.
-- Para usar json-server: `npm run mock:api` y cambiar `BASE_URL` en `src/services/api.ts`.
-
-## Backend real
-
-- En `server/` — Express + TypeScript + SQLite (sql.js).
-- Arranque: `npm run server` (puerto 4000).
-- Seed automático desde `data/db.json` si la tabla `products` está vacía.
-- Endpoints: `GET /products`, `POST /users`, `POST /orders`, `GET /orders?userId=:id`.
-
-## Testing
-
-- **Unitarios/integración**: Vitest + jsdom. 59 tests en 4 suites.
-  - `npm test` — ejecuta todos.
-  - `npm run test:watch` — modo watch.
-- **E2E**: Playwright. 14 tests en 4 suites.
-  - `npm run test:e2e` — levanta Vite + corre tests.
-- Cualquier agente que toque `src/` DEBE correr `npm test` antes de dar la tarea por terminada.
-
-## Dónde escribe cada agente sus entregables
-
-- `docs/architecture/` — mapas de dependencias, decisiones de arquitectura (ADRs).
-- `docs/reports/auditor/` — reportes de deuda técnica.
-- `docs/reports/qa/` — cobertura, tests agregados, flakiness.
-- `docs/reports/conversion/` — hallazgos de copy/UX y experimentos.
-- `docs/archive/` — documentación de fases anteriores (histórico).
-
-## Reglas de seguridad
-
-- Nunca commitear credenciales, API keys ni `.env`.
-- Nunca hacer `git push --force` ni reescribir historia sin pedir confirmación explícita.
-- Cambios en `main`/`master` van por rama + PR, nunca commit directo.
-- **Todos los commits deben ser aprobados por el usuario antes de ser ejecutados.**
-
-## Skills disponibles (ver `.opencode/skill/`)
-
-- `testing-workflow` — configuración y ejecución de Vitest/Playwright.
-- `refactor-tandem` — protocolo de refactor-y-testear paso a paso.
-- `api-mock-transition` — migrar de arrays hardcodeados a json-server/MSW.
-- `rag-product-catalog` — indexar catálogo para shopping assistant (RAG/function calling).
-- `coding-standards` — reglas de estilo detalladas (naming, estructura de carpetas `src/`).

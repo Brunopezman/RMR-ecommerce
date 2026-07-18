@@ -12,8 +12,8 @@ import {
 export interface CartContextValue {
   items: CartItem[];
   summary: CartSummary;
-  addToCart: (product: Product) => void;
-  removeItem: (productId: number | string, talle?: string) => void;
+  addToCart: (product: Product, quantity?: number, size?: string) => void;
+  removeItem: (productId: number | string) => void;
   clearCart: () => void;
   itemCount: number;
 }
@@ -36,12 +36,15 @@ export function CartProvider({ children }: CartProviderProps) {
     setSummary(calculateSummary(items));
   }, [items]);
 
-  const addToCart = useCallback((product: Product) => {
-    setItems((prev) => addItem(prev, product));
-  }, []);
+  const addToCart = useCallback(
+    (product: Product, quantity?: number, size?: string) => {
+      setItems((prev) => addItem(prev, product, size, quantity ?? 1));
+    },
+    [],
+  );
 
-  const removeItem = useCallback((productId: number | string, talle?: string) => {
-    setItems((prev) => removeFromCart(prev, productId, talle));
+  const removeItem = useCallback((productId: number | string) => {
+    setItems((prev) => removeFromCart(prev, productId));
   }, []);
 
   const clearCart = useCallback(() => {

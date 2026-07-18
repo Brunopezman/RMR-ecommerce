@@ -20,18 +20,57 @@ Object.defineProperty(globalThis, 'localStorage', {
   configurable: true,
 });
 
-describe('authService - login (modo mock)', () => {
+// ─── Mock fetch ────────────────────────────────────────────────────────
+
+const mockJsonResponse = (data, status = 200) =>
+  Promise.resolve({
+    ok: status >= 200 && status < 300,
+    status,
+    json: () => Promise.resolve(data),
+  });
+
+describe('authService - login (API real contra backend)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockLocalStorage.clear();
+    globalThis.fetch = vi.fn();
   });
 
-  it('login exitoso devuelve user y token', async () => {
+  it('login exitoso devuelve user y token del backend', async () => {
+    const fakeUser = {
+      id: 1,
+      email: 'test@example.com',
+      name: 'Test',
+      apellido: 'User',
+    };
+    globalThis.fetch.mockResolvedValue(
+      mockJsonResponse({ user: fakeUser, token: 'jwt-token-123' }),
+    );
+
     const result = await login('test@example.com', 'password123');
 
-    expect(result.token).toBe('demo-token');
+    expect(result.token).toBe('jwt-token-123');
     expect(result.user.email).toBe('test@example.com');
-    expect(result.user.name).toBe('test');
+    expect(result.user.name).toBe('Test');
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/auth/login'),
+      expect.objectContaining({
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: expect.stringContaining('test@example.com'),
+      }),
+    );
+  });
+
+  it('login con credenciales inválidas lanza error', async () => {
+    globalThis.fetch.mockResolvedValue(
+      mockJsonResponse({ error: 'Credenciales inválidas' }, 401),
+    );
+
+    await expect(login('wrong@example.com', 'badpass')).rejects.toThrow(
+      'Credenciales inválidas',
+    );
   });
 
   it('login sin email lanza error', async () => {
@@ -46,16 +85,16 @@ describe('authService - login (modo mock)', () => {
     );
   });
 
-  it('login sin credenciales no guarda nada en localStorage', async () => {
+  it('login sin credenciales no llama al fetch', async () => {
+    globalThis.fetch = vi.fn();
+
     try {
       await login('', '');
     } catch {
       // esperado
     }
 
-    const store = mockLocalStorage._getStore();
-    expect(store.authToken).toBeUndefined();
-    expect(store.userEmail).toBeUndefined();
+    expect(fetch).not.toHaveBeenCalled();
   });
 });
 

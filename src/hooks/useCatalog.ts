@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import type { Product } from '../types/product';
 import {
   fetchProducts,
-  filterByCategory,
   filterByCategories,
   filterByMaxPrice,
   searchByName,
@@ -79,7 +78,7 @@ export function useCatalog(dataUrl: string = DEFAULT_DATA_URL): UseCatalogReturn
     return () => { cancelled = true; };
   }, [dataUrl]);
 
-  // Apply filters
+  // Apply filters whenever allProducts, activeCategories, activeMaxPrice, or searchTerm change
   useEffect(() => {
     let result = allProducts;
 
@@ -99,6 +98,7 @@ export function useCatalog(dataUrl: string = DEFAULT_DATA_URL): UseCatalogReturn
   }, [allProducts, activeCategories, activeMaxPrice, searchTerm]);
 
   const handleFilterByCategory = useCallback((category: string | null | undefined) => {
+    // Maintain backward compatibility: single category sets the array
     setActiveCategories(category ? [category] : []);
   }, []);
 

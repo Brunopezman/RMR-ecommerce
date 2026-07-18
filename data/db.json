@@ -6,9 +6,10 @@
       "tipo": "remera",
       "img": "/img/remerathebeatles.png",
       "descripcion": "The Beatles - negra - lisa",
-      "precio": 4000,
+      "precio": 28000,
+      "stock": 10,
       "cantidad": 1,
-      "tallesDisponibles": ["S", "M", "L", "XL"]
+      "tallesDisponibles": ["M", "L", "XL", "XXL"]
     },
     {
       "id": 2,
@@ -16,9 +17,10 @@
       "tipo": "remera",
       "img": "/img/remeraacdc.png",
       "descripcion": "AC/DC - Negra - lisa",
-      "precio": 4000,
+      "precio": 28000,
+      "stock": 10,
       "cantidad": 1,
-      "tallesDisponibles": ["S", "M", "L", "XL"]
+      "tallesDisponibles": ["M", "L", "XL", "XXL"]
     },
     {
       "id": 3,
@@ -26,9 +28,10 @@
       "tipo": "remera",
       "img": "/img/remeraledzepellin.png",
       "descripcion": "Led Zeppelin - negra - estampado",
-      "precio": 4500,
+      "precio": 32000,
+      "stock": 10,
       "cantidad": 1,
-      "tallesDisponibles": ["S", "M", "L", "XL"]
+      "tallesDisponibles": ["M", "L", "XL", "XXL"]
     },
     {
       "id": 4,
@@ -36,9 +39,10 @@
       "tipo": "remera",
       "img": "/img/remerabonjovi.png",
       "descripcion": "Bon Jovi - azul marino - lisa",
-      "precio": 4000,
+      "precio": 28000,
+      "stock": 10,
       "cantidad": 1,
-      "tallesDisponibles": ["S", "M", "L", "XL"]
+      "tallesDisponibles": ["M", "L", "XL", "XXL"]
     },
     {
       "id": 5,
@@ -46,9 +50,10 @@
       "tipo": "remera",
       "img": "/img/remerapinkfloyd.png",
       "descripcion": "Pink Floyd - gris oscuro - estampado",
-      "precio": 4500,
+      "precio": 32000,
+      "stock": 10,
       "cantidad": 1,
-      "tallesDisponibles": ["S", "M", "L", "XL"]
+      "tallesDisponibles": ["M", "L", "XL", "XXL"]
     },
     {
       "id": 6,
@@ -56,9 +61,10 @@
       "tipo": "remera",
       "img": "/img/remerapinkfloydb.png",
       "descripcion": "Pink Floyd - negra - estampado",
-      "precio": 4500,
+      "precio": 32000,
+      "stock": 10,
       "cantidad": 1,
-      "tallesDisponibles": ["S", "M", "L", "XL"]
+      "tallesDisponibles": ["M", "L", "XL", "XXL"]
     },
     {
       "id": 7,
@@ -66,9 +72,10 @@
       "tipo": "remera",
       "img": "/img/remeradoors.png",
       "descripcion": "The Doors - negra - estampado",
-      "precio": 4500,
+      "precio": 32000,
+      "stock": 10,
       "cantidad": 1,
-      "tallesDisponibles": ["S", "M", "L", "XL"]
+      "tallesDisponibles": ["M", "L", "XL", "XXL"]
     },
     {
       "id": 8,
@@ -76,9 +83,10 @@
       "tipo": "remera",
       "img": "/img/remerakissb.jpg",
       "descripcion": "KISS - negra",
-      "precio": 4500,
+      "precio": 32000,
+      "stock": 10,
       "cantidad": 1,
-      "tallesDisponibles": ["S", "M", "L", "XL"]
+      "tallesDisponibles": ["M", "L", "XL", "XXL"]
     },
     {
       "id": 9,
@@ -86,9 +94,10 @@
       "tipo": "remera",
       "img": "/img/remeraaerosmithw.jpeg",
       "descripcion": "Aerosmith - blanca - estampado",
-      "precio": 4500,
+      "precio": 32000,
+      "stock": 10,
       "cantidad": 1,
-      "tallesDisponibles": ["S", "M", "L", "XL"]
+      "tallesDisponibles": ["M", "L", "XL", "XXL"]
     },
     {
       "id": 10,
@@ -96,9 +105,10 @@
       "tipo": "remera",
       "img": "/img/remeraqueenw.jpeg",
       "descripcion": "queen - blanca - estampado",
-      "precio": 4500,
+      "precio": 32000,
+      "stock": 10,
       "cantidad": 1,
-      "tallesDisponibles": ["S", "M", "L", "XL"]
+      "tallesDisponibles": ["M", "L", "XL", "XXL"]
     },
     {
       "id": 11,
@@ -106,9 +116,10 @@
       "tipo": "remera",
       "img": "/img/remeralosramonesr.jpg",
       "descripcion": "Los Ramones - roja - estampado",
-      "precio": 4500,
+      "precio": 32000,
+      "stock": 10,
       "cantidad": 1,
-      "tallesDisponibles": ["S", "M", "L", "XL"]
+      "tallesDisponibles": ["M", "L", "XL", "XXL"]
     },
     {
       "id": 12,
@@ -116,9 +127,10 @@
       "tipo": "buzo",
       "img": "/img/busoacdc.png",
       "descripcion": "AC/DC - negro - liso",
-      "precio": 4000,
+      "precio": 45000,
+      "stock": 10,
       "cantidad": 1,
-      "tallesDisponibles": ["S", "M", "L", "XL"]
+      "tallesDisponibles": ["M", "L", "XL", "XXL"]
     },
     {
       "id": 13,
@@ -126,9 +138,10 @@
       "tipo": "buzo",
       "img": "/img/busorollingstones.jpg",
       "descripcion": "Rolling Stones - negro con gris",
-      "precio": 5000,
+      "precio": 55000,
+      "stock": 10,
       "cantidad": 1,
-      "tallesDisponibles": ["S", "M", "L", "XL"]
+      "tallesDisponibles": ["M", "L", "XL", "XXL"]
     },
     {
       "id": 14,
@@ -136,9 +149,9 @@
       "tipo": "accesorio",
       "img": "/img/gorranirvana.jpg",
       "descripcion": "Nirvana - blanco - estampado",
-      "precio": 1500,
-      "cantidad": 1,
-      "tallesDisponibles": ["Único"]
+      "precio": 12000,
+      "stock": 10,
+      "cantidad": 1
     },
     {
       "id": 15,
@@ -146,9 +159,9 @@
       "tipo": "accesorio",
       "img": "/img/gorraredhotchilipeppers.jpg",
       "descripcion": "Red Hot Chili Peppers - blanca con negro - estampado",
-      "precio": 1500,
-      "cantidad": 1,
-      "tallesDisponibles": ["Único"]
+      "precio": 15000,
+      "stock": 10,
+      "cantidad": 1
     },
     {
       "id": 16,
@@ -156,9 +169,9 @@
       "tipo": "vaso",
       "img": "/img/chopqueen.jpg",
       "descripcion": "Chop Queen - blanco",
-      "precio": 1500,
-      "cantidad": 1,
-      "tallesDisponibles": ["Único"]
+      "precio": 10000,
+      "stock": 10,
+      "cantidad": 1
     },
     {
       "id": 17,
@@ -166,9 +179,9 @@
       "tipo": "vaso",
       "img": "/img/tazaacdc.jpg",
       "descripcion": "taza AC/DC - negra - estampado",
-      "precio": 1500,
-      "cantidad": 1,
-      "tallesDisponibles": ["Único"]
+      "precio": 10000,
+      "stock": 10,
+      "cantidad": 1
     }
   ]
 }

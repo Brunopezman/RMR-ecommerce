@@ -5,7 +5,8 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { queryAll, queryOne } from '../db.js';
+import { queryAll, queryOne, run, persist } from '../db.js';
+import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -22,6 +23,7 @@ router.get('/', (_req: Request, res: Response) => {
       img: string;
       descripcion: string | null;
       precio: number;
+      stock: number;
     }>;
 
     const products = rows.map((row) => ({
@@ -31,6 +33,7 @@ router.get('/', (_req: Request, res: Response) => {
       img: row.img,
       descripcion: row.descripcion ?? undefined,
       precio: row.precio,
+      stock: row.stock,
     }));
 
     res.json(products);
@@ -52,6 +55,7 @@ router.get('/:id', (req: Request, res: Response) => {
       img: string;
       descripcion: string | null;
       precio: number;
+      stock: number;
     } | undefined;
 
     if (!row) {
@@ -66,11 +70,74 @@ router.get('/:id', (req: Request, res: Response) => {
       img: row.img,
       descripcion: row.descripcion ?? undefined,
       precio: row.precio,
+      stock: row.stock,
     };
 
     res.json(product);
   } catch (err) {
     console.error('[products] Error fetching product:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * PATCH /:id/stock — update product stock (admin only)
+ * Body: { stock: number }
+ */
+router.patch('/:id/stock', authenticateToken, requireAdmin, (req: Request, res: Response) => {
+  try {
+    const { stock } = req.body;
+
+    // Validate stock is a non-negative integer
+    if (typeof stock !== 'number' || !Number.isInteger(stock) || stock < 0) {
+      res.status(400).json({ error: 'stock debe ser un número entero >= 0' });
+      return;
+    }
+
+    // Check product exists
+    const existing = queryOne('SELECT * FROM products WHERE id = ?', [req.params.id]) as {
+      id: number;
+      nombre: string;
+      tipo: string | null;
+      img: string;
+      descripcion: string | null;
+      precio: number;
+      stock: number;
+    } | undefined;
+
+    if (!existing) {
+      res.status(404).json({ error: 'Product not found' });
+      return;
+    }
+
+    // Update stock
+    run('UPDATE products SET stock = ? WHERE id = ?', [stock, req.params.id]);
+    persist();
+
+    // Fetch and return the updated product
+    const updated = queryOne('SELECT * FROM products WHERE id = ?', [req.params.id]) as {
+      id: number;
+      nombre: string;
+      tipo: string | null;
+      img: string;
+      descripcion: string | null;
+      precio: number;
+      stock: number;
+    };
+
+    const product = {
+      id: updated.id,
+      nombre: updated.nombre,
+      tipo: updated.tipo ?? undefined,
+      img: updated.img,
+      descripcion: updated.descripcion ?? undefined,
+      precio: updated.precio,
+      stock: updated.stock,
+    };
+
+    res.json(product);
+  } catch (err) {
+    console.error('[products] Error updating stock:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

@@ -127,8 +127,8 @@ export function FilterSidebar({
                 <span
                   className={`relative inline-flex items-center justify-center w-5 h-5 rounded border-2 flex-shrink-0 transition-all duration-200 ${
                     checked
-                      ? 'bg-[rgb(245,146,109)] border-[rgb(245,146,109)]'
-                      : 'border-gray-300 bg-white group-hover:border-[rgb(245,146,109)]'
+                      ? 'bg-coral border-coral'
+                      : 'border-gray-300 bg-white group-hover:border-coral'
                   }`}
                   aria-hidden="true"
                 >
@@ -182,7 +182,7 @@ export function FilterSidebar({
             Precio máx.
           </label>
           <span
-            className="text-sm font-bold text-[rgb(245,146,109)] tabular-nums"
+            className="text-sm font-bold text-coral tabular-nums"
             aria-live="polite"
           >
             ${localPrice.toLocaleString('es-AR')}
@@ -202,13 +202,14 @@ export function FilterSidebar({
           step={100}
           value={localPrice}
           onChange={(e) => handlePriceChange(Number(e.target.value))}
+          /* accent-coral + pseudo-elementos para thumb cross-browser */
           className="
             w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer
-            accent-[rgb(245,146,109)]
+            accent-coral
             [&::-webkit-slider-thumb]:appearance-none
             [&::-webkit-slider-thumb]:w-5
             [&::-webkit-slider-thumb]:h-5
-            [&::-webkit-slider-thumb]:bg-[rgb(245,146,109)]
+            [&::-webkit-slider-thumb]:bg-coral
             [&::-webkit-slider-thumb]:rounded-full
             [&::-webkit-slider-thumb]:shadow-md
             [&::-webkit-slider-thumb]:transition-transform
@@ -216,14 +217,14 @@ export function FilterSidebar({
             [&::-webkit-slider-thumb]:hover:scale-110
             [&::-moz-range-thumb]:w-5
             [&::-moz-range-thumb]:h-5
-            [&::-moz-range-thumb]:bg-[rgb(245,146,109)]
+            [&::-moz-range-thumb]:bg-coral
             [&::-moz-range-thumb]:rounded-full
             [&::-moz-range-thumb]:border-0
             [&::-moz-range-thumb]:shadow-md
             [&::-moz-range-thumb]:hover:scale-110
             focus-visible:outline-2
             focus-visible:outline-offset-2
-            focus-visible:outline-[rgb(245,146,109)]
+            focus-visible:outline-coral
           "
           aria-label="Seleccionar precio máximo"
           aria-valuenow={localPrice}
@@ -237,13 +238,13 @@ export function FilterSidebar({
         <button
           onClick={handleClear}
           className="
-            w-full text-sm text-gray-500 hover:text-[rgb(245,146,109)]
+            w-full text-sm text-gray-500 hover:text-coral
             transition-colors duration-200
-            border border-gray-200 hover:border-[rgb(245,146,109)]
+            border border-gray-200 hover:border-coral
             rounded px-4 py-2.5
             flex items-center justify-center gap-2
             bg-transparent cursor-pointer
-            focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(245,146,109)]
+            focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coral
           "
         >
           <svg
@@ -283,11 +284,11 @@ export function FilterSidebar({
           bg-black text-white
           px-5 py-3
           rounded-full shadow-lg
-          hover:bg-[rgb(245,146,109)]
+          hover:bg-coral
           transition-colors duration-300
           text-sm font-semibold uppercase tracking-wide
           cursor-pointer border-0
-          focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(245,146,109)]
+          focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coral
         `}
         aria-label="Abrir filtros"
         aria-haspopup="dialog"
@@ -311,7 +312,7 @@ export function FilterSidebar({
         Filtrar
         {hasActiveFilters && (
           <span
-            className="bg-[rgb(245,146,109)] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center ml-0.5 font-bold"
+            className="bg-coral text-white text-xs rounded-full w-5 h-5 flex items-center justify-center ml-0.5 font-bold"
             aria-label={`${activeFilterCount} filtro${activeFilterCount !== 1 ? 's' : ''} activo${activeFilterCount !== 1 ? 's' : ''}`}
           >
             {activeFilterCount}
@@ -366,7 +367,7 @@ export function FilterSidebar({
                 setMobileOpen(false);
                 triggerRef.current?.focus();
               }}
-              className="text-gray-400 hover:text-gray-600 transition-colors p-1 bg-transparent border-0 cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(245,146,109)]"
+              className="text-gray-400 hover:text-gray-600 transition-colors p-1 bg-transparent border-0 cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coral"
               aria-label="Cerrar filtros"
             >
               <svg

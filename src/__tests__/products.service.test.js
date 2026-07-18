@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { fetchProducts, filterByCategory, searchByName } from '../services/productService';
+import { fetchProducts, filterByCategory, filterByCategories, filterByMaxPrice, searchByName } from '../services/productService';
 
 const SAMPLE_PRODUCTS = [
   { id: 1, nombre: 'Remera The Beatles', categoria: 'remera', precio: 4000 },
@@ -123,5 +123,84 @@ describe('searchByName', () => {
     const result = searchByName(productsWithName, 'queen');
     expect(result).toHaveLength(1);
     expect(result[0].id).toBe(5);
+  });
+});
+
+describe('filterByCategories', () => {
+  it('filtra productos por un array de categorías', () => {
+    const result = filterByCategories(SAMPLE_PRODUCTS, ['remera']);
+    expect(result).toHaveLength(2);
+    expect(result.every(p => p.categoria === 'remera')).toBe(true);
+  });
+
+  it('filtra por múltiples categorías', () => {
+    const result = filterByCategories(SAMPLE_PRODUCTS, ['remera', 'buzo']);
+    expect(result).toHaveLength(3);
+    expect(result.map(p => p.id)).toEqual([1, 2, 4]);
+  });
+
+  it('devuelve todos los productos si el array de categorías está vacío', () => {
+    const result = filterByCategories(SAMPLE_PRODUCTS, []);
+    expect(result).toEqual(SAMPLE_PRODUCTS);
+  });
+
+  it('es case-insensitive con categorías en mayúsculas', () => {
+    const result = filterByCategories(SAMPLE_PRODUCTS, ['REMERA', 'BUZO']);
+    expect(result).toHaveLength(3);
+  });
+
+  it('es case-insensitive con categorías mixtas', () => {
+    const result = filterByCategories(SAMPLE_PRODUCTS, ['ReMeRa']);
+    expect(result).toHaveLength(2);
+  });
+
+  it('devuelve array vacío si ninguna categoría coincide', () => {
+    const result = filterByCategories(SAMPLE_PRODUCTS, ['vinilo']);
+    expect(result).toEqual([]);
+  });
+
+  it('soporta el campo alternativo "category" si no existe "categoria"', () => {
+    const productsWithCategory = [
+      { id: 5, nombre: 'Vinilo Queen', category: 'vinilo' },
+      { id: 6, nombre: 'Remera Queen', category: 'remera' },
+    ];
+    const result = filterByCategories(productsWithCategory, ['remera']);
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe(6);
+  });
+
+  it('soporta el campo alternativo "tipo" si no existe "categoria" ni "category"', () => {
+    const productsWithTipo = [
+      { id: 7, nombre: 'Buzo Queen', tipo: 'buzo' },
+      { id: 8, nombre: 'Gorra Queen', tipo: 'accesorio' },
+    ];
+    const result = filterByCategories(productsWithTipo, ['buzo']);
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe(7);
+  });
+});
+
+describe('filterByMaxPrice', () => {
+  it('filtra productos con precio menor o igual al límite', () => {
+    const result = filterByMaxPrice(SAMPLE_PRODUCTS, 4000);
+    expect(result).toHaveLength(2);
+    expect(result.every(p => p.precio <= 4000)).toBe(true);
+    expect(result.map(p => p.id)).toEqual([1, 3]);
+  });
+
+  it('filtra con precio límite exacto', () => {
+    const result = filterByMaxPrice(SAMPLE_PRODUCTS, 4500);
+    expect(result).toHaveLength(3);
+    expect(result.find(p => p.id === 4)?.precio).toBe(4500);
+  });
+
+  it('devuelve array vacío si ningún producto está dentro del precio', () => {
+    const result = filterByMaxPrice(SAMPLE_PRODUCTS, 500);
+    expect(result).toEqual([]);
+  });
+
+  it('devuelve todos los productos si maxPrice es null', () => {
+    const result = filterByMaxPrice(SAMPLE_PRODUCTS, null);
+    expect(result).toEqual(SAMPLE_PRODUCTS);
   });
 });

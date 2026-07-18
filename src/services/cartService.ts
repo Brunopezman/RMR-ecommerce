@@ -2,65 +2,60 @@ import type { Product, CartItem, CartSummary } from '../types';
 
 /**
  * Add a product to cart items.
- * If product already exists, increment its quantity.
- * Otherwise, add new item with quantity 1.
+ * Matches by id + talleSeleccionado so the same product in different sizes
+ * are treated as separate line items.
+ *
+ * @param items  Current cart items
+ * @param product  Product to add
+ * @param size  Selected size (undefined for non-talleable products)
+ * @param quantity  Number of units to add (default 1)
  */
 export function addToCart(
   items: CartItem[],
   product: Product,
+  size?: string,
+  quantity: number = 1,
 ): CartItem[] {
+  // Find existing item with same id AND same talleSeleccionado
   const existing = items.find(
-    (item) => item.id === product.id && item.talle === product.talle,
+    (item) => item.id === product.id && item.talleSeleccionado === size,
   );
+
   if (existing) {
     return items.map((item) =>
-      item.id === product.id && item.talle === product.talle
-        ? { ...item, cantidad: item.cantidad + 1 }
+      item.id === product.id && item.talleSeleccionado === size
+        ? { ...item, cantidad: item.cantidad + quantity }
         : item,
     );
   }
-  return [...items, { ...product, cantidad: 1 }];
+
+  return [...items, { ...product, cantidad: quantity, talleSeleccionado: size }];
 }
 
 /**
- * Remove a product from cart items by id and optional talle.
+ * Remove a product from cart items by id.
  * If quantity > 1, decrement it. If quantity === 1, remove entirely.
- * When talle is not provided, matches by id only (backwards compatible).
  */
-export function removeFromCart(
-  items: CartItem[],
-  productId: number | string,
-  talle?: string,
-): CartItem[] {
-  const match = (item: CartItem) =>
-    item.id == productId && item.talle === talle;
-
-  const existing = items.find(match);
+export function removeFromCart(items: CartItem[], productId: number | string): CartItem[] {
+  const existing = items.find((item) => item.id == productId);
   if (!existing) return items;
 
   if (existing.cantidad === 1) {
-    return items.filter((item) => !match(item));
+    return items.filter((item) => item.id != productId);
   }
 
   return items.map((item) =>
-    match(item)
+    item.id == productId
       ? { ...item, cantidad: item.cantidad - 1 }
       : item,
   );
 }
 
 /**
- * Remove all instances of a product from cart by id and optional talle.
- * When talle is not provided, removes by id only (backwards compatible).
+ * Remove all instances of a product from cart.
  */
-export function removeAllFromCart(
-  items: CartItem[],
-  productId: number | string,
-  talle?: string,
-): CartItem[] {
-  const match = (item: CartItem) =>
-    item.id == productId && item.talle === talle;
-  return items.filter((item) => !match(item));
+export function removeAllFromCart(items: CartItem[], productId: number | string): CartItem[] {
+  return items.filter((item) => item.id != productId);
 }
 
 /**

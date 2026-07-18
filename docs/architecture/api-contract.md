@@ -1,6 +1,6 @@
 # API Contract — Rock Merch & Roll
 
-> **Última actualización:** 2026-07-14
+> **Última actualización:** 2026-07-17
 > **Propósito:** Documento de contrato entre frontend y backend. El shape aquí descrito es el que debe respetar tanto la mock API (json-server, Paso A) como la API real (Paso B).
 
 ---
@@ -29,6 +29,7 @@ interface Product {
   img: string;
   descripcion?: string;
   precio: number;
+  stock?: number;
   cantidad?: number;
 }
 ```
@@ -42,6 +43,7 @@ interface Product {
   "img": "/img/remerathebeatles.png",
   "descripcion": "The Beatles - negra - lisa",
   "precio": 4000,
+  "stock": 10,
   "cantidad": 1
 }
 ```
@@ -51,33 +53,37 @@ interface Product {
 ### `User`
 
 Endpoint: `POST /users` → `User`
+Endpoint: `GET /users` → `User[]` (requiere auth + role admin)
+Endpoint: `GET /users/:id` → `User` (requiere auth, propio usuario)
+Endpoint: `PATCH /users/:id` → `User` (requiere auth, propio usuario)
 
 ```typescript
 interface User {
   id: number | string;
   email: string;
   name: string;
+  role: 'admin' | 'user';
+  apellido?: string;
   address?: string;
+  codigoPostal?: string;
+  sexo?: string;
+  telefono?: string;
   createdAt?: string;
 }
 ```
 
-**Ejemplo (request):**
-```json
-{
-  "email": "fan@example.com",
-  "name": "Rock Fan",
-  "address": "Av. Siempre Viva 123"
-}
-```
-
-**Ejemplo (response):**
+**Ejemplo (response GET /users):**
 ```json
 {
   "id": 1,
-  "email": "fan@example.com",
-  "name": "Rock Fan",
-  "address": "Av. Siempre Viva 123",
+  "email": "admin@rock.com",
+  "name": "Admin",
+  "role": "admin",
+  "apellido": "",
+  "address": null,
+  "codigoPostal": "",
+  "sexo": "",
+  "telefono": "",
   "createdAt": "2026-07-13T12:00:00.000Z"
 }
 ```
@@ -146,6 +152,8 @@ El backend real está implementado en `server/` con Express + TypeScript + SQLit
 ### Arranque
 
 ```bash
+# Opcional: definir email del admin inicial
+export ADMIN_EMAIL=admin@rock.com
 npm run server
 ```
 
@@ -171,7 +179,7 @@ Las tablas se crean automáticamente al primer inicio. Los productos se seedan d
 
 ```sql
 products (id, nombre, tipo, img, descripcion, precio)
-users    (id, email, name, address, created_at)
+users    (id, email, name, address, created_at, apellido, codigo_postal, sexo, telefono, password_hash, role)
 orders   (id, user_id, total, status, created_at, shipping_address)
 order_items (id, order_id, product_id, nombre, precio, cantidad)
 ```

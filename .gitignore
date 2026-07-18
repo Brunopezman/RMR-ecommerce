@@ -25,6 +25,7 @@ coverage/
 playwright-report/
 test-results/
 .vitest-cache/
+.indexion/
 
 # json-server (Fase 3 Paso A - api mock)
 db.json.bak
@@ -38,6 +39,7 @@ npm-debug.log*
 .vscode/*
 !.vscode/extensions.json
 .idea/
+.indexion/
 
 # opencode (estado local, no compartir entre máquinas)
 .opencode/state/

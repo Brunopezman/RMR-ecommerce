@@ -2,9 +2,8 @@ import type { Product } from '../types/product';
 
 /**
  * Base URL for the products API.
- * Change this to the real backend URL in Paso B.
  */
-export const PRODUCTS_API_URL = 'http://localhost:3001/products';
+export const PRODUCTS_API_URL = 'http://localhost:4000/products';
 
 /**
  * Fetch products from a URL (defaults to PRODUCTS_API_URL).
@@ -25,7 +24,7 @@ export async function fetchProducts(
 }
 
 /**
- * Filter products by category (case-insensitive).
+ * Filter products by a single category (case-insensitive).
  * Supports `categoria`, `category`, and `tipo` fields.
  * Returns all products if category is falsy.
  */

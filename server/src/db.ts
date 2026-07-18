@@ -9,6 +9,7 @@ import type { SqlJsStatic } from 'sql.js';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import bcrypt from 'bcryptjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -46,7 +47,10 @@ export async function initDb(): Promise<SqlJsDatabase> {
   }
 
   createTables();
+  migrateUsersTable();
+  migrateProductsTable();
   seedProducts();
+  seedAdminUser();
   persist();
 
   return sqlDb;
@@ -138,7 +142,8 @@ function createTables(): void {
       tipo        TEXT,
       img         TEXT    NOT NULL,
       descripcion TEXT,
-      precio      REAL    NOT NULL
+      precio      REAL    NOT NULL,
+      stock       INTEGER NOT NULL DEFAULT 0
     );
 
     CREATE TABLE IF NOT EXISTS users (
@@ -173,6 +178,84 @@ function createTables(): void {
 }
 
 /**
+ * Migrate the users table adding new columns if they don't exist.
+ * SQLite's ALTER TABLE ADD COLUMN is idempotent-safe with try/catch.
+ */
+function migrateUsersTable(): void {
+  const newColumns = [
+    'apellido TEXT DEFAULT \'\'',
+    'codigo_postal TEXT DEFAULT \'\'',
+    'sexo TEXT DEFAULT \'\'',
+    'telefono TEXT DEFAULT \'\'',
+    'password_hash TEXT DEFAULT \'\'',
+    "role TEXT NOT NULL DEFAULT 'user'",
+  ];
+
+  for (const colDef of newColumns) {
+    try {
+      run(`ALTER TABLE users ADD COLUMN ${colDef}`);
+    } catch {
+      // Column already exists — safe to ignore
+    }
+  }
+}
+
+/**
+ * Migrate products table adding stock column if missing.
+ */
+function migrateProductsTable(): void {
+  try {
+    run('ALTER TABLE products ADD COLUMN stock INTEGER NOT NULL DEFAULT 0');
+  } catch {
+    // Column already exists — safe to ignore
+  }
+}
+
+/**
+ * Seed admin user from ADMIN_EMAIL env var, or create a default admin account.
+ * If ADMIN_EMAIL is set, uses that email (and optionally ADMIN_PASSWORD).
+ * Otherwise seeds admin@rock.com / admin123 as default admin.
+ */
+function seedAdminUser(): void {
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@rock.com';
+
+  const existing = queryOne('SELECT id, role, password_hash FROM users WHERE email = ?', [adminEmail]);
+
+  if (existing) {
+    let updated = false;
+
+    if (existing.role !== 'admin') {
+      run('UPDATE users SET role = ? WHERE email = ?', ['admin', adminEmail]);
+      updated = true;
+      console.log(`[db] Promoted ${adminEmail} to admin.`);
+    }
+
+    // If the existing user has no password (empty or null), set a default one
+    const pwHash = (existing.password_hash as string) || '';
+    if (!pwHash) {
+      const defaultPassword = process.env.ADMIN_PASSWORD || 'admin123';
+      const newHash = bcrypt.hashSync(defaultPassword, 10);
+      run('UPDATE users SET password_hash = ? WHERE email = ?', [newHash, adminEmail]);
+      updated = true;
+      console.log(`[db] Set default password for ${adminEmail} (password: ${defaultPassword})`);
+    }
+
+    if (updated) persist();
+    return;
+  }
+
+  const defaultPassword = process.env.ADMIN_PASSWORD || 'admin123';
+  const passwordHash = bcrypt.hashSync(defaultPassword, 10);
+  run(
+    `INSERT INTO users (email, name, role, password_hash)
+     VALUES (?, ?, ?, ?)`,
+    [adminEmail, 'Admin', 'admin', passwordHash],
+  );
+  persist();
+  console.log(`[db] Created admin user: ${adminEmail} (password: ${defaultPassword})`);
+}
+
+/**
  * Seed products from react/db.json if the products table is empty.
  */
 function seedProducts(): void {
@@ -186,7 +269,7 @@ function seedProducts(): void {
     return;
   }
 
-  let seedData: { products: Array<{ id: number; nombre: string; tipo?: string; img: string; descripcion?: string; precio: number }> };
+  let seedData: { products: Array<{ id: number; nombre: string; tipo?: string; img: string; descripcion?: string; precio: number; stock?: number }> };
 
   try {
     const raw = fs.readFileSync(SEED_JSON_PATH, 'utf-8');
@@ -203,8 +286,8 @@ function seedProducts(): void {
 
   for (const p of seedData.products) {
     run(
-      'INSERT INTO products (id, nombre, tipo, img, descripcion, precio) VALUES (?, ?, ?, ?, ?, ?)',
-      [p.id, p.nombre, p.tipo ?? null, p.img, p.descripcion ?? null, p.precio],
+      'INSERT INTO products (id, nombre, tipo, img, descripcion, precio, stock) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [p.id, p.nombre, p.tipo ?? null, p.img, p.descripcion ?? null, p.precio, p.stock ?? 0],
     );
   }
 

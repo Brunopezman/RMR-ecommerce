@@ -10,10 +10,11 @@
 
 import type { Product } from '../types/product';
 import type { User } from '../types/user';
+import type { AuthUser } from '../types/auth';
 import type { Order } from '../types/order';
 
-/** Base URL for all API calls — swap this in Paso B */
-export const BASE_URL = 'http://localhost:3001';
+/** Base URL for all API calls */
+export const BASE_URL = 'http://localhost:4000';
 
 // ──────────────────────────────────────────────
 //  Products
@@ -37,7 +38,7 @@ export async function fetchProductById(id: number): Promise<Product> {
 //  Users
 // ──────────────────────────────────────────────
 
-/** POST /users — register a new user */
+/** POST /users — register a new user (legacy, for json-server) */
 export async function registerUser(
   user: Omit<User, 'id' | 'createdAt'>,
 ): Promise<User> {
@@ -47,6 +48,66 @@ export async function registerUser(
     body: JSON.stringify(user),
   });
   if (!res.ok) throw new Error(`registerUser failed: HTTP ${res.status}`);
+  return res.json();
+}
+
+/** POST /api/auth/login — authenticate and return user + token */
+export async function loginUser(
+  email: string,
+  password: string,
+): Promise<{ user: AuthUser; token: string }> {
+  const res = await fetch(`${BASE_URL}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error((data.error as string) || (data.msg as string) || 'Credenciales inválidas.');
+  }
+  return res.json() as Promise<{ user: AuthUser; token: string }>;
+}
+
+/** PATCH /users/:id — update user profile (requires auth) */
+export async function updateUser(
+  id: number | string,
+  data: Partial<User>,
+): Promise<User> {
+  const token = localStorage.getItem('authToken');
+  const res = await fetch(`${BASE_URL}/users/${id}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`updateUser failed: HTTP ${res.status}`);
+  return res.json();
+}
+
+/** PATCH /products/:id/stock — update product stock (requires auth) */
+export async function updateProductStock(
+  id: number,
+  stock: number,
+): Promise<Product> {
+  const token = localStorage.getItem('authToken');
+  const res = await fetch(`${BASE_URL}/products/${id}/stock`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ stock }),
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(
+      (data.error as string) || `Error al actualizar stock: HTTP ${res.status}`,
+    );
+  }
+
   return res.json();
 }
 

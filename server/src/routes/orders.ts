@@ -104,6 +104,28 @@ router.post('/', (req: Request, res: Response) => {
       return;
     }
 
+    // Validate stock for each item
+    for (const item of items) {
+      const product = queryOne(
+        'SELECT stock FROM products WHERE id = ?',
+        [item.productId],
+      ) as { stock: number } | undefined;
+
+      if (!product) {
+        res.status(404).json({
+          error: `Producto ID ${item.productId} no encontrado`,
+        });
+        return;
+      }
+
+      if (product.stock < item.cantidad) {
+        res.status(400).json({
+          error: `Stock insuficiente para "${item.nombre}". Disponible: ${product.stock}, solicitado: ${item.cantidad}`,
+        });
+        return;
+      }
+    }
+
     // Create order
     run(
       'INSERT INTO orders (user_id, total, shipping_address) VALUES (?, ?, ?)',
@@ -112,11 +134,15 @@ router.post('/', (req: Request, res: Response) => {
 
     const orderId = lastInsertId();
 
-    // Insert order items
+    // Insert order items and deduct stock
     for (const item of items) {
       run(
         'INSERT INTO order_items (order_id, product_id, nombre, precio, cantidad) VALUES (?, ?, ?, ?, ?)',
         [orderId, item.productId, item.nombre, item.precio, item.cantidad],
+      );
+      run(
+        'UPDATE products SET stock = stock - ? WHERE id = ?',
+        [item.cantidad, item.productId],
       );
     }
 

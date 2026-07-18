@@ -309,7 +309,7 @@ function formatSearchResponse(
 //  Hook
 // ──────────────────────────────────────────────
 
-export function useConcierge(addToCartFn: (product: Product) => void): UseConciergeReturn {
+export function useConcierge(addToCartFn: (product: Product, quantity?: number, size?: string) => void): UseConciergeReturn {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
@@ -400,8 +400,8 @@ export function useConcierge(addToCartFn: (product: Product) => void): UseConcie
   }, [isOpen, open, close]);
 
   const addProductToCart = useCallback(
-    (product: Product) => {
-      addToCartFn(product);
+    (product: Product, size?: string) => {
+      addToCartFn(product, 1, size);
       const msg: ChatMessage = {
         id: nextId(),
         role: 'assistant',
@@ -437,8 +437,7 @@ export function useConcierge(addToCartFn: (product: Product) => void): UseConcie
 
           if (talle && pendingSize.product.tallesDisponibles?.includes(talle)) {
             // Valid size — add to cart with the selected talle
-            const productWithTalle = { ...pendingSize.product, talle };
-            addToCartFn(productWithTalle);
+            addToCartFn(pendingSize.product, 1, talle);
             setPendingSize(null);
             const response: ChatMessage = {
               id: nextId(),

@@ -2,20 +2,21 @@ import type { Product } from '../../types/product';
 
 interface ProductCardProps {
   product: Product;
-  onViewProduct: (productId: number) => void;
+  onAddToCart?: (product: Product) => void;
+  onProductClick?: (id: number) => void;
 }
 
-export function ProductCard({ product, onViewProduct }: ProductCardProps) {
+export function ProductCard({ product, onProductClick }: ProductCardProps) {
   return (
-    <div className="product text-center col-lg-3 col-md-4 col-12 mb-4">
+    <div className="product text-center mb-4">
       <button
-        onClick={() => onViewProduct(product.id)}
+        onClick={() => onProductClick?.(product.id)}
         className="bg-transparent border-0 cursor-pointer p-0 w-full"
         aria-label={`Ver detalle de ${product.nombre}`}
       >
         <img
           id={`product-img-${product.id}`}
-          className="img-fluid mb-3 w-full h-auto object-cover transition-opacity duration-200 hover:opacity-80"
+          className="img-fluid mb-3 w-full h-48 object-cover object-center transition-opacity duration-200 hover:opacity-80"
           src={product.img}
           alt={product.descripcion ?? product.nombre}
         />

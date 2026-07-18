@@ -261,49 +261,35 @@ function applyFilters(
 }
 
 /**
- * Search by exact category (convenience wrapper).
- */
-export function searchByCategory(
-  category: string,
-  products: Product[],
-): Product[] {
-  const cat = category.toLowerCase();
-  return products.filter((p) => {
-    const pCat = (p.tipo ?? p.category ?? p.categoria ?? '').toLowerCase();
-    return pCat === cat;
-  });
-}
-
-/**
- * Search by exact price range.
- */
-export function searchByPriceRange(
-  maxPrice: number,
-  products: Product[],
-): Product[] {
-  return products.filter((p) => p.precio <= maxPrice);
-}
-
-/**
- * Get a product by its ID from the index.
- */
-export function getProductById(
-  id: number,
-  products: Product[],
-): Product | undefined {
-  return products.find((p) => p.id === id);
-}
-
-/**
  * Search by exact name match (partial, case-insensitive).
+ * Falls back to token-level matching: if the full query doesn't match,
+ * tries matching individual query words after filtering noise tokens.
  */
 export function searchByName(
   name: string,
   products: Product[],
 ): Product[] {
   const q = name.toLowerCase().trim();
-  return products.filter((p) => {
+  const exact = products.filter((p) => {
     const pName = (p.nombre ?? p.name ?? '').toLowerCase();
     return pName.includes(q);
+  });
+  if (exact.length > 0) return exact;
+
+  // Token-level fallback: filter noise words, match any remaining token
+  const noiseWords = new Set([
+    'al', 'en', 'el', 'la', 'lo', 'las', 'los', 'un', 'una', 'carrito',
+    'por', 'favor', 'gracias', 'para', 'del', 'con', 'que', 'como',
+  ]);
+
+  const tokens = q
+    .split(/\s+/)
+    .filter((t) => t.length > 1 && !noiseWords.has(t));
+
+  if (tokens.length === 0) return [];
+
+  return products.filter((p) => {
+    const pName = (p.nombre ?? p.name ?? '').toLowerCase();
+    return tokens.some((token) => pName.includes(token));
   });
 }

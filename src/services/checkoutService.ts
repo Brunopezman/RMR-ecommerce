@@ -10,9 +10,11 @@ const INTEREST_RATES: Record<number, number> = {
 
 const SHIPPING_COSTS: Record<string, number> = {
   tienda: 0,
-  estandar: 1500,
-  express: 3000,
+  estandar: 10000,
+  express: 18000,
 };
+
+const FREE_SHIPPING_THRESHOLD = 100000;
 
 /**
  * Detect card brand from number prefix.
@@ -80,13 +82,15 @@ export function calcularEnvio(
   baseWithInterest: number,
   shippingType: string,
   cuotas: number,
-): { envioCost: number; totalFinal: number; valorCuota: number } {
-  const envioCost = SHIPPING_COSTS[shippingType] ?? 0;
+  totalBase: number,
+): { envioCost: number; totalFinal: number; valorCuota: number; freeShipping: boolean } {
+  const freeShipping = totalBase >= FREE_SHIPPING_THRESHOLD;
+  const envioCost = freeShipping ? 0 : (SHIPPING_COSTS[shippingType] ?? 0);
   const totalFinal = baseWithInterest + envioCost;
   const cuotasCount = cuotas || 1;
   const valorCuota = totalFinal / cuotasCount;
 
-  return { envioCost, totalFinal, valorCuota };
+  return { envioCost, totalFinal, valorCuota, freeShipping };
 }
 
 /**
