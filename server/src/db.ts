@@ -212,11 +212,12 @@ function migrateProductsTable(): void {
 }
 
 /**
- * Seed admin user from ADMIN_EMAIL env var if set.
+ * Seed admin user from ADMIN_EMAIL env var, or create a default admin account.
+ * If ADMIN_EMAIL is set, uses that email (and optionally ADMIN_PASSWORD).
+ * Otherwise seeds admin@rock.com / admin123 as default admin.
  */
 function seedAdminUser(): void {
-  const adminEmail = process.env.ADMIN_EMAIL;
-  if (!adminEmail) return;
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@rock.com';
 
   const existing = queryOne('SELECT id, role, password_hash FROM users WHERE email = ?', [adminEmail]);
 

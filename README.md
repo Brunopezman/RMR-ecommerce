@@ -171,12 +171,29 @@ npm install
 ### Inicio rápido
 
 ```bash
-# Terminal 1 — Backend real
+# Terminal 1 — Backend real (crea la DB automáticamente)
 npm run server
 
 # Terminal 2 — Frontend
 npm run dev
 ```
+
+### Acceso al Panel Admin
+
+Al arrancar el servidor por primera vez, se crea automáticamente una cuenta administradora:
+
+| Campo | Valor por defecto |
+|---|---|
+| Email | `admin@rock.com` |
+| Contraseña | `admin123` |
+
+**Personalizar credenciales del admin** (opcional):
+
+```bash
+ADMIN_EMAIL=admin@midominio.com ADMIN_PASSWORD=secreto123 npm run server
+```
+
+Una vez logueado, aparecerá un link **"Admin"** (púrpura) en el header para acceder al panel de administración, donde podrás gestionar usuarios y el stock de productos.
 
 Para desarrollo con mock API:
 
