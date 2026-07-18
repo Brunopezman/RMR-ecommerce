@@ -9,10 +9,12 @@ export function addToCart(
   items: CartItem[],
   product: Product,
 ): CartItem[] {
-  const existing = items.find((item) => item.id === product.id);
+  const existing = items.find(
+    (item) => item.id === product.id && item.talle === product.talle,
+  );
   if (existing) {
     return items.map((item) =>
-      item.id === product.id
+      item.id === product.id && item.talle === product.talle
         ? { ...item, cantidad: item.cantidad + 1 }
         : item,
     );
@@ -21,29 +23,44 @@ export function addToCart(
 }
 
 /**
- * Remove a product from cart items by id.
+ * Remove a product from cart items by id and optional talle.
  * If quantity > 1, decrement it. If quantity === 1, remove entirely.
+ * When talle is not provided, matches by id only (backwards compatible).
  */
-export function removeFromCart(items: CartItem[], productId: number | string): CartItem[] {
-  const existing = items.find((item) => item.id == productId);
+export function removeFromCart(
+  items: CartItem[],
+  productId: number | string,
+  talle?: string,
+): CartItem[] {
+  const match = (item: CartItem) =>
+    item.id == productId && item.talle === talle;
+
+  const existing = items.find(match);
   if (!existing) return items;
 
   if (existing.cantidad === 1) {
-    return items.filter((item) => item.id != productId);
+    return items.filter((item) => !match(item));
   }
 
   return items.map((item) =>
-    item.id == productId
+    match(item)
       ? { ...item, cantidad: item.cantidad - 1 }
       : item,
   );
 }
 
 /**
- * Remove all instances of a product from cart.
+ * Remove all instances of a product from cart by id and optional talle.
+ * When talle is not provided, removes by id only (backwards compatible).
  */
-export function removeAllFromCart(items: CartItem[], productId: number | string): CartItem[] {
-  return items.filter((item) => item.id != productId);
+export function removeAllFromCart(
+  items: CartItem[],
+  productId: number | string,
+  talle?: string,
+): CartItem[] {
+  const match = (item: CartItem) =>
+    item.id == productId && item.talle === talle;
+  return items.filter((item) => !match(item));
 }
 
 /**

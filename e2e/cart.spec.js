@@ -7,26 +7,53 @@ test.describe('Carrito de compras', () => {
     await expect(contador).toHaveText('0');
   });
 
-  test('agregar un producto al carrito actualiza el contador', async ({ page }) => {
+  test('agregar un producto al carrito desde el detalle actualiza el contador', async ({ page }) => {
     await page.goto('/');
     await page.locator('button', { hasText: 'Compra Ahora' }).click();
 
-    const buyButton = page.locator('.buy-btn').first();
-    await expect(buyButton).toBeVisible({ timeout: 10000 });
-    await buyButton.click();
+    // Wait for products to load and click first product image
+    const productImage = page.locator('#product-img-1');
+    await expect(productImage).toBeVisible({ timeout: 10000 });
+    await productImage.click();
+
+    // Should be on product detail page
+    await expect(page).toHaveURL(/\/producto\/\d+/);
+
+    // Wait for product detail to load and select talle "M"
+    const talleButton = page.locator('.flex.flex-wrap.gap-2 button').filter({ hasText: 'M' });
+    await expect(talleButton).toBeVisible({ timeout: 5000 });
+    await talleButton.click();
+
+    // Click "Agregar al carrito"
+    const addButton = page.locator('button', { hasText: 'Agregar al carrito' });
+    await expect(addButton).toBeEnabled({ timeout: 5000 });
+    await addButton.click();
 
     const contador = page.locator('#contador-carrito');
     await expect(contador).toHaveText('1');
   });
 
-  test('agregar dos veces el mismo producto incrementa la cantidad', async ({ page }) => {
+  test('agregar dos veces el mismo producto desde el detalle incrementa la cantidad', async ({ page }) => {
     await page.goto('/');
     await page.locator('button', { hasText: 'Compra Ahora' }).click();
 
-    const buyButton = page.locator('.buy-btn').first();
-    await expect(buyButton).toBeVisible({ timeout: 10000 });
-    await buyButton.click();
-    await buyButton.click();
+    // Wait for products to load and click first product image
+    const productImage = page.locator('#product-img-1');
+    await expect(productImage).toBeVisible({ timeout: 10000 });
+    await productImage.click();
+
+    await expect(page).toHaveURL(/\/producto\/\d+/);
+
+    // Wait for product detail to load and select talle "M"
+    const talleButton = page.locator('.flex.flex-wrap.gap-2 button').filter({ hasText: 'M' });
+    await expect(talleButton).toBeVisible({ timeout: 5000 });
+    await talleButton.click();
+
+    // Add twice
+    const addButton = page.locator('button', { hasText: 'Agregar al carrito' });
+    await expect(addButton).toBeEnabled({ timeout: 5000 });
+    await addButton.click();
+    await addButton.click();
 
     const contador = page.locator('#contador-carrito');
     await expect(contador).toHaveText('2');

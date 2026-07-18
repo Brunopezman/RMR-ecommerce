@@ -12,4 +12,8 @@ export interface Product {
   name?: string;
   category?: string;
   categoria?: string;
+  /** Talle seleccionado (ej: "S", "M", "L", "XL", "Único") */
+  talle?: string;
+  /** Talles disponibles para este producto */
+  tallesDisponibles?: string[];
 }

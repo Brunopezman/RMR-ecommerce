@@ -109,6 +109,71 @@ function nextId(): string {
 }
 
 // ──────────────────────────────────────────────
+//  Talle helpers
+// ──────────────────────────────────────────────
+
+const SIZE_ALIASES: Record<string, string> = {
+  s: 'S',
+  chico: 'S',
+  chica: 'S',
+  pequeño: 'S',
+  pequeña: 'S',
+  m: 'M',
+  mediano: 'M',
+  mediana: 'M',
+  l: 'L',
+  grande: 'L',
+  xl: 'XL',
+  'extra grande': 'XL',
+};
+
+/**
+ * Parse a user message and extract a valid size (talle), or null.
+ * Accepts: "S", "M", "L", "XL", "mediano", "talle M", "quiero la M", etc.
+ */
+export function parseTalle(text: string): string | null {
+  const lower = text.toLowerCase().trim();
+
+  // Direct match on full alias map
+  if (SIZE_ALIASES[lower]) return SIZE_ALIASES[lower];
+
+  // "talle X", "talla X", "medida X" patterns
+  const talleMatch = lower.match(
+    /(?:talle|talla|medida)\s*(s|m|l|xl)/i,
+  );
+  if (talleMatch) return SIZE_ALIASES[talleMatch[1].toLowerCase()];
+
+  // "quiero el/la X", "el/la X" patterns
+  const wantMatch = lower.match(
+    /(?:quiero|quisiera|necesito|el|la)\s+(chico|chica|mediano|mediana|grande|s|m|l|xl)/i,
+  );
+  if (wantMatch) return SIZE_ALIASES[wantMatch[1].toLowerCase()];
+
+  return null;
+}
+
+/**
+ * Heuristic: does the message look like a size response (vs a new topic)?
+ * Returns false if the message contains clear topic-change markers
+ * (greetings, search commands, add-to-cart commands).
+ */
+function looksLikeSizeResponse(text: string): boolean {
+  const lower = text.toLowerCase().trim();
+
+  // Clear topic-change markers → not a size response
+  if (/^(hola|buenas|ayuda|mostrame|busc[ao]|gracias)/i.test(lower)) return false;
+  if (/(agreg[áa]|compr[áa]|pon[eé]|mostrame)\b/i.test(lower)) return false;
+
+  // Check if it parses as a talle
+  return parseTalle(text) !== null;
+}
+
+/** A product waiting for the user to pick a talle */
+interface PendingSizeSelection {
+  product: Product;
+}
+
+// ──────────────────────────────────────────────
 //  Response templates
 // ──────────────────────────────────────────────
 
@@ -250,6 +315,7 @@ export function useConcierge(addToCartFn: (product: Product) => void): UseConcie
   const [isTyping, setIsTyping] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [catalogLoaded, setCatalogLoaded] = useState(false);
+  const [pendingSize, setPendingSize] = useState<PendingSizeSelection | null>(null);
   const initializedRef = useRef(false);
   const mountedRef = useRef(true);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -310,11 +376,12 @@ export function useConcierge(addToCartFn: (product: Product) => void): UseConcie
           id: nextId(),
           role: 'assistant',
           text:
-            '🎸 ¡Bienvenido a Rock Merch & Roll! Soy tu asistente de compras.\n\n' +
-            'Podés preguntarme por:\n' +
-            '• **Productos**: "mostrame remeras", "buzos económicos"\n' +
-            '• **Presupuesto**: "algo por menos de $5000"\n' +
-            '• **Comprar**: "agregá Remera AC/DC al carrito"\n\n' +
+            '🎸 ¡Bienvenido a Rock Merch & Roll! Soy tu **Asistente de Compra**.\n\n' +
+            'Podés pedirme que:\n' +
+            '• **Busque productos** — "mostrame remeras", "buzos económicos"\n' +
+            '• **Filtre por presupuesto** — "algo por menos de $5000"\n' +
+            '• **Agregue al carrito** — "agregá Remera AC/DC" (te voy a preguntar el talle)\n' +
+            '• **Ayuda** — "qué podés hacer"\n\n' +
             '¿Qué estás buscando?',
           timestamp: Date.now(),
         };
@@ -364,6 +431,44 @@ export function useConcierge(addToCartFn: (product: Product) => void): UseConcie
       typingTimerRef.current = setTimeout(() => {
         if (!mountedRef.current) return;
 
+        // ── Pending size selection ──
+        if (pendingSize) {
+          const talle = parseTalle(text);
+
+          if (talle && pendingSize.product.tallesDisponibles?.includes(talle)) {
+            // Valid size — add to cart with the selected talle
+            const productWithTalle = { ...pendingSize.product, talle };
+            addToCartFn(productWithTalle);
+            setPendingSize(null);
+            const response: ChatMessage = {
+              id: nextId(),
+              role: 'assistant',
+              text: `✅ Agregué **${pendingSize.product.nombre}** (talle ${talle}, $${pendingSize.product.precio}) al carrito. Podés seguir comprando o ir al carrito para finalizar.`,
+              timestamp: Date.now(),
+            };
+            setMessages((prev) => [...prev, response]);
+            setIsTyping(false);
+            return;
+          }
+
+          if (looksLikeSizeResponse(text)) {
+            // Invalid size — re-ask with available options
+            const sizes = pendingSize.product.tallesDisponibles!.join(', ');
+            const response: ChatMessage = {
+              id: nextId(),
+              role: 'assistant',
+              text: `Los talles disponibles son: ${sizes}. ¿Cuál elegís?`,
+              timestamp: Date.now(),
+            };
+            setMessages((prev) => [...prev, response]);
+            setIsTyping(false);
+            return;
+          }
+
+          // User changed topic — cancel pending size and continue as normal
+          setPendingSize(null);
+        }
+
         const intent = parseIntent(text);
 
         let response: ChatMessage;
@@ -374,7 +479,7 @@ export function useConcierge(addToCartFn: (product: Product) => void): UseConcie
               id: nextId(),
               role: 'assistant',
               text:
-                '🎸 ¡Hola! Encantado de verte por acá.\n\n' +
+                '🎸 ¡Hola! Soy tu **Asistente de Compra**.\n\n' +
                 'Puedo ayudarte a encontrar el producto perfecto. ' +
                 'Contame qué estás buscando: ¿remeras, buzos, accesorios? ' +
                 '¿Tenés algún presupuesto en mente?',
@@ -392,7 +497,7 @@ export function useConcierge(addToCartFn: (product: Product) => void): UseConcie
                 '🔍 **Buscar productos** — "mostrame remeras", "buzos de rock"\n' +
                 '💰 **Por presupuesto** — "algo por menos de $4000"\n' +
                 '📂 **Por categoría** — "accesorios", "gorras"\n' +
-                '🛒 **Agregar al carrito** — "agregá Remera The Beatles"\n' +
+                '🛒 **Agregar al carrito** — "agregá Remera The Beatles" (te voy a preguntar el talle)\n' +
                 '❓ **Ayuda** — "ayuda" o "qué podés hacer"\n\n' +
                 '¿Cómo puedo ayudarte hoy?',
               timestamp: Date.now(),
@@ -414,9 +519,24 @@ export function useConcierge(addToCartFn: (product: Product) => void): UseConcie
                 timestamp: Date.now(),
               };
             } else if (found.length === 1) {
-              addProductToCart(found[0]);
-              setIsTyping(false);
-              return; // addProductToCart already adds the message
+              const product = found[0];
+              const talles = product.tallesDisponibles;
+
+              if (talles && talles.length > 1) {
+                // Multiple size options — ask for talle first
+                setPendingSize({ product });
+                response = {
+                  id: nextId(),
+                  role: 'assistant',
+                  text: `✅ ¿Qué talle querés? (${talles.join(', ')})`,
+                  timestamp: Date.now(),
+                };
+              } else {
+                // Single size (including "Único") or no sizes — add directly
+                addProductToCart(product);
+                setIsTyping(false);
+                return; // addProductToCart already adds the message
+              }
             } else {
               // Multiple matches — show options
               const list = found.map((p, i) => `${i + 1}. ${p.nombre} — $${p.precio}`).join('\n');
@@ -456,7 +576,7 @@ export function useConcierge(addToCartFn: (product: Product) => void): UseConcie
         setIsTyping(false);
       }, 600); // 600ms typing delay
     },
-    [catalogLoaded, products, addProductToCart],
+    [catalogLoaded, products, addProductToCart, pendingSize],
   );
 
   return {

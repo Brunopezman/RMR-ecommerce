@@ -231,7 +231,10 @@ export function CheckoutPage() {
                 className="list-group-item d-flex justify-content-between lh-sm"
               >
                 <div>
-                  <h6 className="my-0 font-display">{item.nombre}</h6>
+                  <h6 className="my-0 font-display">
+                    {item.nombre}
+                    {item.talle && <span className="text-sm text-gray-500 ml-1">— Talle {item.talle}</span>}
+                  </h6>
                   <small className="text-muted">
                     Cantidad: {item.cantidad}
                   </small>

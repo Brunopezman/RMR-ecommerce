@@ -11,10 +11,18 @@ export default defineConfig({
     headless: true,
     screenshot: 'only-on-failure',
   },
-  webServer: {
-    command: 'npm run dev',
-    port: 3000,
-    reuseExistingServer: true,
-    timeout: 15000,
-  },
+  webServer: [
+    {
+      command: 'npm run dev',
+      port: 3000,
+      reuseExistingServer: true,
+      timeout: 15000,
+    },
+    {
+      command: 'npx json-server --watch data/db.json --port 3001',
+      port: 3001,
+      reuseExistingServer: true,
+      timeout: 15000,
+    },
+  ],
 });

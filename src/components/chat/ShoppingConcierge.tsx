@@ -167,7 +167,7 @@ export function ShoppingConcierge() {
       <button
         onClick={toggle}
         className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-[rgb(245,146,109)] hover:bg-[rgb(230,130,90)] text-white shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 border-0 cursor-pointer"
-        aria-label={isOpen ? 'Cerrar chat' : 'Abrir chat de ventas'}
+        aria-label={isOpen ? 'Cerrar chat' : 'Abrir asistente de compra'}
         style={{ boxShadow: '0 4px 15px rgba(245, 146, 109, 0.4)' }}
       >
         {isOpen ? (
@@ -196,7 +196,7 @@ export function ShoppingConcierge() {
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-semibold leading-tight">Concierge de Ventas</p>
+                <p className="text-sm font-semibold leading-tight">Asistente de Compra</p>
                 <p className="text-xs text-white/80 leading-tight">
                   {catalogLoaded ? '🟢 En línea' : '🟡 Cargando...'}
                 </p>
@@ -217,7 +217,7 @@ export function ShoppingConcierge() {
           <div className="flex-1 overflow-y-auto px-4 py-3 space-y-1 bg-gray-50/50">
             {messages.length === 0 && !isTyping && (
               <div className="flex items-center justify-center h-full text-gray-400 text-sm text-center px-4">
-                <p>Envíame un mensaje para empezar a buscar productos 🎸</p>
+                <p>¡Hola! Soy tu **Asistente de Compra**. Decime qué estás buscando 🎸</p>
               </div>
             )}
 

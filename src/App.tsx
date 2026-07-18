@@ -1,6 +1,9 @@
-import { useState, useContext, useSyncExternalStore } from 'react';
+import { useState, useContext, useSyncExternalStore, useMemo, useCallback } from 'react';
 import { useCatalog } from './hooks/useCatalog';
+import type { UseCatalogReturn } from './hooks/useCatalog';
 import { ProductGrid } from './components/catalog/ProductGrid';
+import { FilterSidebar } from './components/catalog/FilterSidebar';
+import { ProductDetail } from './components/product/ProductDetail';
 import { CartModal } from './components/cart/CartModal';
 import { LoginModal } from './components/auth/LoginModal';
 import { CheckoutPage } from './components/checkout/CheckoutPage';
@@ -10,10 +13,32 @@ import { useAuth } from './hooks/useAuth';
 import { ShoppingConcierge } from './components/chat/ShoppingConcierge';
 
 /**
- * Simple location-based router — checks if current path is /checkout.
+ * Navigation helpers — update the URL without full page reload
+ * and notify the Router via popstate event.
+ */
+function navigateTo(path: string) {
+  window.history.pushState({}, '', path);
+  window.dispatchEvent(new PopStateEvent('popstate'));
+}
+
+function navigateToProduct(id: number) {
+  navigateTo(`/producto/${id}`);
+}
+
+function navigateToHome() {
+  navigateTo('/');
+}
+
+/**
+ * Simple location-based router — checks current path for checkout or product detail.
  */
 function getPath() {
   return window.location.pathname;
+}
+
+function matchProductId(pathname: string): number | null {
+  const match = pathname.match(/^\/producto\/(\d+)$/);
+  return match ? parseInt(match[1], 10) : null;
 }
 
 function Router({ children }: { children: React.ReactNode }) {
@@ -25,7 +50,11 @@ function Router({ children }: { children: React.ReactNode }) {
     getPath,
   );
 
-  return pathname.includes('/checkout') ? <CheckoutPage /> : <>{children}</>;
+  if (pathname.includes('/checkout')) {
+    return <CheckoutPage />;
+  }
+
+  return <>{children}</>;
 }
 
 function Header({ onNavigate }: { onNavigate: (view: 'home' | 'shop') => void }) {
@@ -283,9 +312,44 @@ function BrandSection() {
   );
 }
 
-function ProductsSection() {
-  const { products, loading, error } = useCatalog();
-  const { addToCart } = useContext(CartContext)!;
+function ProductsSection({ catalog }: { catalog: UseCatalogReturn }) {
+  const {
+    products,
+    allProducts,
+    loading,
+    error,
+    activeCategories,
+    activeMaxPrice,
+    filterByCategories,
+    filterByPrice,
+  } = catalog;
+
+  const priceRange = useMemo(() => {
+    const prices = allProducts.map((p) => p.precio);
+    return {
+      minPrice: prices.length > 0 ? Math.min(...prices) : 0,
+      maxPriceLimit: prices.length > 0 ? Math.max(...prices) : 10000,
+    };
+  }, [allProducts]);
+
+  const handleCategoryChange = useCallback(
+    (categories: string[]) => {
+      filterByCategories(categories);
+    },
+    [filterByCategories],
+  );
+
+  const handlePriceChange = useCallback(
+    (maxPrice: number | null) => {
+      filterByPrice(maxPrice);
+    },
+    [filterByPrice],
+  );
+
+  const handleClearFilters = useCallback(() => {
+    filterByCategories([]);
+    filterByPrice(null);
+  }, [filterByCategories, filterByPrice]);
 
   return (
     <section id="destacados" className="my-5 py-5">
@@ -297,12 +361,26 @@ function ProductsSection() {
         </h5>
       </div>
 
-      <ProductGrid
-        products={products}
-        onAddToCart={addToCart}
-        loading={loading}
-        error={error}
-      />
+      <div className="flex gap-8 mx-auto max-w-7xl px-4">
+        <FilterSidebar
+          selectedCategories={activeCategories}
+          maxPrice={activeMaxPrice}
+          minPrice={priceRange.minPrice}
+          maxPriceLimit={priceRange.maxPriceLimit}
+          onCategoryChange={handleCategoryChange}
+          onPriceChange={handlePriceChange}
+          onClearFilters={handleClearFilters}
+        />
+
+        <div className="flex-1 min-w-0">
+          <ProductGrid
+            products={products}
+            onViewProduct={navigateToProduct}
+            loading={loading}
+            error={error}
+          />
+        </div>
+      </div>
     </section>
   );
 }
@@ -384,6 +462,53 @@ function Footer() {
 
 function ShopPage() {
   const [view, setView] = useState<'home' | 'shop'>('home');
+  const pathname = useSyncExternalStore(
+    (cb) => {
+      window.addEventListener('popstate', cb);
+      return () => window.removeEventListener('popstate', cb);
+    },
+    getPath,
+  );
+
+  const productId = matchProductId(pathname);
+  const catalog = useCatalog();
+  const product = useMemo(
+    () => (productId !== null ? catalog.products.find((p) => p.id === productId) ?? null : null),
+    [catalog.products, productId],
+  );
+
+  // If we're on a product detail route
+  if (productId !== null) {
+    if (catalog.loading) {
+      return (
+        <div className="min-h-screen bg-white flex items-center justify-center">
+          <p className="font-display text-gray-500">Cargando producto...</p>
+        </div>
+      );
+    }
+
+    if (!product) {
+      return (
+        <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-4">
+          <p className="font-display text-gray-500 text-lg">Producto no encontrado</p>
+          <button
+            onClick={navigateToHome}
+            className="bg-black hover:bg-coral text-white px-6 py-2 rounded font-display uppercase text-sm font-bold transition-colors duration-300 cursor-pointer border-0"
+          >
+            Volver a la tienda
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="min-h-screen bg-white">
+        <Header onNavigate={setView} />
+        <ProductDetail product={product} onBack={navigateToHome} />
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -395,7 +520,7 @@ function ShopPage() {
           <BrandSection />
         </>
       ) : (
-        <ProductsSection />
+        <ProductsSection catalog={catalog} />
       )}
       <Footer />
       <ShoppingConcierge />

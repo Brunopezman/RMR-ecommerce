@@ -1,15 +1,44 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Product } from '../types/product';
-import { fetchProducts, filterByCategory, searchByName, PRODUCTS_API_URL } from '../services/productService';
+import {
+  fetchProducts,
+  filterByCategory,
+  filterByCategories,
+  filterByMaxPrice,
+  searchByName,
+  PRODUCTS_API_URL,
+} from '../services/productService';
 
 const DEFAULT_DATA_URL = PRODUCTS_API_URL;
 
-interface UseCatalogReturn {
+/**
+ * Fallback: load products from /data/db.json (served by Vite)
+ * when the API is unavailable.
+ */
+async function fetchFallbackProducts(): Promise<Product[]> {
+  try {
+    const res = await fetch('/data/db.json');
+    if (!res.ok) return [];
+    const json = await res.json();
+    if (Array.isArray(json)) return json;
+    if (json.products && Array.isArray(json.products)) return json.products;
+    return [];
+  } catch {
+    return [];
+  }
+}
+
+export interface UseCatalogReturn {
   products: Product[];
+  allProducts: Product[];
   loading: boolean;
   error: string | null;
   filterByCategory: (category: string | null | undefined) => void;
+  filterByCategories: (categories: string[]) => void;
+  filterByPrice: (maxPrice: number | null) => void;
   searchByName: (term: string | null | undefined) => void;
+  activeCategories: string[];
+  activeMaxPrice: number | null;
 }
 
 export function useCatalog(dataUrl: string = DEFAULT_DATA_URL): UseCatalogReturn {
@@ -17,7 +46,8 @@ export function useCatalog(dataUrl: string = DEFAULT_DATA_URL): UseCatalogReturn
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeCategory, setActiveCategory] = useState<string | null | undefined>(undefined);
+  const [activeCategories, setActiveCategories] = useState<string[]>([]);
+  const [activeMaxPrice, setActiveMaxPrice] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState<string | null | undefined>(undefined);
 
   useEffect(() => {
@@ -26,8 +56,16 @@ export function useCatalog(dataUrl: string = DEFAULT_DATA_URL): UseCatalogReturn
     async function load() {
       setLoading(true);
       setError(null);
-      const data = await fetchProducts(dataUrl);
+
+      // Try 1: API (json-server)
+      let data = await fetchProducts(dataUrl);
       if (cancelled) return;
+
+      // Try 2: fallback to /data/db.json served by Vite
+      if (data.length === 0) {
+        data = await fetchFallbackProducts();
+        if (cancelled) return;
+      }
 
       if (data.length === 0) {
         setError('No se pudieron cargar los productos.');
@@ -41,12 +79,16 @@ export function useCatalog(dataUrl: string = DEFAULT_DATA_URL): UseCatalogReturn
     return () => { cancelled = true; };
   }, [dataUrl]);
 
-  // Apply filters whenever allProducts, activeCategory, or searchTerm change
+  // Apply filters
   useEffect(() => {
     let result = allProducts;
 
-    if (activeCategory) {
-      result = filterByCategory(result, activeCategory);
+    if (activeCategories.length > 0) {
+      result = filterByCategories(result, activeCategories);
+    }
+
+    if (activeMaxPrice !== null) {
+      result = filterByMaxPrice(result, activeMaxPrice);
     }
 
     if (searchTerm) {
@@ -54,21 +96,34 @@ export function useCatalog(dataUrl: string = DEFAULT_DATA_URL): UseCatalogReturn
     }
 
     setFilteredProducts(result);
-  }, [allProducts, activeCategory, searchTerm]);
+  }, [allProducts, activeCategories, activeMaxPrice, searchTerm]);
 
-  const handleFilterByCategory = (category: string | null | undefined) => {
-    setActiveCategory(category);
-  };
+  const handleFilterByCategory = useCallback((category: string | null | undefined) => {
+    setActiveCategories(category ? [category] : []);
+  }, []);
 
-  const handleSearchByName = (term: string | null | undefined) => {
+  const handleFilterByCategories = useCallback((categories: string[]) => {
+    setActiveCategories(categories);
+  }, []);
+
+  const handleFilterByPrice = useCallback((maxPrice: number | null) => {
+    setActiveMaxPrice(maxPrice);
+  }, []);
+
+  const handleSearchByName = useCallback((term: string | null | undefined) => {
     setSearchTerm(term);
-  };
+  }, []);
 
   return {
     products: filteredProducts,
+    allProducts,
     loading,
     error,
     filterByCategory: handleFilterByCategory,
+    filterByCategories: handleFilterByCategories,
+    filterByPrice: handleFilterByPrice,
     searchByName: handleSearchByName,
+    activeCategories,
+    activeMaxPrice,
   };
 }

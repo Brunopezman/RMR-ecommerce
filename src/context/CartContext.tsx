@@ -13,7 +13,7 @@ export interface CartContextValue {
   items: CartItem[];
   summary: CartSummary;
   addToCart: (product: Product) => void;
-  removeItem: (productId: number | string) => void;
+  removeItem: (productId: number | string, talle?: string) => void;
   clearCart: () => void;
   itemCount: number;
 }
@@ -40,8 +40,8 @@ export function CartProvider({ children }: CartProviderProps) {
     setItems((prev) => addItem(prev, product));
   }, []);
 
-  const removeItem = useCallback((productId: number | string) => {
-    setItems((prev) => removeFromCart(prev, productId));
+  const removeItem = useCallback((productId: number | string, talle?: string) => {
+    setItems((prev) => removeFromCart(prev, productId, talle));
   }, []);
 
   const clearCart = useCallback(() => {

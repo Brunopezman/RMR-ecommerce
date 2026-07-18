@@ -24,17 +24,23 @@ test.describe('Vista shop (React SPA)', () => {
     await page.goto('/');
     await page.locator('button', { hasText: 'Compra Ahora' }).click();
 
+    // Wait for products to load via API
     const productGrid = page.locator('#productosDestacados');
-    await expect(productGrid).toBeVisible();
+    await expect(productGrid).toBeVisible({ timeout: 10000 });
     const products = productGrid.locator('.product');
     await expect(products).not.toHaveCount(0);
   });
 
-  test('cada producto tiene botón de compra', async ({ page }) => {
+  test('cada producto tiene imagen clickeable que navega al detalle', async ({ page }) => {
     await page.goto('/');
     await page.locator('button', { hasText: 'Compra Ahora' }).click();
 
-    const buyButton = page.locator('.buy-btn').first();
-    await expect(buyButton).toBeVisible({ timeout: 5000 });
+    // Wait for a product image to be visible (using data-testid or id-based selector)
+    const productImage = page.locator('#product-img-1');
+    await expect(productImage).toBeVisible({ timeout: 10000 });
+    await productImage.click();
+
+    // Should navigate to product detail page
+    await expect(page).toHaveURL(/\/producto\/\d+/);
   });
 });

@@ -7,7 +7,8 @@
       "img": "/img/remerathebeatles.png",
       "descripcion": "The Beatles - negra - lisa",
       "precio": 4000,
-      "cantidad": 1
+      "cantidad": 1,
+      "tallesDisponibles": ["S", "M", "L", "XL"]
     },
     {
       "id": 2,
@@ -16,7 +17,8 @@
       "img": "/img/remeraacdc.png",
       "descripcion": "AC/DC - Negra - lisa",
       "precio": 4000,
-      "cantidad": 1
+      "cantidad": 1,
+      "tallesDisponibles": ["S", "M", "L", "XL"]
     },
     {
       "id": 3,
@@ -25,7 +27,8 @@
       "img": "/img/remeraledzepellin.png",
       "descripcion": "Led Zeppelin - negra - estampado",
       "precio": 4500,
-      "cantidad": 1
+      "cantidad": 1,
+      "tallesDisponibles": ["S", "M", "L", "XL"]
     },
     {
       "id": 4,
@@ -34,7 +37,8 @@
       "img": "/img/remerabonjovi.png",
       "descripcion": "Bon Jovi - azul marino - lisa",
       "precio": 4000,
-      "cantidad": 1
+      "cantidad": 1,
+      "tallesDisponibles": ["S", "M", "L", "XL"]
     },
     {
       "id": 5,
@@ -43,7 +47,8 @@
       "img": "/img/remerapinkfloyd.png",
       "descripcion": "Pink Floyd - gris oscuro - estampado",
       "precio": 4500,
-      "cantidad": 1
+      "cantidad": 1,
+      "tallesDisponibles": ["S", "M", "L", "XL"]
     },
     {
       "id": 6,
@@ -52,7 +57,8 @@
       "img": "/img/remerapinkfloydb.png",
       "descripcion": "Pink Floyd - negra - estampado",
       "precio": 4500,
-      "cantidad": 1
+      "cantidad": 1,
+      "tallesDisponibles": ["S", "M", "L", "XL"]
     },
     {
       "id": 7,
@@ -61,7 +67,8 @@
       "img": "/img/remeradoors.png",
       "descripcion": "The Doors - negra - estampado",
       "precio": 4500,
-      "cantidad": 1
+      "cantidad": 1,
+      "tallesDisponibles": ["S", "M", "L", "XL"]
     },
     {
       "id": 8,
@@ -70,7 +77,8 @@
       "img": "/img/remerakissb.jpg",
       "descripcion": "KISS - negra",
       "precio": 4500,
-      "cantidad": 1
+      "cantidad": 1,
+      "tallesDisponibles": ["S", "M", "L", "XL"]
     },
     {
       "id": 9,
@@ -79,7 +87,8 @@
       "img": "/img/remeraaerosmithw.jpeg",
       "descripcion": "Aerosmith - blanca - estampado",
       "precio": 4500,
-      "cantidad": 1
+      "cantidad": 1,
+      "tallesDisponibles": ["S", "M", "L", "XL"]
     },
     {
       "id": 10,
@@ -88,7 +97,8 @@
       "img": "/img/remeraqueenw.jpeg",
       "descripcion": "queen - blanca - estampado",
       "precio": 4500,
-      "cantidad": 1
+      "cantidad": 1,
+      "tallesDisponibles": ["S", "M", "L", "XL"]
     },
     {
       "id": 11,
@@ -97,7 +107,8 @@
       "img": "/img/remeralosramonesr.jpg",
       "descripcion": "Los Ramones - roja - estampado",
       "precio": 4500,
-      "cantidad": 1
+      "cantidad": 1,
+      "tallesDisponibles": ["S", "M", "L", "XL"]
     },
     {
       "id": 12,
@@ -106,7 +117,8 @@
       "img": "/img/busoacdc.png",
       "descripcion": "AC/DC - negro - liso",
       "precio": 4000,
-      "cantidad": 1
+      "cantidad": 1,
+      "tallesDisponibles": ["S", "M", "L", "XL"]
     },
     {
       "id": 13,
@@ -115,7 +127,8 @@
       "img": "/img/busorollingstones.jpg",
       "descripcion": "Rolling Stones - negro con gris",
       "precio": 5000,
-      "cantidad": 1
+      "cantidad": 1,
+      "tallesDisponibles": ["S", "M", "L", "XL"]
     },
     {
       "id": 14,
@@ -124,7 +137,8 @@
       "img": "/img/gorranirvana.jpg",
       "descripcion": "Nirvana - blanco - estampado",
       "precio": 1500,
-      "cantidad": 1
+      "cantidad": 1,
+      "tallesDisponibles": ["Único"]
     },
     {
       "id": 15,
@@ -133,7 +147,8 @@
       "img": "/img/gorraredhotchilipeppers.jpg",
       "descripcion": "Red Hot Chili Peppers - blanca con negro - estampado",
       "precio": 1500,
-      "cantidad": 1
+      "cantidad": 1,
+      "tallesDisponibles": ["Único"]
     },
     {
       "id": 16,
@@ -142,7 +157,8 @@
       "img": "/img/chopqueen.jpg",
       "descripcion": "Chop Queen - blanco",
       "precio": 1500,
-      "cantidad": 1
+      "cantidad": 1,
+      "tallesDisponibles": ["Único"]
     },
     {
       "id": 17,
@@ -151,7 +167,8 @@
       "img": "/img/tazaacdc.jpg",
       "descripcion": "taza AC/DC - negra - estampado",
       "precio": 1500,
-      "cantidad": 1
+      "cantidad": 1,
+      "tallesDisponibles": ["Único"]
     }
   ]
 }

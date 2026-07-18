@@ -3,12 +3,12 @@ import { ProductCard } from '../ui/ProductCard';
 
 interface ProductGridProps {
   products: Product[];
-  onAddToCart: (product: Product) => void;
+  onViewProduct: (productId: number) => void;
   loading?: boolean;
   error?: string | null;
 }
 
-export function ProductGrid({ products, onAddToCart, loading, error }: ProductGridProps) {
+export function ProductGrid({ products, onViewProduct, loading, error }: ProductGridProps) {
   if (loading) {
     return (
       <div className="text-center py-5">
@@ -43,7 +43,7 @@ export function ProductGrid({ products, onAddToCart, loading, error }: ProductGr
         <ProductCard
           key={product.id}
           product={product}
-          onAddToCart={onAddToCart}
+          onViewProduct={onViewProduct}
         />
       ))}
     </div>
