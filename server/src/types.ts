@@ -52,3 +52,13 @@ export interface OrderItemRow {
   precio: number;
   cantidad: number;
 }
+
+/** Contact message from the website form */
+export interface ContactMessage {
+  id: number;
+  name: string;
+  email: string;
+  area: string;
+  message: string;
+  createdAt: string;
+}
