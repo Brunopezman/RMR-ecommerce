@@ -23,7 +23,7 @@ test.describe('Flujo completo de compra', () => {
     }
 
     // ─── Step 3: Hacer clic en un producto (primer producto) ──────
-    await page.locator('.product-name').first().click();
+    await page.locator('#product-img-1').click();
 
     // Esperar a que cargue la página de detalle
     await expect(page).toHaveURL(/\/product\/\d+/);
