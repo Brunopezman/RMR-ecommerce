@@ -20,6 +20,16 @@ export default {
         display: ['Oswald', 'system-ui', 'sans-serif'],
         garamond: ['EB Garamond', 'serif'],
       },
+      animation: {
+        'slide-up': 'slideUp 0.3s ease-out',
+        'slide-up-delayed': 'slideUp 0.3s ease-out 0.1s',
+      },
+      keyframes: {
+        slideUp: {
+          '0%': { opacity: '0', transform: 'translateY(12px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+      },
     },
   },
   plugins: [],

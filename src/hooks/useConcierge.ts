@@ -90,6 +90,7 @@ export interface ConciergeState {
   isTyping: boolean;
   products: Product[];
   catalogLoaded: boolean;
+  unreadCount: number;
 }
 
 export interface ConciergeActions {
@@ -316,9 +317,16 @@ export function useConcierge(addToCartFn: (product: Product, quantity?: number, 
   const [products, setProducts] = useState<Product[]>([]);
   const [catalogLoaded, setCatalogLoaded] = useState(false);
   const [pendingSize, setPendingSize] = useState<PendingSizeSelection | null>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
   const initializedRef = useRef(false);
   const mountedRef = useRef(true);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isOpenRef = useRef(isOpen);
+
+  // Keep ref in sync with isOpen state
+  useEffect(() => {
+    isOpenRef.current = isOpen;
+  }, [isOpen]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -376,7 +384,7 @@ export function useConcierge(addToCartFn: (product: Product, quantity?: number, 
           id: nextId(),
           role: 'assistant',
           text:
-            '🎸 ¡Bienvenido a Rock Merch & Roll! Soy tu **Asistente de Compra**.\n\n' +
+            '¡Bienvenido a Rock Merch & Roll! Soy tu **Asistente de Compra**.\n\n' +
             'Podés pedirme que:\n' +
             '• **Busque productos** — "mostrame remeras", "buzos económicos"\n' +
             '• **Filtre por presupuesto** — "algo por menos de $5000"\n' +
@@ -395,6 +403,7 @@ export function useConcierge(addToCartFn: (product: Product, quantity?: number, 
     if (isOpen) {
       close();
     } else {
+      setUnreadCount(0);
       open();
     }
   }, [isOpen, open, close]);
@@ -405,7 +414,7 @@ export function useConcierge(addToCartFn: (product: Product, quantity?: number, 
       const msg: ChatMessage = {
         id: nextId(),
         role: 'assistant',
-        text: `✅ Agregué **${product.nombre}** ($${product.precio}) al carrito. Podés seguir comprando o ir al carrito para finalizar.`,
+        text: `Agregué **${product.nombre}** ($${product.precio}) al carrito. Podés seguir comprando o ir al carrito para finalizar.`,
         timestamp: Date.now(),
       };
       setMessages((prev) => [...prev, msg]);
@@ -442,7 +451,7 @@ export function useConcierge(addToCartFn: (product: Product, quantity?: number, 
             const response: ChatMessage = {
               id: nextId(),
               role: 'assistant',
-              text: `✅ Agregué **${pendingSize.product.nombre}** (talle ${talle}, $${pendingSize.product.precio}) al carrito. Podés seguir comprando o ir al carrito para finalizar.`,
+              text: `Agregué **${pendingSize.product.nombre}** (talle ${talle}, $${pendingSize.product.precio}) al carrito. Podés seguir comprando o ir al carrito para finalizar.`,
               timestamp: Date.now(),
             };
             setMessages((prev) => [...prev, response]);
@@ -452,7 +461,7 @@ export function useConcierge(addToCartFn: (product: Product, quantity?: number, 
 
           if (looksLikeSizeResponse(text)) {
             // Invalid size — re-ask with available options
-            const sizes = pendingSize.product.tallesDisponibles!.join(', ');
+            const sizes = pendingSize.product.tallesDisponibles?.join(', ') ?? '';
             const response: ChatMessage = {
               id: nextId(),
               role: 'assistant',
@@ -478,7 +487,7 @@ export function useConcierge(addToCartFn: (product: Product, quantity?: number, 
               id: nextId(),
               role: 'assistant',
               text:
-                '🎸 ¡Hola! Soy tu **Asistente de Compra**.\n\n' +
+                '¡Hola! Soy tu **Asistente de Compra**.\n\n' +
                 'Puedo ayudarte a encontrar el producto perfecto. ' +
                 'Contame qué estás buscando: ¿remeras, buzos, accesorios? ' +
                 '¿Tenés algún presupuesto en mente?',
@@ -492,12 +501,12 @@ export function useConcierge(addToCartFn: (product: Product, quantity?: number, 
               id: nextId(),
               role: 'assistant',
               text:
-                '🎸 **¿Qué puedo hacer por vos?**\n\n' +
-                '🔍 **Buscar productos** — "mostrame remeras", "buzos de rock"\n' +
-                '💰 **Por presupuesto** — "algo por menos de $4000"\n' +
-                '📂 **Por categoría** — "accesorios", "gorras"\n' +
-                '🛒 **Agregar al carrito** — "agregá Remera The Beatles" (te voy a preguntar el talle)\n' +
-                '❓ **Ayuda** — "ayuda" o "qué podés hacer"\n\n' +
+                '**¿Qué puedo hacer por vos?**\n\n' +
+                '• **Buscar productos** — "mostrame remeras", "buzos de rock"\n' +
+                '• **Por presupuesto** — "algo por menos de $4000"\n' +
+                '• **Por categoría** — "accesorios", "gorras"\n' +
+                '• **Agregar al carrito** — "agregá Remera The Beatles" (te voy a preguntar el talle)\n' +
+                '• **Ayuda** — "ayuda" o "qué podés hacer"\n\n' +
                 '¿Cómo puedo ayudarte hoy?',
               timestamp: Date.now(),
             };
@@ -527,7 +536,7 @@ export function useConcierge(addToCartFn: (product: Product, quantity?: number, 
                 response = {
                   id: nextId(),
                   role: 'assistant',
-                  text: `✅ ¿Qué talle querés? (${talles.join(', ')})`,
+                  text: `¿Qué talle querés? (${talles.join(', ')})`,
                   timestamp: Date.now(),
                 };
               } else {
@@ -578,12 +587,27 @@ export function useConcierge(addToCartFn: (product: Product, quantity?: number, 
     [catalogLoaded, products, addProductToCart, pendingSize],
   );
 
+  // Track unread count: new assistant messages while chat is closed
+  const previousMessagesLengthRef = useRef(0);
+  useEffect(() => {
+    const currentLength = messages.length;
+    if (currentLength > previousMessagesLengthRef.current && !isOpenRef.current) {
+      for (let i = previousMessagesLengthRef.current; i < currentLength; i++) {
+        if (messages[i]?.role === 'assistant') {
+          setUnreadCount((prev) => prev + 1);
+        }
+      }
+    }
+    previousMessagesLengthRef.current = currentLength;
+  }, [messages]);
+
   return {
     messages,
     isOpen,
     isTyping,
     products,
     catalogLoaded,
+    unreadCount,
     open,
     close,
     toggle,
