@@ -130,9 +130,24 @@ describe('App — renderizado inicial (home)', () => {
   it('muestra el footer con enlaces', async () => {
     render(<App />);
 
-    const footerProductos = await screen.findByText('Productos', { selector: 'h5' });
-    expect(footerProductos).toBeInTheDocument();
-    expect(screen.getByText('Remeras')).toBeInTheDocument();
+    const footerBrand = await screen.findByText('Rock Merch & Roll', { selector: 'h3' });
+    expect(footerBrand).toBeInTheDocument();
+    expect(screen.getByText('Contacto', { selector: 'h4' })).toBeInTheDocument();
+    expect(screen.getByText('Seguinos', { selector: 'h4' })).toBeInTheDocument();
+    expect(screen.getByText('+54 11 5555-0123')).toBeInTheDocument();
+    expect(screen.getByText('info@rockmerch.com.ar')).toBeInTheDocument();
+    expect(screen.getByText(/Designed & Developed by Bruno Pezman/i)).toBeInTheDocument();
+  });
+
+  it('muestra la sección FAQ en la App', async () => {
+    render(<App />);
+
+    // El título de FAQ debe estar presente
+    expect(await screen.findByText('Preguntas Frecuentes')).toBeInTheDocument();
+
+    // Al menos una pregunta del FAQ debe ser visible
+    expect(screen.getByText('¿Cuánto tarda el envío?')).toBeInTheDocument();
+    expect(screen.getByText('Todo lo que necesitás saber antes de comprar')).toBeInTheDocument();
   });
 });
 

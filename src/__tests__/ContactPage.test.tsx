@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ContactPage } from '../components/contact/ContactPage';
 
@@ -263,8 +263,12 @@ describe('ContactPage — validación inline', () => {
     const user = userEvent.setup();
     renderPage();
 
+    // Usamos fireEvent.change para bypasear maxLength={2000} del textarea
+    // (simula un pegado de texto que supera el límite)
     const longMessage = 'A'.repeat(2001);
-    await user.type(screen.getByLabelText(/^Mensaje/), longMessage);
+    const messageInput = screen.getByLabelText(/^Mensaje/);
+    fireEvent.change(messageInput, { target: { value: longMessage } });
+
     await user.click(screen.getByRole('button', { name: 'Enviar mensaje' }));
 
     await waitFor(() => {
