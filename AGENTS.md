@@ -44,7 +44,6 @@ La documentación técnica detallada se mantiene centralizada y debe usarse como
 
 - `coding-standards` — Guía de estilo de código, estructura y nomenclatura de archivos.
 - `testing-workflow` — Flujo de ejecución y escritura de tests unitarios y E2E.
-- `rag-product-catalog` — Indexador y buscador semántico local (TF-IDF + Cosine Similarity).
 - `ui-ux-review` — Revisión de interfaces: consistencia visual, jerarquía, micro-interacciones.
 - `accessibility` — Auditoría WCAG: contraste, roles ARIA, navegación por teclado.
 - `tailwind-design-system` — Sistema de diseño estructurado con Tailwind utility classes.

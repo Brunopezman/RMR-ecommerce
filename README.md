@@ -77,8 +77,6 @@ La aplicación es una SPA construida con React 18 que se organiza en torno a con
 - **Contextos**: `CartContext` maneja items del carrito con persistencia en localStorage, `AuthContext` maneja autenticación mock y real.
 - **Servicios**: Lógica de negocio pura en `src/services/` — ningún componente contiene lógica compleja.
 
-> **Nota:** El Shopping Concierge (chatbot con búsqueda semántica TF-IDF) fue eliminado en julio 2026 para simplificar la UX. El historial de commits y el reporte de cobertura en `docs/reports/qa/` conservan el registro histórico.
-
 ### Backend
 
 El backend está en `server/` con Express + TypeScript + SQLite (sql.js):
