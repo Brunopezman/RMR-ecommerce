@@ -4,11 +4,11 @@ test.describe('Product Detail Page', () => {
   test('muestra información completa del producto en /product/1', async ({ page }) => {
     await page.goto('/product/1');
 
-    // Wait for product to load (skeleton replaced by real data)
+    // Wait for product to load (skeleton replaced by real data) — product detail page renders h1 with name
     await expect(page.locator('h1').filter({ hasText: 'Remera The Beatles' })).toBeVisible();
 
-    // Check price formatted with es-AR locale ($4.000)
-    await expect(page.locator('p').filter({ hasText: /4\.000/ })).toBeVisible();
+    // Price is rendered using toLocaleString('es-AR') — 28000 → "$28.000"
+    await expect(page.getByText('28.000', { exact: false })).toBeVisible({ timeout: 10000 });
 
     // Check description
     await expect(page.locator('text=The Beatles - negra - lisa')).toBeVisible();
@@ -36,10 +36,10 @@ test.describe('Product Detail Page', () => {
     // Should have 4 size buttons: S, M, L, XL
     const sizeButtons = sizeGroup.locator('[role="radio"]');
     await expect(sizeButtons).toHaveCount(4);
-    await expect(sizeButtons.nth(0)).toHaveText('S');
-    await expect(sizeButtons.nth(1)).toHaveText('M');
-    await expect(sizeButtons.nth(2)).toHaveText('L');
-    await expect(sizeButtons.nth(3)).toHaveText('XL');
+    await expect(sizeButtons.nth(0)).toHaveText('M');
+    await expect(sizeButtons.nth(1)).toHaveText('L');
+    await expect(sizeButtons.nth(2)).toHaveText('XL');
+    await expect(sizeButtons.nth(3)).toHaveText('XXL');
   });
 
   test('accesorios/vasos NO tienen selector de talle', async ({ page }) => {

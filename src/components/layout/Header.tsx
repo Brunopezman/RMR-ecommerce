@@ -1,6 +1,7 @@
 import { useState, useContext } from 'react';
 import { CartContext } from '../../context/CartContext';
 import { useAuth } from '../../hooks/useAuth';
+import { navigate } from '../../services/router';
 import { CartModal } from '../cart/CartModal';
 import { LoginModal } from '../auth/LoginModal';
 
@@ -66,7 +67,7 @@ export function Header({ onNavigate }: { onNavigate: (view: 'home' | 'shop') => 
                     className="nav-link px-2 py-1 text-black no-underline transition-colors duration-300 hover:text-coral text-base bg-transparent border-0 cursor-pointer"
                     onClick={() => {
                       setMobileMenuOpen(false);
-                      onNavigate('home');
+                      navigate('/contact');
                     }}
                   >
                     Contacto

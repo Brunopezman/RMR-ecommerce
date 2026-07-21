@@ -41,6 +41,6 @@ test.describe('Vista shop (React SPA)', () => {
     await productImage.click();
 
     // Should navigate to product detail page
-    await expect(page).toHaveURL(/\/producto\/\d+/);
+    await expect(page).toHaveURL(/\/product\/\d+/);
   });
 });

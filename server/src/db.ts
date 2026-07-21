@@ -174,6 +174,15 @@ function createTables(): void {
       cantidad   INTEGER NOT NULL DEFAULT 1,
       FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS contact_messages (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      name       TEXT    NOT NULL,
+      email      TEXT    NOT NULL,
+      area       TEXT    NOT NULL,
+      message    TEXT    NOT NULL,
+      created_at TEXT    NOT NULL DEFAULT (datetime('now'))
+    );
   `);
 }
 

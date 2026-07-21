@@ -47,6 +47,9 @@ beforeEach(() => {
 
   // Limpiar localStorage para cada test
   localStorage.clear();
+
+  // Reset window.location a / para aislar tests de navegación previa
+  window.history.pushState({}, '', '/');
 });
 
 afterEach(() => {
@@ -127,9 +130,60 @@ describe('App — renderizado inicial (home)', () => {
   it('muestra el footer con enlaces', async () => {
     render(<App />);
 
-    const footerProductos = await screen.findByText('Productos', { selector: 'h5' });
-    expect(footerProductos).toBeInTheDocument();
-    expect(screen.getByText('Remeras')).toBeInTheDocument();
+    const footerBrand = await screen.findByText('Rock Merch & Roll', { selector: 'h3' });
+    expect(footerBrand).toBeInTheDocument();
+    expect(screen.getByText('Contacto', { selector: 'h4' })).toBeInTheDocument();
+    expect(screen.getByText('Seguinos', { selector: 'h4' })).toBeInTheDocument();
+    expect(screen.getByText('+54 11 5555-0123')).toBeInTheDocument();
+    expect(screen.getByText('info@rockmerch.com.ar')).toBeInTheDocument();
+    expect(screen.getByText(/Designed & Developed by Bruno Pezman/i)).toBeInTheDocument();
+  });
+
+  it('muestra la sección FAQ en la App', async () => {
+    render(<App />);
+
+    // El título de FAQ debe estar presente
+    expect(await screen.findByText('Preguntas Frecuentes')).toBeInTheDocument();
+
+    // Al menos una pregunta del FAQ debe ser visible
+    expect(screen.getByText('¿Cuánto tarda el envío?')).toBeInTheDocument();
+    expect(screen.getByText('Todo lo que necesitás saber antes de comprar')).toBeInTheDocument();
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────
+//  Navegación: Contacto desde navbar
+// ──────────────────────────────────────────────────────────────────────
+describe('Navegación — contacto', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('navega a /contact al hacer clic en "Contacto" del navbar', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    // Click en "Contacto" del navbar
+    const contactoBtn = await screen.findByText('Contacto', { selector: 'button' });
+    await user.click(contactoBtn);
+
+    // La página de contacto debería renderizarse con el título "Contacto"
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { name: 'Contacto' }),
+      ).toBeInTheDocument();
+    });
+
+    // Hero debería estar oculto (ya no estamos en home)
+    expect(screen.queryByText('Contenido para fanáticos')).not.toBeInTheDocument();
+  });
+
+  it('el botón "Contacto" está presente en la navbar', async () => {
+    render(<App />);
+
+    const contactoBtn = await screen.findByText('Contacto', { selector: 'button' });
+    expect(contactoBtn).toBeInTheDocument();
+    expect(contactoBtn.tagName).toBe('BUTTON');
   });
 });
 

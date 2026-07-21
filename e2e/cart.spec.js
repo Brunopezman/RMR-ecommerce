@@ -17,12 +17,10 @@ test.describe('Carrito de compras', () => {
     await productImage.click();
 
     // Should be on product detail page
-    await expect(page).toHaveURL(/\/producto\/\d+/);
+    await expect(page).toHaveURL(/\/product\/\d+/);
 
     // Wait for product detail to load and select talle "M"
-    const talleButton = page.locator('.flex.flex-wrap.gap-2 button').filter({ hasText: 'M' });
-    await expect(talleButton).toBeVisible({ timeout: 5000 });
-    await talleButton.click();
+    await page.getByRole('radio', { name: 'Talle M' }).click();
 
     // Click "Agregar al carrito"
     const addButton = page.locator('button', { hasText: 'Agregar al carrito' });
@@ -42,12 +40,10 @@ test.describe('Carrito de compras', () => {
     await expect(productImage).toBeVisible({ timeout: 10000 });
     await productImage.click();
 
-    await expect(page).toHaveURL(/\/producto\/\d+/);
+    await expect(page).toHaveURL(/\/product\/\d+/);
 
     // Wait for product detail to load and select talle "M"
-    const talleButton = page.locator('.flex.flex-wrap.gap-2 button').filter({ hasText: 'M' });
-    await expect(talleButton).toBeVisible({ timeout: 5000 });
-    await talleButton.click();
+    await page.getByRole('radio', { name: 'Talle M' }).click();
 
     // Add twice
     const addButton = page.locator('button', { hasText: 'Agregar al carrito' });

@@ -12,6 +12,7 @@
  *   POST /orders         → Order
  */
 
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { initDb } from './db.js';
@@ -19,6 +20,7 @@ import productsRouter from './routes/products.js';
 import usersRouter from './routes/users.js';
 import ordersRouter from './routes/orders.js';
 import authRouter from './routes/auth.js';
+import contactRouter from './routes/contact.js';
 
 const PORT = parseInt(process.env.PORT ?? '4000', 10);
 const app = express();
@@ -47,6 +49,7 @@ app.use('/api/auth', authRouter);
 app.use('/products', productsRouter);
 app.use('/users', usersRouter);
 app.use('/orders', ordersRouter);
+app.use('/api/contact', contactRouter);
 
 // Health check
 app.get('/health', (_req, res) => {
@@ -76,6 +79,7 @@ async function start() {
     console.log(`  PATCH http://localhost:${PORT}/users/:id`);
     console.log(`  GET  http://localhost:${PORT}/orders?userId=:id`);
     console.log(`  POST http://localhost:${PORT}/orders`);
+    console.log(`  POST http://localhost:${PORT}/api/contact`);
     console.log(`  GET  http://localhost:${PORT}/health`);
   });
 }

@@ -6,6 +6,8 @@
 
 import { Router, Request, Response } from 'express';
 import { queryAll, queryOne, run, lastInsertId, persist } from '../db.js';
+import { sendOrderConfirmationEmail } from '../services/emailService.js';
+import { generateOrderPDF } from '../services/pdfService.js';
 
 /**
  * Convert SQLite datetime string to ISO 8601 format.
@@ -168,7 +170,7 @@ router.post('/', (req: Request, res: Response) => {
       cantidad: number;
     }>;
 
-    const newOrder = {
+    const newOrder: import('../types.js').Order = {
       id: orderRow.id,
       userId: orderRow.user_id,
       items: itemRows.map((item) => ({
@@ -178,12 +180,27 @@ router.post('/', (req: Request, res: Response) => {
         cantidad: item.cantidad,
       })),
       total: orderRow.total,
-      status: orderRow.status,
+      status: orderRow.status as 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled',
       createdAt: toIsoDate(orderRow.created_at),
       shippingAddress: orderRow.shipping_address ?? undefined,
     };
 
     res.status(201).json(newOrder);
+
+    // Fire order confirmation email with PDF (non-blocking)
+    const orderUser = queryOne('SELECT name, email FROM users WHERE id = ?', [userId]) as {
+      name: string;
+      email: string;
+    } | undefined;
+    if (orderUser) {
+      generateOrderPDF(newOrder, orderUser)
+        .then((pdfBuffer) =>
+          sendOrderConfirmationEmail(newOrder, orderUser, pdfBuffer),
+        )
+        .catch((err: unknown) =>
+          console.error('[orders] Error sending confirmation email:', err),
+        );
+    }
   } catch (err) {
     console.error('[orders] Error creating order:', err);
     res.status(500).json({ error: 'Internal server error' });

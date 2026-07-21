@@ -9,6 +9,7 @@ import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { queryOne, run, lastInsertId, persist } from '../db.js';
+import { sendWelcomeEmail } from '../services/emailService.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'rmr-dev-secret';
 
@@ -109,6 +110,11 @@ router.post('/register', (req: Request, res: Response) => {
     const token = generateToken(newId, email, user.role);
 
     res.status(201).json({ user, token });
+
+    // Fire welcome email (non-blocking)
+    sendWelcomeEmail({ name: user.name, email: user.email }).catch((err) =>
+      console.error('[auth] Error sending welcome email:', err),
+    );
   } catch (err) {
     console.error('[auth] Register error:', err);
     res.status(500).json({ error: 'Internal server error' });
