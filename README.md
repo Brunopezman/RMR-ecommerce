@@ -9,6 +9,7 @@
 [![Express](https://img.shields.io/badge/Express-4-000000?style=flat-square&logo=express&logoColor=white)](https://expressjs.com)
 [![SQLite](https://img.shields.io/badge/SQLite-3-003B57?style=flat-square&logo=sqlite&logoColor=white)](https://sqlite.org)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
+[![Built with opencode](https://img.shields.io/badge/Built_with-opencode_agents-8A2BE2?style=flat-square&logo=sparkles&logoColor=white)](./AGENTS.md)
 
 E-commerce de merchandising de bandas de rock con frontend React y backend Express + SQLite.
 
@@ -62,6 +63,27 @@ E-commerce de merchandising de bandas de rock con frontend React y backend Expre
 ├── docs/                         # Documentación técnica (arquitectura, API, reportes)
 └── e2e/                          # Tests end-to-end (Playwright)
 ```
+
+## Flujo de trabajo con agentes de IA
+
+Este proyecto se desarrolló utilizando un ecosistema de agentes (opencode), 
+coordinados bajo un conjunto de directrices y skills especializados por dominio 
+(frontend, testing, seguridad, base de datos, etc.).
+
+- **Directrices globales**: [`AGENTS.md`](./AGENTS.md) — convenciones de código, 
+  proceso de tareas, reglas de commits y seguridad que todo agente sigue antes 
+  de intervenir en el repo.
+- **Skills especializados**: cada agente puede apoyarse en skills específicos 
+  (`coding-standards`, `testing-workflow`, `ui-ux-review`, `accessibility`, 
+  `jwt-security`, `sqlite-database-expert`, entre otros) según el dominio de 
+  la tarea.
+- **Trazabilidad**: cada fase de desarrollo queda documentada en `docs/architecture/`, 
+  `docs/reports/auditor/` (deuda técnica) y `docs/reports/qa/` (cobertura de tests), 
+  y se cierra con un commit aprobado por el usuario.
+
+Este enfoque permite mantener consistencia arquitectónica y de calidad a lo largo 
+de todo el desarrollo, incluso con múltiples agentes trabajando en distintas capas 
+del proyecto (frontend, backend, testing, documentación).
 
 ## Arquitectura
 

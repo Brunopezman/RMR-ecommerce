@@ -30,7 +30,7 @@ La documentación técnica detallada se mantiene centralizada y debe usarse como
 
 ## Testing y Calidad
 
-- **Unitarios / Integración (Vitest + jsdom)**: `npm test` para correr la suite completa (107 tests activos).
+- **Unitarios / Integración (Vitest + jsdom)**: `npm test` para correr la suite completa.
 - **End-to-End (Playwright)**: `npm run test:e2e` para levantar la app y correr flujos complejos (14 tests).
 - **Obligatorio**: Todo agente que modifique código en `src/` debe correr `npm test` exitosamente antes de finalizar.
 
