@@ -42,6 +42,7 @@ export function ShoppingConcierge() {
   } = useConcierge(ctx?.addToCart ?? (() => {}));
 
   const [inputText, setInputText] = useState('');
+  const [panelVisible, setPanelVisible] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -76,6 +77,23 @@ export function ShoppingConcierge() {
     [handleSubmit],
   );
 
+  // Toggle con animacion de apertura/cierre
+  const handleToggle = useCallback(() => {
+    if (isOpen) {
+      // Cerrar con animacion
+      setPanelVisible(false);
+      setTimeout(() => toggle(), 300);
+    } else {
+      // Abrir: toggle real inmediato + animar tras montar DOM
+      toggle();
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setPanelVisible(true);
+        });
+      });
+    }
+  }, [toggle, isOpen]);
+
   // Callback to add a product to cart via context
   const handleAddToCart = useCallback(
     (product: Product) => {
@@ -88,21 +106,23 @@ export function ShoppingConcierge() {
     <>
       {/* ─── FAB Button ─── */}
       <button
-        onClick={toggle}
+        onClick={handleToggle}
         className={`fixed bottom-6 right-6 z-50 w-14 h-14 sm:w-14 sm:h-14 max-sm:w-12 max-sm:h-12 rounded-full bg-coral hover:bg-coral-dark text-white shadow-xl hover:shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 border-0 cursor-pointer ${
           !isOpen && unreadCount > 0 ? 'animate-pulse' : ''
         }`}
         aria-label={isOpen ? 'Cerrar chat' : 'Abrir asistente de compra'}
       >
-        {isOpen ? (
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        ) : (
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-          </svg>
-        )}
+        <div className={`transition-transform duration-300 ease-out ${isOpen ? 'rotate-90' : 'rotate-0'}`}>
+          {isOpen ? (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            </svg>
+          )}
+        </div>
 
         {/* Badge de notificacion */}
         {!isOpen && unreadCount > 0 && (
@@ -115,7 +135,12 @@ export function ShoppingConcierge() {
       {/* ─── Chat Panel ─── */}
       {isOpen && (
         <div
-          className="fixed bottom-24 right-6 z-50 w-[calc(100vw-32px)] sm:w-96 h-[500px] max-h-[85vh] sm:max-h-[80vh] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden transition-all duration-300"
+          className={`fixed bottom-24 right-6 z-50 w-[calc(100vw-32px)] sm:w-96 h-[500px] max-h-[85vh] sm:max-h-[80vh] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ease-out ${
+            panelVisible
+              ? 'opacity-100 translate-y-0 scale-100'
+              : 'opacity-0 translate-y-4 scale-95'
+          }`}
+          style={{ transformOrigin: 'bottom right' }}
           role="dialog"
           aria-label="Chat de ventas"
         >
@@ -137,7 +162,7 @@ export function ShoppingConcierge() {
               </div>
             </div>
             <button
-              onClick={toggle}
+              onClick={handleToggle}
               className="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-1.5 transition-colors bg-transparent border-0 cursor-pointer"
               aria-label="Cerrar chat"
             >
@@ -182,13 +207,14 @@ export function ShoppingConcierge() {
 
             {/* Typing indicator */}
             {isTyping && (
-              <div className="flex justify-start mb-3">
-                <div className="bg-gray-100 rounded-2xl rounded-bl-md px-4 py-3">
+              <div className="flex justify-start mb-3 animate-slide-up">
+                <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
                   <div className="flex gap-1">
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    <span className="w-2.5 h-2.5 bg-coral rounded-full animate-bounce-scale" style={{ animationDelay: '0ms', animationDuration: '0.6s' }} />
+                    <span className="w-2.5 h-2.5 bg-coral rounded-full animate-bounce-scale" style={{ animationDelay: '150ms', animationDuration: '0.6s' }} />
+                    <span className="w-2.5 h-2.5 bg-coral rounded-full animate-bounce-scale" style={{ animationDelay: '300ms', animationDuration: '0.6s' }} />
                   </div>
+                  <span className="text-xs text-gray-400">Escribiendo...</span>
                 </div>
               </div>
             )}
