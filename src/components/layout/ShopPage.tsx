@@ -6,7 +6,6 @@ import { HeroSection } from '../home/HeroSection';
 import { BannerServices } from '../home/BannerServices';
 import { BrandSection } from '../home/BrandSection';
 import { ProductsSection } from '../catalog/ProductsSection';
-import { ShoppingConcierge } from '../chat/ShoppingConcierge';
 
 export function ShopPage() {
   const [view, setView] = useState<'home' | 'shop'>(
@@ -27,7 +26,6 @@ export function ShopPage() {
         <ProductsSection />
       )}
       <Footer />
-      <ShoppingConcierge />
     </div>
   );
 }

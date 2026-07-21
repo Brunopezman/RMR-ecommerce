@@ -17,7 +17,6 @@ E-commerce de merchandising de rock. **Stack actual:** React 18+, TypeScript (`s
 La documentación técnica detallada se mantiene centralizada y debe usarse como única fuente de verdad:
 - **Flujos y Mapa de Dependencias**: `docs/architecture/dependency-map.md`
 - **Contrato de API y Base de Datos**: `docs/architecture/api-contract.md`
-- **Shopping Assistant (Concierge)**: `docs/architecture/shopping-concierge.md`
 
 ## Proceso de Tareas y Entrega
 

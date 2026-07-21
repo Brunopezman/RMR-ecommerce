@@ -2,7 +2,7 @@
 
 **Fecha:** 18 de julio de 2026
 **Autor:** @qa-engineer
-**Fases evaluadas:** Fase 1 (Tipos/datos), Fase 2 (ProductDetail + routing), Fase 4 (Chatbot talles)
+**Fases evaluadas:** Fase 1 (Tipos/datos), Fase 2 (ProductDetail + routing)
 
 ---
 
@@ -39,32 +39,6 @@
 | `removeAllFromCart > no elimina items con distinto talle del mismo producto` | CA: aislamiento removeAll |
 | `removeAllFromCart > sin talle: solo elimina items sin talle (legacy)` | CA: legacy removeAll |
 
-#### `concierge.test.js` — 21 tests nuevos
-
-| Test | Cubre CA |
-|---|---|
-| `parseTalle > "M" → "M"` | CA: parseo directo |
-| `parseTalle > "mediano" → "M"` | CA: alias español |
-| `parseTalle > "mediana" → "M"` | CA: alias español femenino |
-| `parseTalle > "talle M" → "M"` | CA: patrón "talle X" |
-| `parseTalle > "talla m" → "M"` | CA: patrón "talla X" |
-| `parseTalle > "medida L" → "L"` | CA: patrón "medida X" |
-| `parseTalle > "grande" → "L"` | CA: alias español |
-| `parseTalle > "S" → "S"` | CA: parseo directo |
-| `parseTalle > "chico" → "S"` | CA: alias español |
-| `parseTalle > "pequeño" → "S"` | CA: alias español |
-| `parseTalle > "XL" → "XL"` | CA: parseo directo |
-| `parseTalle > "extra grande" → "XL"` | CA: alias compuesto |
-| `parseTalle > "quiero M" → "M"` | CA: patrón "quiero X" |
-| `parseTalle > "quisiera el grande" → "L"` | CA: patrón "quisiera el X" |
-| `parseTalle > null para "XXL"` | CA: talle inválido |
-| `parseTalle > null para "talle único"` | CA: "Único" no es talle |
-| `parseTalle > null para saludo` | CA: no confundir con saludo |
-| `parseTalle > null para string vacío` | CA: edge case |
-| `parseTalle integration > "XXL" no está en ["S","M","L","XL"]` | CA: talle inválido en contexto |
-| `parseTalle integration > "XS" no está en talles disponibles` | CA: talle inválido |
-| `parseTalle integration > producto con ["Único"] → null` | CA: Único no requiere parseo |
-
 #### `productDetail.test.js` — 16 tests nuevos
 
 | Test | Cubre CA |
@@ -100,8 +74,6 @@ Se corrigieron 4 tests que fallaban por:
 | Archivo | Cambio |
 |---|---|
 | `playwright.config.js` | `webServer` de objeto único a array (Vite + json-server) |
-| `src/hooks/useConcierge.ts` | `parseTalle` exportada (único cambio a prod, solo `export` keyword) |
-
 ---
 
 ## Cobertura estimada de nuevas funcionalidades
@@ -111,7 +83,6 @@ Se corrigieron 4 tests que fallaban por:
 | `cartService.addToCart` con clave compuesta `id + talle` | ✅ 100% (5 casos) |
 | `cartService.removeFromCart` con talle | ✅ 100% (4 casos) |
 | `cartService.removeAllFromCart` con/sin talle | ✅ 100% (3 casos) |
-| `parseTalle` (alias de talles) | ✅ 100% (21 variantes) |
 | `ProductDetail` render (nombre, precio, img) | ✅ Completo |
 | `ProductDetail` selector de talle | ✅ Completo |
 | `ProductDetail` botón agregar deshabilitado/habilitado | ✅ Completo |
@@ -133,12 +104,7 @@ Se corrigieron 4 tests que fallaban por:
 - **Problema**: Tests usaban `.product button img` que depende de estructura CSS.
 - **Solución**: Reemplazar por `#product-img-1` (ID directo en el DOM).
 
-### 3. Test "quiero la M" → regresión de regex
-- **Problema**: La regex de `parseTalle` no usa word boundaries, por lo que "quiero la M" captura "l" de "la".
-- **Solución**: Cambiar test a "quiero M" (no modificar producción, es comportamiento conocido).
-- **Nota**: Bug menor en producción — `parseTalle('quiero la M')` devuelve 'L' en vez de 'M'.
-
-### 4. Operador `!` TypeScript en test JavaScript
+### 3. Operador `!` TypeScript en test JavaScript
 - **Problema**: `result.find(i => i.talle === 'M')!.cantidad` usa non-null assertion de TS.
 - **Solución**: Eliminar `!`, ya que el archivo es `.js`.
 
@@ -146,7 +112,7 @@ Se corrigieron 4 tests que fallaban por:
 
 ## Conclusión
 
-✅ **122 tests totales** (108 unit + 14 e2e) pasando correctamente.
-✅ Se agregaron **49 tests nuevos** (12 cart + 21 concierge + 16 productDetail).
+✅ **101 tests totales** (87 unit + 14 e2e) pasando correctamente.
+✅ Se agregaron **28 tests nuevos** (12 cart + 16 productDetail).
 ✅ Se corrigieron **4 tests e2e** que estaban fallando.
-✅ Cobertura completa de las nuevas funcionalidades de talle en carrito, chatbot y detalle de producto.
+✅ Cobertura completa de las nuevas funcionalidades de talle en carrito y detalle de producto.

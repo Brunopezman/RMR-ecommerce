@@ -4,8 +4,7 @@ import userEvent from '@testing-library/user-event';
 import App from '../App';
 
 // ─── Mock global fetch para evitar llamadas reales ────────────────────
-// El App y sus children (useCatalog, ShoppingConcierge) hacen fetch a
-// http://localhost:4000/products y fallback a /data/db.json.
+// useCatalog hace fetch a http://localhost:4000/products y fallback a /data/db.json.
 // Retornamos un array vacío para aislar el test de la red.
 
 let mockFetchUrlCallback;

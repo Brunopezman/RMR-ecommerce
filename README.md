@@ -10,7 +10,7 @@
 [![SQLite](https://img.shields.io/badge/SQLite-3-003B57?style=flat-square&logo=sqlite&logoColor=white)](https://sqlite.org)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
-E-commerce de merchandising de bandas de rock con frontend React, backend Express + SQLite y un asistente de compras conversacional con búsqueda semántica local.
+E-commerce de merchandising de bandas de rock con frontend React y backend Express + SQLite.
 
 [Stack](#stack) • [Scripts](#scripts) • [Estructura](#estructura-del-proyecto) • [Arquitectura](#arquitectura) • [API](#api) • [Testing](#testing) • [Desarrollo](#desarrollo)
 
@@ -45,12 +45,11 @@ E-commerce de merchandising de bandas de rock con frontend React, backend Expres
 │   │   ├── auth/                 # Login, registro, logout
 │   │   ├── cart/                 # Modal del carrito
 │   │   ├── catalog/              # Grilla de productos
-│   │   ├── chat/                 # Shopping Concierge (chatbot)
 │   │   ├── checkout/             # Página de finalización de compra
 │   │   └── ui/                   # Componentes reutilizables (ProductCard, Toast)
 │   ├── context/                  # Contextos React con estado global (Auth, Cart)
 │   ├── hooks/                    # Custom hooks con lógica de negocio
-│   ├── services/                 # Lógica pura sin dependencias del DOM (API, auth, cart, checkout, búsqueda)
+│   ├── services/                 # Lógica pura sin dependencias del DOM (API, auth, cart, checkout)
 │   ├── types/                    # Interfaces y tipos TypeScript compartidos
 │   ├── __tests__/                # Tests unitarios (Vitest)
 │   └── test/                     # Utilidades y helpers de testing
@@ -78,6 +77,8 @@ La aplicación es una SPA construida con React 18 que se organiza en torno a con
 - **Contextos**: `CartContext` maneja items del carrito con persistencia en localStorage, `AuthContext` maneja autenticación mock y real.
 - **Servicios**: Lógica de negocio pura en `src/services/` — ningún componente contiene lógica compleja.
 
+> **Nota:** El Shopping Concierge (chatbot con búsqueda semántica TF-IDF) fue eliminado en julio 2026 para simplificar la UX. El historial de commits y el reporte de cobertura en `docs/reports/qa/` conservan el registro histórico.
+
 ### Backend
 
 El backend está en `server/` con Express + TypeScript + SQLite (sql.js):
@@ -85,18 +86,6 @@ El backend está en `server/` con Express + TypeScript + SQLite (sql.js):
 - Tablas: `products`, `users`, `orders`, `order_items`
 - Seeding automático desde `data/db.json` al primer inicio
 - Contrato de API idéntico al mock json-server
-
-### Shopping Concierge
-
-El asistente de compras es un chatbot embebido en la UI accesible desde un FAB flotante. Utiliza:
-
-- **Búsqueda semántica local**: Índice TF-IDF + similitud de coseno sobre nombre, descripción y tipo del producto. No requiere API externa ni conexión a internet.
-- **Parseo de intención**: detecta saludos, pedidos de ayuda, búsquedas y solicitudes de agregar al carrito.
-- **Filtros exactos**: por precio máximo y categoría (remera, buzo, accesorio, vaso).
-- **Integración directa con el carrito**: agrega productos mediante `CartContext`.
-
-> [!NOTE]
-> El chatbot funciona completamente offline y sin dependencias externas. No utiliza LLM ni APIs de terceros.
 
 ## API
 
@@ -134,7 +123,6 @@ npm run test:watch    # Modo watch
 | **Carrito** | `cart.test.js` | agregar/eliminar/vaciar productos, persistencia localStorage |
 | **Auth** | `auth.test.js`, `LoginModal.test.jsx`, `RegisterPage.test.jsx` | login contra API, registro, formularios, estados de carga/error |
 | **Catálogo hook** | `useCatalog.test.jsx` | fetch con loading/error, datos de productos |
-| **Concierge** | `concierge.test.js` | parseo de intención, búsqueda semántica TF-IDF |
 | **Navegación** | `navigation.test.jsx` | router SPA, cambio de vistas |
 
 ### End-to-End (Playwright)
