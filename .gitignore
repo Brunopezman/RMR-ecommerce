@@ -39,8 +39,8 @@ npm-debug.log*
 .vscode/*
 !.vscode/extensions.json
 .idea/
-.indexion/
 
 # opencode (estado local, no compartir entre máquinas)
 .opencode/state/
 server/data/
+.opencode-handoff.md
