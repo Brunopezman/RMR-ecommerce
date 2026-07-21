@@ -297,11 +297,11 @@ function formatSearchResponse(
 
   // Add product details to text
   text += products
-    .map((p, i) => `${i + 1}. **${p.nombre}** — $${p.precio}`)
+    .map((p) => `• **${p.nombre}** — $${p.precio}`)
     .join('\n');
 
   text +=
-    '\n\n¿Te gusta alguno? Decime "agregá [nombre del producto]" para sumarlo al carrito.';
+    '\n\n¿Te gusta alguno? Pedime que lo agregue al carrito.';
 
   return { text, products };
 }
@@ -384,13 +384,13 @@ export function useConcierge(addToCartFn: (product: Product, quantity?: number, 
           id: nextId(),
           role: 'assistant',
           text:
-            '¡Bienvenido a Rock Merch & Roll! Soy tu **Asistente de Compra**.\n\n' +
-            'Podés pedirme que:\n' +
-            '• **Busque productos** — "mostrame remeras", "buzos económicos"\n' +
-            '• **Filtre por presupuesto** — "algo por menos de $5000"\n' +
-            '• **Agregue al carrito** — "agregá Remera AC/DC" (te voy a preguntar el talle)\n' +
-            '• **Ayuda** — "qué podés hacer"\n\n' +
-            '¿Qué estás buscando?',
+              '¡Bienvenido a Rock Merch & Roll! Soy tu **Asistente de Compra**.\n\n' +
+              'Esto es lo que puedo hacer por vos:\n' +
+              '• **Buscar productos** por nombre, categoría o estilo\n' +
+              '• **Filtrar por presupuesto** — decime "menos de $5000"\n' +
+              '• **Agregar al carrito** — pedime "agregá Remera AC/DC" (te pregunto el talle)\n' +
+              '• **Ayuda** — "qué podés hacer"\n\n' +
+              '¿Qué estás buscando hoy?',
           timestamp: Date.now(),
         };
         setMessages([welcome]);
@@ -489,7 +489,7 @@ export function useConcierge(addToCartFn: (product: Product, quantity?: number, 
               text:
                 '¡Hola! Soy tu **Asistente de Compra**.\n\n' +
                 'Puedo ayudarte a encontrar el producto perfecto. ' +
-                'Contame qué estás buscando: ¿remeras, buzos, accesorios? ' +
+                'Decime qué estás buscando: ¿remeras, buzos, accesorios? ' +
                 '¿Tenés algún presupuesto en mente?',
               timestamp: Date.now(),
             };

@@ -77,6 +77,23 @@ export function ShoppingConcierge() {
     [handleSubmit],
   );
 
+  // Escape key handler
+  const handleEscape = useCallback(() => {
+    if (isOpen) {
+      setPanelVisible(false);
+      setTimeout(() => toggle(), 300);
+    }
+  }, [isOpen, toggle]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleEscape();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [isOpen, handleEscape]);
+
   // Toggle con animacion de apertura/cierre
   const handleToggle = useCallback(() => {
     if (isOpen) {
@@ -135,7 +152,7 @@ export function ShoppingConcierge() {
       {/* ─── Chat Panel ─── */}
       {isOpen && (
         <div
-          className={`fixed bottom-24 right-6 z-50 w-[calc(100vw-32px)] sm:w-96 h-[500px] max-h-[85vh] sm:max-h-[80vh] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ease-out ${
+          className={`fixed bottom-24 right-6 z-50 w-[calc(100vw-32px)] sm:w-96 md:w-[420px] h-[500px] max-h-[85vh] sm:max-h-[80vh] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ease-out ${
             panelVisible
               ? 'opacity-100 translate-y-0 scale-100'
               : 'opacity-0 translate-y-4 scale-95'
@@ -145,7 +162,7 @@ export function ShoppingConcierge() {
           aria-label="Chat de ventas"
         >
           {/* ─── Header ─── */}
-          <div className="bg-coral text-white px-4 py-3 flex items-center justify-between flex-shrink-0 rounded-t-2xl">
+          <div className="bg-coral text-white px-3 sm:px-4 py-3 flex items-center justify-between flex-shrink-0 rounded-t-2xl">
             <div className="flex items-center gap-3">
               {/* Avatar circular: icono de auriculares */}
               <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
@@ -156,7 +173,7 @@ export function ShoppingConcierge() {
               <div>
                 <p className="text-sm font-display font-semibold leading-tight">Asistente de Compra</p>
                 <p className="text-xs text-white/80 leading-tight flex items-center gap-1">
-                  <span className={`w-2 h-2 rounded-full ${catalogLoaded ? 'bg-green-300' : 'bg-yellow-300'}`} />
+                  <span className={`w-2 h-2 rounded-full ${catalogLoaded ? 'bg-green-300' : 'bg-yellow-300'}`} aria-hidden="true" />
                   {catalogLoaded ? 'En linea' : 'Cargando...'}
                 </p>
               </div>
@@ -173,10 +190,17 @@ export function ShoppingConcierge() {
           </div>
 
           {/* ─── Messages Area ─── */}
-          <div className="flex-1 overflow-y-auto px-4 py-3 bg-gray-50/50" aria-live="polite" aria-atomic="false">
+          <div className="flex-1 overflow-y-auto px-3 sm:px-4 py-3 bg-gray-50/50" aria-live="polite" aria-atomic="false">
             {messages.length === 0 && !isTyping && (
               <div className="flex items-center justify-center h-full text-gray-400 text-sm text-center px-4">
-                <p>¡Hola! Soy tu **Asistente de Compra**. Decime que estas buscando</p>
+                {catalogLoaded ? (
+                  <p>¡Hola! Soy tu **Asistente de Compra**. Decime qué estás buscando</p>
+                ) : (
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-6 h-6 border-2 border-gray-300 border-t-coral rounded-full animate-spin" />
+                    <p className="text-xs">Conectando con el catálogo...</p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -197,6 +221,7 @@ export function ShoppingConcierge() {
                       }, 200);
                     }}
                     style={{ animationDelay: `${i * 80}ms` }}
+                    aria-label={`Buscar: ${suggestion.label}`}
                     className="bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm px-3 py-1.5 rounded-full border border-gray-200 cursor-pointer transition-all duration-200 hover:shadow-sm animate-slide-up"
                   >
                     {suggestion.label}
@@ -235,8 +260,8 @@ export function ShoppingConcierge() {
               onKeyDown={handleKeyDown}
               placeholder={
                 catalogLoaded
-                  ? 'Busca productos...'
-                  : 'Cargando catalogo...'
+                  ? 'Buscá productos, ej: remeras económicas'
+                  : 'Cargando catálogo...'
               }
               disabled={!catalogLoaded || isTyping}
               className="flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm outline-none focus:border-coral focus:ring-1 focus:ring-coral transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed"
@@ -253,6 +278,13 @@ export function ShoppingConcierge() {
               </svg>
             </button>
           </form>
+
+          {/* --- Footer hint --- */}
+          {catalogLoaded && (
+            <p className="text-[10px] text-gray-400 text-center py-1.5 border-t border-gray-100 bg-white">
+              Presioná Enter para enviar
+            </p>
+          )}
         </div>
       )}
     </>
