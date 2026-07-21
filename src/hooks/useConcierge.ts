@@ -189,7 +189,7 @@ interface ParsedIntent {
 /**
  * Parse user message to extract intent, search terms, price, and category.
  */
-function parseIntent(text: string): ParsedIntent {
+export function parseIntent(text: string): ParsedIntent {
   const lower = text.toLowerCase().trim();
 
   // Greetings
@@ -266,7 +266,7 @@ function parseIntent(text: string): ParsedIntent {
 /**
  * Generate a response message based on search results.
  */
-function formatSearchResponse(
+export function formatSearchResponse(
   results: Array<{ product: Product; score: number }>,
   intent: ParsedIntent,
 ): { text: string; products: Product[] } {
