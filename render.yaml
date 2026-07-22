@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: rockmerch-api
+    runtime: node
+    repo: https://github.com/tu-usuario/tu-repo
+    plan: free
+    buildCommand: cd server && npm install && npm run build
+    startCommand: cd server && npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: RMR_APP_URL
+        value: https://rockmerch.vercel.app
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: ADMIN_EMAIL
+        value: admin@rock.com

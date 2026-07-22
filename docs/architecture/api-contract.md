@@ -1,6 +1,6 @@
 # API Contract — Rock Merch & Roll
 
-> **Última actualización:** 2026-07-17
+> **Última actualización:** 2026-07-22
 > **Propósito:** Documento de contrato entre frontend y backend. El shape aquí descrito es el que debe respetar tanto la mock API (json-server, Paso A) como la API real (Paso B).
 
 ---
@@ -147,12 +147,16 @@ interface OrderItem {
 
 ## Backend real (Paso B)
 
-El backend real está implementado en `server/` con Express + TypeScript + SQLite (sql.js).
+El backend real está implementado en `server/` con Express + TypeScript y soporte dual-mode.
 
 ### Arranque
 
 ```bash
-# Opcional: definir email del admin inicial
+# Modo SQLite (desarrollo local)
+npm run server
+
+# Modo PostgreSQL (producción)
+export DATABASE_URL=postgresql://user:password@host:5432/db?sslmode=require
 export ADMIN_EMAIL=admin@rock.com
 npm run server
 ```
@@ -169,20 +173,36 @@ export const BASE_URL = 'http://localhost:3001';
 export const BASE_URL = 'http://localhost:4000';
 ```
 
-### Base de datos
+### Base de datos — dual-mode
 
-El backend usa SQLite (sql.js) con persistencia a disco en `server/data/rockmerch.db`.
-Las tablas se crean automáticamente al primer inicio. Los productos se seedan desde
-`data/db.json` si la tabla está vacía.
+El backend opera en dos modos según la presencia de la variable `DATABASE_URL`:
+
+| Modo | Driver | Activación |
+|---|---|---|
+| SQLite (dev) | sql.js | Por defecto (sin `DATABASE_URL`) |
+| PostgreSQL (prod) | pg (node-postgres) | `DATABASE_URL` presente en env |
+
+- En modo SQLite: persistencia a disco en `server/data/rockmerch.db`
+- En modo PostgreSQL: conexión a Neon o cualquier servidor PostgreSQL 16+
+- Migraciones versionadas con tracking en tabla `_migrations`
+- Seeding automático desde `data/db.json` al primer inicio en ambos modos
 
 ### Esquema de tablas
 
 ```sql
-products (id, nombre, tipo, img, descripcion, precio)
-users    (id, email, name, address, created_at, apellido, codigo_postal, sexo, telefono, password_hash, role)
-orders   (id, user_id, total, status, created_at, shipping_address)
-order_items (id, order_id, product_id, nombre, precio, cantidad)
+products        (id, nombre, tipo, img, descripcion, precio, stock)
+users           (id, email, name, address, created_at, apellido, codigo_postal, sexo, telefono, password_hash, role)
+orders          (id, user_id, total, status, created_at, shipping_address)
+order_items     (id, order_id, product_id, nombre, precio, cantidad)
+contact_messages (id, name, email, phone, area, subject, message, created_at)
 ```
+
+### Endpoint adicional
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| `POST` | `/api/contact` | Enviar mensaje de contacto (requiere `name`, `email`, `area`, `message`) |
+| `GET` | `/health` | Health check — retorna `{ "status": "ok", "db": "sqlite" \| "postgresql" }` |
 
 ## Reglas de transición a Paso B
 
@@ -190,3 +210,4 @@ order_items (id, order_id, product_id, nombre, precio, cantidad)
 2. Los nombres de campo, tipos y estructura de la respuesta NO cambian.
 3. Los endpoints (`/products`, `/users`, `/orders`) se mantienen idénticos.
 4. Si el backend real requiere autenticación, se agrega un header `Authorization` sin modificar el contrato de datos.
+5. Para modo PostgreSQL: setear `DATABASE_URL` como variable de entorno. El backend lo detecta automáticamente.

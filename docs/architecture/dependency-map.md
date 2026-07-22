@@ -1,8 +1,8 @@
 # Mapa de dependencias – Rock Merch & Roll
 
-**Fecha:** 14 de julio de 2026
+**Fecha:** 22 de julio de 2026
 **Autor:** @refactor-architect
-**Versión del código analizado:** v1.1.0 (React + TypeScript + Vite + Tailwind)
+**Versión del código analizado:** v1.2.0 (React + TypeScript + Vite + Tailwind + PostgreSQL)
 
 ---
 
@@ -137,12 +137,50 @@ App
 7. Backend: `authenticateToken` verifica JWT → `requireAdmin` verifica role → `queryAll('SELECT * FROM users ORDER BY created_at DESC')` → devuelve array.
 8. `AdminPanel` renderiza tabla con todos los usuarios.
 
-## ⚠️ Problemas de arquitectura detectados (Auditoría Fase 1 — 2026-07-16)
+## Módulos del backend (nuevos en v1.2.0)
 
-1. **CheckoutPage** hace bypass directo a localStorage (línea 91): `localStorage.removeItem('carrito')` en vez de usar `clearCart()` del contexto.
-2. **ToastContext** creado en `src/components/ui/Toast.tsx` pero nunca integrado en el árbol de componentes (`App.tsx`).
-3. **Header** y otros 5 componentes (HeroSection, BannerServices, BrandSection, ProductsSection, Footer) definidos inline en `App.tsx` (~450 líneas totales).
-4. **jsPDF** cargado desde CDN global (`index.html`) en vez de `npm install`, sin manejo de error si el CDN falla.
-5. **`(window as any).bootstrap.Modal`** — manipulación DOM imperativa dentro de React, viola TypeScript `strict: true`.
+| Archivo | Exporta | Dependencias | Descripción |
+|---|---|---|---|
+| `server/src/config/database.ts` | `getDbConfig()`, `isPostgresConfigured()`, `parseConnectionString()` | `process.env` | Configuración de conexión PostgreSQL desde `DATABASE_URL` o variables individuales |
+| `server/src/db/pool.ts` | `getPool()`, `query()`, `getClient()`, `closePool()` | `pg` (Pool), `database.ts` | Singleton pool de PostgreSQL con helpers query/getClient |
+| `server/src/db/compat.ts` | `isPostgres()`, `convertPlaceholders()`, `getLastInsertId()`, `nowExpression()` | `database.ts` | Capa de compatibilidad: abstrae diferencias SQL `?` vs `$N`, timestamps, last insert ID |
+| `server/src/db/seed.ts` | `seedProducts()`, `seedAdminUser()` | `fs`, `bcryptjs`, `../db.js` | Seeding dual-mode desde `data/db.json` (idempotente) |
+| `server/src/db/migrate.ts` | `runMigrations()` | `migrations-runner`, migrations `001`, `002` | Entry point de migraciones PostgreSQL (lazy import, solo en modo PG) |
+| `server/src/db/migrations-runner.ts` | `runMigrations(migrations)` | `pool.ts`, `_migrations` table | Runner genérico: ejecuta pendientes, registra en `_migrations` |
+| `server/src/db/migrations/001-initial-schema.ts` | `name`, `up()` | — | Crea tablas: products, users, orders, order_items, contact_messages |
+| `server/src/db/migrations/002-add-user-fields.ts` | `name`, `up()` | — | Agrega columnas: apellido, codigo_postal, sexo, telefono, password_hash, role |
 
-> 📄 Ver reporte completo en `docs/reports/auditor/auditoria-fase1-2026-07-16.md`
+## Servicios del backend (Express)
+
+| Archivo | Exporta | Dependencias |
+|---|---|---|
+| `server/src/routes/products.ts` | `GET /products`, `GET /products/:id` | `../db.js` (queryAll, queryOne) |
+| `server/src/routes/users.ts` | `POST /users`, `GET /users`, `GET /users/:id`, `PATCH /users/:id` | `../db.js`, middleware auth |
+| `server/src/routes/orders.ts` | `GET /orders?userId=`, `POST /orders` | `../db.js`, middleware auth |
+| `server/src/routes/contact.ts` | `POST /api/contact` | `../db.js`, email service |
+| `server/src/routes/auth.ts` | `POST /api/auth/login` | `../db.js`, `bcryptjs`, `jsonwebtoken` |
+| `server/src/middleware/auth.ts` | `authenticateToken`, `requireAdmin` | `jsonwebtoken` |
+| `server/src/services/emailService.ts` | `sendContactConfirmation()`, `sendOrderConfirmation()` | `nodemailer`, `jsPDF` |
+
+## Base de datos — dual-mode
+
+| Modo | Driver | Activación | Archivo de entrada |
+|---|---|---|---|
+| SQLite (dev) | sql.js | Por defecto (`DATABASE_URL` no seteada) | `server/src/db.ts` |
+| PostgreSQL (prod) | pg (node-postgres) | `DATABASE_URL` presente en env | `server/src/db.ts` → `pool.ts` |
+
+**Flujo de inicialización:**
+1. `db.ts` evalúa `isPostgresConfigured()` desde `database.ts`
+2. En modo PG: importa dinámicamente `pool.ts` + `migrate.ts` → corre migraciones → seeding
+3. En modo SQLite: inicializa sql.js desde archivo local → corre schema DDL → seeding
+
+## Estado de arquitectura (post-migración PostgreSQL)
+
+Todos los issues de la Auditoría Fase 1 (2026-07-16) han sido corregidos. Ver `docs/reports/auditor/auditoria-fase2-2026-07-22.md` para detalle.
+
+Resumen de mejoras arquitectónicas en v1.2.0:
+- **Dual-mode DB**: SQLite en dev, PostgreSQL en prod, detección automática por `DATABASE_URL`
+- **Migraciones versionadas**: esquemas trackeados en tabla `_migrations`
+- **Capa de compatibilidad**: abstracción sobre placeholders, timestamps, last insert ID
+- **Seeding idempotente**: mismo `data/db.json` funciona en ambos motores
+- **Tests de compatibilidad cross-mode**: 14 tests que verifican mismo shape en SQLite y PostgreSQL

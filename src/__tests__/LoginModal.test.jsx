@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { LoginModal } from '../components/auth/LoginModal';
 
@@ -26,6 +26,10 @@ function renderModal(isOpen = true, onClose = vi.fn()) {
 describe('LoginModal — Modo Login (comportamiento existente)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    cleanup();
   });
 
   it('no renderiza nada cuando isOpen=false', () => {
@@ -81,9 +85,7 @@ describe('LoginModal — Modo Login (comportamiento existente)', () => {
     await user.type(screen.getByLabelText('Contraseña'), 'wrong');
     await user.click(screen.getByRole('button', { name: 'Iniciar Sesión' }));
 
-    await waitFor(() => {
-      expect(screen.getByText('Credenciales inválidas.')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Credenciales inválidas.')).toBeInTheDocument();
   });
 
   it('muestra error si email o password están vacíos', async () => {
@@ -92,13 +94,11 @@ describe('LoginModal — Modo Login (comportamiento existente)', () => {
 
     await user.click(screen.getByRole('button', { name: 'Iniciar Sesión' }));
 
-    await waitFor(() => {
-      expect(screen.getByText('Email y contraseña son obligatorios.')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Email y contraseña son obligatorios.')).toBeInTheDocument();
   });
 
   it('deshabilita inputs y botón durante loading', async () => {
-    // Make login never resolve so we can check loading state
+    // Never-resolving promise to keep loading=true
     mockLogin.mockImplementation(() => new Promise(() => {}));
     const user = userEvent.setup();
 
@@ -108,11 +108,10 @@ describe('LoginModal — Modo Login (comportamiento existente)', () => {
     await user.type(screen.getByLabelText('Contraseña'), 'pass');
     await user.click(screen.getByRole('button', { name: 'Iniciar Sesión' }));
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Ingresando...' })).toBeDisabled();
-      expect(screen.getByLabelText('Correo electrónico')).toBeDisabled();
-      expect(screen.getByLabelText('Contraseña')).toBeDisabled();
-    });
+    // findByRole retries up to 5s to avoid flakiness in full suite
+    expect(await screen.findByRole('button', { name: 'Ingresando...' }, { timeout: 5000 })).toBeDisabled();
+    expect(screen.getByLabelText('Correo electrónico')).toBeDisabled();
+    expect(screen.getByLabelText('Contraseña')).toBeDisabled();
   });
 });
 

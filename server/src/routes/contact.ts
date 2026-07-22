@@ -9,6 +9,7 @@
 
 import { Router, Request, Response } from 'express';
 import { run, lastInsertId, persist } from '../db.js';
+import { isPostgresConfigured } from '../config/database.js';
 import { getArea, getAllAreas } from '../config/contact-areas.js';
 import { sendContactEmail } from '../services/emailService.js';
 
@@ -20,7 +21,7 @@ const router = Router();
  * Validates fields, inserts into contact_messages, sends notification
  * email (real or mock), and returns the new message ID.
  */
-router.post('/', (req: Request, res: Response) => {
+router.post('/', async (req: Request, res: Response) => {
   try {
     const { name, email, area, message } = req.body;
 
@@ -49,26 +50,50 @@ router.post('/', (req: Request, res: Response) => {
       return;
     }
 
-    if (!message || typeof message !== 'string' || message.trim().length < 10) {
-      res.status(400).json({ error: 'El mensaje debe tener al menos 10 caracteres' });
+    if (
+      !message ||
+      typeof message !== 'string' ||
+      message.trim().length < 10
+    ) {
+      res
+        .status(400)
+        .json({ error: 'El mensaje debe tener al menos 10 caracteres' });
       return;
     }
 
     // ── Insert into DB ──────────────────────────
 
-    run(
-      `INSERT INTO contact_messages (name, email, area, message)
-       VALUES (?, ?, ?, ?)`,
-      [name.trim(), email.trim(), area, message.trim()],
-    );
+    let newId: number;
 
-    const newId = lastInsertId();
-    persist();
+    if (isPostgresConfigured()) {
+      const result = await run(
+        `INSERT INTO contact_messages (name, email, area, message)
+         VALUES ($1, $2, $3, $4)
+         RETURNING id`,
+        [name.trim(), email.trim(), area, message.trim()],
+      );
+      newId = (result as import('pg').QueryResult).rows[0].id as number;
+    } else {
+      await run(
+        `INSERT INTO contact_messages (name, email, area, message)
+         VALUES (?, ?, ?, ?)`,
+        [name.trim(), email.trim(), area, message.trim()],
+      );
+
+      newId = await lastInsertId();
+      await persist();
+    }
 
     // ── Send email (fire-and-forget) ────────────
 
-    sendContactEmail({ name: name.trim(), email: email.trim(), area, message: message.trim() })
-      .catch((err) => console.error('[contact] Error sending email notification:', err));
+    sendContactEmail({
+      name: name.trim(),
+      email: email.trim(),
+      area,
+      message: message.trim(),
+    }).catch((err) =>
+      console.error('[contact] Error sending email notification:', err),
+    );
 
     res.status(201).json({ success: true, messageId: newId });
   } catch (err) {

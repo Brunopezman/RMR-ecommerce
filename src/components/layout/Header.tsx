@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { navigate } from '../../services/router';
 import { CartModal } from '../cart/CartModal';
 import { LoginModal } from '../auth/LoginModal';
+import { LogoutConfirmModal } from '../auth/LogoutConfirmModal';
 
 export function Header({ onNavigate }: { onNavigate: (view: 'home' | 'shop') => void }) {
   const { itemCount } = useContext(CartContext)!;
@@ -135,31 +136,11 @@ export function Header({ onNavigate }: { onNavigate: (view: 'home' | 'shop') => 
         </div>
       </nav>
 
-      {logoutConfirmOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-          onClick={() => setLogoutConfirmOpen(false)}
-        >
-          <div className="bg-white rounded-lg shadow-xl p-6 max-w-sm mx-4 w-full" onClick={(e) => e.stopPropagation()}>
-            <h5 className="text-lg font-semibold mb-2">Confirmar cierre de sesión</h5>
-            <p className="text-gray-600 mb-4">¿Desea cerrar sesión?</p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setLogoutConfirmOpen(false)}
-                className="px-4 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300 border-0 cursor-pointer"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => { logout(); setLogoutConfirmOpen(false); }}
-                className="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700 border-0 cursor-pointer"
-              >
-                Sí, estoy seguro
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <LogoutConfirmModal
+        isOpen={logoutConfirmOpen}
+        onClose={() => setLogoutConfirmOpen(false)}
+        onConfirm={() => { logout(); setLogoutConfirmOpen(false); }}
+      />
 
       <CartModal isOpen={cartOpen} onClose={() => setCartOpen(false)} />
       <LoginModal isOpen={loginOpen} onClose={() => setLoginOpen(false)} />

@@ -16,6 +16,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { initDb } from './db.js';
+import { isPostgresConfigured } from './config/database.js';
 import productsRouter from './routes/products.js';
 import usersRouter from './routes/users.js';
 import ordersRouter from './routes/orders.js';
@@ -51,9 +52,13 @@ app.use('/users', usersRouter);
 app.use('/orders', ordersRouter);
 app.use('/api/contact', contactRouter);
 
-// Health check
+// Health check — used by Render to verify the service is alive
 app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({
+    status: 'ok',
+    db: isPostgresConfigured() ? 'postgresql' : 'sqlite',
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // ── Start ───────────────────────────────────────

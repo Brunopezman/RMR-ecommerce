@@ -1,15 +1,23 @@
 /**
- * Database setup — SQLite via sql.js (pure JS, no native compilation).
+ * Database abstraction — dual-mode SQLite / PostgreSQL.
  *
- * Creates tables on first run and seeds products from react/db.json
- * if the products table is empty. Persists to a file on disk.
+ * Auto-detects backend:
+ *   - DATABASE_URL or PG* env vars → PostgreSQL (pg pool)
+ *   - Otherwise → SQLite via sql.js (existing behavior, 100% backward compatible)
+ *
+ * All exported functions are ASYNC to support PostgreSQL.
+ * In SQLite mode they return resolved Promises.
+ *
+ * Public API:
+ *   initDb(), queryAll(), queryOne(), run(), lastInsertId(), persist(), getDb()
  */
 
 import type { SqlJsStatic } from 'sql.js';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import bcrypt from 'bcryptjs';
+import { isPostgresConfigured } from './config/database.js';
+import { seedProducts, seedAdminUser } from './db/seed.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,46 +25,109 @@ const __dirname = path.dirname(__filename);
 /** Path to the SQLite database file (stored in server/data/) */
 const DB_PATH = path.join(__dirname, '..', 'data', 'rockmerch.db');
 
-/** Path to the seed JSON file (from data/db.json) */
-const SEED_JSON_PATH = path.join(__dirname, '..', '..', 'data', 'db.json');
-
 type SqlJsDatabase = ReturnType<SqlJsStatic['Database']>;
 
+// ── Backend detection ──────────────────────────────
+
+const PG_ENABLED = isPostgresConfigured();
+
+// ── SQLite globals ─────────────────────────────────
+
 let sqlDb: SqlJsDatabase | null = null;
+let sqliteInitialized = false;
+
+// ── PostgreSQL pool reference (lazy loaded) ────────
+
+let pgQuery: ((text: string, params?: unknown[]) => Promise<import('pg').QueryResult>) | null = null;
+let pgMigrations: (() => Promise<void>) | null = null;
 
 /**
- * Initialize the database. Must be called once before using getDb().
+ * Lazily import PostgreSQL modules.
+ * This ensures pg is only loaded when actually needed, and doesn't crash
+ * if not installed.
  */
-export async function initDb(): Promise<SqlJsDatabase> {
-  const sqlJsModule = await import('sql.js');
-  const initSqlJs = sqlJsModule.default;
-  const SQL = await initSqlJs();
-
-  const dataDir = path.dirname(DB_PATH);
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
+async function ensurePgLoaded(): Promise<void> {
+  if (pgQuery) return;
+  try {
+    const poolModule = await import('./db/pool.js');
+    const migrateModule = await import('./db/migrate.js');
+    pgQuery = poolModule.query;
+    pgMigrations = migrateModule.runMigrations;
+  } catch (err) {
+    console.error('[db] Failed to load PostgreSQL modules:', err);
+    throw err;
   }
-
-  if (fs.existsSync(DB_PATH)) {
-    const buffer = fs.readFileSync(DB_PATH);
-    sqlDb = new SQL.Database(buffer);
-    console.log('[db] Loaded existing database from disk.');
-  } else {
-    sqlDb = new SQL.Database();
-    console.log('[db] Created new database.');
-  }
-
-  createTables();
-  migrateUsersTable();
-  migrateProductsTable();
-  seedProducts();
-  seedAdminUser();
-  persist();
-
-  return sqlDb;
 }
 
-export function getDb(): SqlJsDatabase {
+// ── Helpers ────────────────────────────────────────
+
+/**
+ * Convert SQLite positional placeholders (?) to PostgreSQL positional
+ * placeholders ($1, $2, …).
+ */
+function convertPlaceholders(sql: string): string {
+  let idx = 0;
+  return sql.replace(/\?/g, () => {
+    idx++;
+    return `$${idx}`;
+  });
+}
+
+// ── Public API ─────────────────────────────────────
+
+/**
+ * Initialize the database. Must be called once before any other db function.
+ *
+ * - PostgreSQL mode: creates pool, runs migrations, seeds data
+ * - SQLite mode: creates/loads db file, creates tables, seeds data
+ */
+export async function initDb(): Promise<void> {
+  if (PG_ENABLED) {
+    await ensurePgLoaded();
+    console.log('[db] PostgreSQL mode active.');
+    await pgMigrations!();
+    await seedProducts();
+    await seedAdminUser();
+    console.log('[db] PostgreSQL initialization complete.');
+  } else {
+    // ── SQLite path (existing behavior, wrapped in Promise) ──
+    const sqlJsModule = await import('sql.js');
+    const initSqlJs = sqlJsModule.default;
+    const SQL = await initSqlJs();
+
+    const dataDir = path.dirname(DB_PATH);
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+
+    if (fs.existsSync(DB_PATH)) {
+      const buffer = fs.readFileSync(DB_PATH);
+      sqlDb = new SQL.Database(buffer);
+      console.log('[db] Loaded existing database from disk.');
+    } else {
+      sqlDb = new SQL.Database();
+      console.log('[db] Created new database.');
+    }
+
+    createTables();
+    migrateUsersTable();
+    migrateProductsTable();
+    await seedProducts();
+    await seedAdminUser();
+    persist();
+    sqliteInitialized = true;
+    console.log('[db] SQLite initialization complete.');
+  }
+}
+
+/**
+ * Get the raw SQLite database instance (only valid in SQLite mode).
+ * Throws if PostgreSQL mode is active.
+ */
+export async function getDb(): Promise<SqlJsDatabase> {
+  if (PG_ENABLED) {
+    throw new Error('getDb() is not available in PostgreSQL mode. Use queryAll/queryOne/run instead.');
+  }
   if (!sqlDb) {
     throw new Error('Database not initialized. Call initDb() first.');
   }
@@ -64,9 +135,11 @@ export function getDb(): SqlJsDatabase {
 }
 
 /**
- * Persist the in-memory database to disk.
+ * Persist the in-memory database to disk (SQLite only).
+ * No-op in PostgreSQL mode (Postgres persists automatically).
  */
-export function persist(): void {
+export async function persist(): Promise<void> {
+  if (PG_ENABLED) return;
   if (!sqlDb) return;
   const data = sqlDb.export();
   const buffer = Buffer.from(data);
@@ -76,9 +149,19 @@ export function persist(): void {
 /**
  * Run a query and return all rows as objects.
  */
-export function queryAll(sql: string, params: unknown[] = []): Record<string, unknown>[] {
-  const database = getDb();
-  const stmt = database.prepare(sql);
+export async function queryAll(
+  sql: string,
+  params: unknown[] = [],
+): Promise<Record<string, unknown>[]> {
+  if (PG_ENABLED) {
+    const adaptedSql = convertPlaceholders(sql);
+    const result = await pgQuery!(adaptedSql, params);
+    return result.rows as Record<string, unknown>[];
+  }
+
+  // SQLite path
+  const db = getDbSync();
+  const stmt = db.prepare(sql);
   if (params.length > 0) {
     stmt.bind(params);
   }
@@ -93,9 +176,19 @@ export function queryAll(sql: string, params: unknown[] = []): Record<string, un
 /**
  * Run a query and return the first row as an object, or undefined.
  */
-export function queryOne(sql: string, params: unknown[] = []): Record<string, unknown> | undefined {
-  const database = getDb();
-  const stmt = database.prepare(sql);
+export async function queryOne(
+  sql: string,
+  params: unknown[] = [],
+): Promise<Record<string, unknown> | undefined> {
+  if (PG_ENABLED) {
+    const adaptedSql = convertPlaceholders(sql);
+    const result = await pgQuery!(adaptedSql, params);
+    return result.rows[0] as Record<string, unknown> | undefined;
+  }
+
+  // SQLite path
+  const db = getDbSync();
+  const stmt = db.prepare(sql);
   if (params.length > 0) {
     stmt.bind(params);
   }
@@ -111,18 +204,40 @@ export function queryOne(sql: string, params: unknown[] = []): Record<string, un
 
 /**
  * Run a write statement (INSERT, UPDATE, DELETE).
+ *
+ * In PostgreSQL mode, returns the QueryResult so callers can access
+ * RETURNING clauses. In SQLite mode, returns void.
  */
-export function run(sql: string, params: unknown[] = []): void {
-  const database = getDb();
-  database.run(sql, params);
+export async function run(
+  sql: string,
+  params: unknown[] = [],
+): Promise<import('pg').QueryResult | void> {
+  if (PG_ENABLED) {
+    const adaptedSql = convertPlaceholders(sql);
+    const result = await pgQuery!(adaptedSql, params);
+    return result;
+  }
+
+  // SQLite path
+  const db = getDbSync();
+  db.run(sql, params);
 }
 
 /**
  * Get the last inserted row ID.
+ *
+ * - SQLite: SELECT last_insert_rowid()
+ * - PostgreSQL: uses lastval() as a fallback (prefer RETURNING instead)
  */
-export function lastInsertId(): number {
-  const database = getDb();
-  const result = database.exec('SELECT last_insert_rowid() as id');
+export async function lastInsertId(): Promise<number> {
+  if (PG_ENABLED) {
+    const result = await pgQuery!('SELECT lastval() as id');
+    return (result.rows[0]?.id as number) ?? 0;
+  }
+
+  // SQLite path
+  const db = getDbSync();
+  const result = db.exec('SELECT last_insert_rowid() as id');
   if (result.length > 0 && result[0].values.length > 0) {
     return result[0].values[0][0] as number;
   }
@@ -130,8 +245,33 @@ export function lastInsertId(): number {
 }
 
 /**
- * Create all tables if they don't exist.
+ * Execute a raw SQL statement that returns results (SQLite only, multi-statement).
  */
+export async function exec(
+  sql: string,
+): Promise<Array<{ columns: string[]; values: unknown[][] }>> {
+  if (PG_ENABLED) {
+    throw new Error('exec() is not available in PostgreSQL mode. Use queryAll() instead.');
+  }
+
+  const db = getDbSync();
+  return db.exec(sql);
+}
+
+/**
+ * Synchronous accessor for SQLite database (internal use only).
+ */
+function getDbSync(): SqlJsDatabase {
+  if (!sqlDb) {
+    throw new Error('Database not initialized. Call initDb() first.');
+  }
+  return sqlDb;
+}
+
+// ══════════════════════════════════════════════════
+//  SQLite table creation & migration
+// ══════════════════════════════════════════════════
+
 function createTables(): void {
   if (!sqlDb) return;
 
@@ -186,10 +326,6 @@ function createTables(): void {
   `);
 }
 
-/**
- * Migrate the users table adding new columns if they don't exist.
- * SQLite's ALTER TABLE ADD COLUMN is idempotent-safe with try/catch.
- */
 function migrateUsersTable(): void {
   const newColumns = [
     'apellido TEXT DEFAULT \'\'',
@@ -202,103 +338,23 @@ function migrateUsersTable(): void {
 
   for (const colDef of newColumns) {
     try {
-      run(`ALTER TABLE users ADD COLUMN ${colDef}`);
+      const db = getDbSync();
+      db.run(`ALTER TABLE users ADD COLUMN ${colDef}`);
     } catch {
       // Column already exists — safe to ignore
     }
   }
 }
 
-/**
- * Migrate products table adding stock column if missing.
- */
 function migrateProductsTable(): void {
   try {
-    run('ALTER TABLE products ADD COLUMN stock INTEGER NOT NULL DEFAULT 0');
+    const db = getDbSync();
+    db.run('ALTER TABLE products ADD COLUMN stock INTEGER NOT NULL DEFAULT 0');
   } catch {
     // Column already exists — safe to ignore
   }
 }
 
-/**
- * Seed admin user from ADMIN_EMAIL env var, or create a default admin account.
- * If ADMIN_EMAIL is set, uses that email (and optionally ADMIN_PASSWORD).
- * Otherwise seeds admin@rock.com / admin123 as default admin.
- */
-function seedAdminUser(): void {
-  const adminEmail = process.env.ADMIN_EMAIL || 'admin@rock.com';
-
-  const existing = queryOne('SELECT id, role, password_hash FROM users WHERE email = ?', [adminEmail]);
-
-  if (existing) {
-    let updated = false;
-
-    if (existing.role !== 'admin') {
-      run('UPDATE users SET role = ? WHERE email = ?', ['admin', adminEmail]);
-      updated = true;
-      console.log(`[db] Promoted ${adminEmail} to admin.`);
-    }
-
-    // If the existing user has no password (empty or null), set a default one
-    const pwHash = (existing.password_hash as string) || '';
-    if (!pwHash) {
-      const defaultPassword = process.env.ADMIN_PASSWORD || 'admin123';
-      const newHash = bcrypt.hashSync(defaultPassword, 10);
-      run('UPDATE users SET password_hash = ? WHERE email = ?', [newHash, adminEmail]);
-      updated = true;
-      console.log(`[db] Set default password for ${adminEmail} (password: ${defaultPassword})`);
-    }
-
-    if (updated) persist();
-    return;
-  }
-
-  const defaultPassword = process.env.ADMIN_PASSWORD || 'admin123';
-  const passwordHash = bcrypt.hashSync(defaultPassword, 10);
-  run(
-    `INSERT INTO users (email, name, role, password_hash)
-     VALUES (?, ?, ?, ?)`,
-    [adminEmail, 'Admin', 'admin', passwordHash],
-  );
-  persist();
-  console.log(`[db] Created admin user: ${adminEmail} (password: ${defaultPassword})`);
-}
-
-/**
- * Seed products from react/db.json if the products table is empty.
- */
-function seedProducts(): void {
-  if (!sqlDb) return;
-
-  const rows = queryAll('SELECT COUNT(*) as count FROM products');
-  const count = (rows[0]?.count as number) ?? 0;
-
-  if (count > 0) {
-    console.log(`[db] Products table already has ${count} rows, skipping seed.`);
-    return;
-  }
-
-  let seedData: { products: Array<{ id: number; nombre: string; tipo?: string; img: string; descripcion?: string; precio: number; stock?: number }> };
-
-  try {
-    const raw = fs.readFileSync(SEED_JSON_PATH, 'utf-8');
-    seedData = JSON.parse(raw);
-  } catch (err) {
-    console.warn(`[db] Could not read seed file at ${SEED_JSON_PATH}, skipping seed.`, err);
-    return;
-  }
-
-  if (!seedData.products || seedData.products.length === 0) {
-    console.warn('[db] Seed file has no products, skipping seed.');
-    return;
-  }
-
-  for (const p of seedData.products) {
-    run(
-      'INSERT INTO products (id, nombre, tipo, img, descripcion, precio, stock) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [p.id, p.nombre, p.tipo ?? null, p.img, p.descripcion ?? null, p.precio, p.stock ?? 0],
-    );
-  }
-
-  console.log(`[db] Seeded ${seedData.products.length} products from data/db.json`);
-}
+// ══════════════════════════════════════════════════
+//  Seeding (delegated to db/seed.ts)
+// ══════════════════════════════════════════════════

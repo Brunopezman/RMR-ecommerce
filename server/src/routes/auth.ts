@@ -9,6 +9,7 @@ import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { queryOne, run, lastInsertId, persist } from '../db.js';
+import { isPostgresConfigured } from '../config/database.js';
 import { sendWelcomeEmail } from '../services/emailService.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'rmr-dev-secret';
@@ -18,7 +19,8 @@ const router = Router();
 /**
  * Convert SQLite datetime string to ISO 8601 format.
  */
-function toIsoDate(sqliteDate: string): string {
+function toIsoDate(sqliteDate: string | Date): string {
+  if (sqliteDate instanceof Date) return sqliteDate.toISOString();
   if (sqliteDate.includes('T')) return sqliteDate;
   return sqliteDate.replace(' ', 'T') + '.000Z';
 }
@@ -55,23 +57,38 @@ function shapeUser(row: Record<string, unknown>) {
  * Response 201: { user: User, token: string }
  * Response 409: { error: "El email ya está registrado" }
  */
-router.post('/register', (req: Request, res: Response) => {
+router.post('/register', async (req: Request, res: Response) => {
   try {
-    const { email, password, name, apellido, address, codigoPostal, sexo, telefono } = req.body;
+    const {
+      email,
+      password,
+      name,
+      apellido,
+      address,
+      codigoPostal,
+      sexo,
+      telefono,
+    } = req.body;
 
     // ── Validation ──────────────────────────────
     if (!email || !password || !name) {
-      res.status(400).json({ error: 'email, password y name son obligatorios' });
+      res
+        .status(400)
+        .json({ error: 'email, password y name son obligatorios' });
       return;
     }
 
     if (typeof password !== 'string' || password.length < 6) {
-      res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
+      res
+        .status(400)
+        .json({ error: 'La contraseña debe tener al menos 6 caracteres' });
       return;
     }
 
     // ── Check duplicate ─────────────────────────
-    const existing = queryOne('SELECT id FROM users WHERE email = ?', [email]);
+    const existing = await queryOne('SELECT id FROM users WHERE email = ?', [
+      email,
+    ]);
     if (existing) {
       res.status(409).json({ error: 'El email ya está registrado' });
       return;
@@ -81,26 +98,49 @@ router.post('/register', (req: Request, res: Response) => {
     const passwordHash = bcrypt.hashSync(password, 10);
 
     // ── Insert user ─────────────────────────────
-    run(
-      `INSERT INTO users (email, password_hash, name, apellido, address, codigo_postal, sexo, telefono)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        email,
-        passwordHash,
-        name,
-        apellido ?? '',
-        address ?? null,
-        codigoPostal ?? '',
-        sexo ?? '',
-        telefono ?? '',
-      ],
-    );
+    let newId: number;
 
-    const newId = lastInsertId();
-    persist();
+    if (isPostgresConfigured()) {
+      const result = await run(
+        `INSERT INTO users (email, password_hash, name, apellido, address, codigo_postal, sexo, telefono)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         RETURNING id`,
+        [
+          email,
+          passwordHash,
+          name,
+          apellido ?? '',
+          address ?? null,
+          codigoPostal ?? '',
+          sexo ?? '',
+          telefono ?? '',
+        ],
+      );
+      newId = (result as import('pg').QueryResult).rows[0].id as number;
+    } else {
+      await run(
+        `INSERT INTO users (email, password_hash, name, apellido, address, codigo_postal, sexo, telefono)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          email,
+          passwordHash,
+          name,
+          apellido ?? '',
+          address ?? null,
+          codigoPostal ?? '',
+          sexo ?? '',
+          telefono ?? '',
+        ],
+      );
+
+      newId = await lastInsertId();
+      await persist();
+    }
 
     // ── Fetch created user ──────────────────────
-    const created = queryOne('SELECT * FROM users WHERE id = ?', [newId]);
+    const created = await queryOne('SELECT * FROM users WHERE id = ?', [
+      newId,
+    ]);
     if (!created) {
       res.status(500).json({ error: 'Error al crear el usuario' });
       return;
@@ -128,17 +168,21 @@ router.post('/register', (req: Request, res: Response) => {
  * Response 200: { user: User, token: string }
  * Response 401: { error: "Credenciales inválidas" }
  */
-router.post('/login', (req: Request, res: Response) => {
+router.post('/login', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      res.status(400).json({ error: 'email y password son obligatorios' });
+      res
+        .status(400)
+        .json({ error: 'email y password son obligatorios' });
       return;
     }
 
     // ── Find user ───────────────────────────────
-    const row = queryOne('SELECT * FROM users WHERE email = ?', [email]) as Record<string, unknown> | undefined;
+    const row = (await queryOne('SELECT * FROM users WHERE email = ?', [
+      email,
+    ])) as Record<string, unknown> | undefined;
 
     if (!row) {
       res.status(401).json({ error: 'Credenciales inválidas' });

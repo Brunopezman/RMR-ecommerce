@@ -1,0 +1,73 @@
+name: Test
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  # ── Frontend + SQLite backend tests ──────────────────────────────
+  test-sqlite:
+    name: SQLite (frontend + backend)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - run: npm ci
+      - run: npm test -- --reporter=verbose
+        name: Frontend unit tests (Vitest)
+
+      - run: npm run test:server -- --reporter=verbose
+        name: Backend server tests (SQLite)
+
+      - run: npx playwright install --with-deps chromium
+        name: Install Playwright browsers
+
+      - run: npm run test:e2e
+        name: E2E tests (Playwright)
+        env:
+          CI: true
+
+  # ── PostgreSQL backend tests ────────────────────────────────────
+  test-postgres:
+    name: PostgreSQL (backend only)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: rockmerch_test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+        # Health check to ensure PostgreSQL is ready before running tests
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - run: npm ci
+
+      - run: npm run test:server -- --reporter=verbose
+        name: Backend server tests (PostgreSQL)
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/rockmerch_test
+          CI: true
