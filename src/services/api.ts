@@ -13,8 +13,14 @@ import type { User } from '../types/user';
 import type { AuthUser } from '../types/auth';
 import type { Order } from '../types/order';
 
-/** Base URL for all API calls */
-export const BASE_URL = 'https://rockmerch-api.onrender.com';
+/**
+ * Base URL for all API calls.
+ * - In dev: falls back to http://localhost:4000
+ * - In prod: set VITE_API_URL en Vercel dashboard → https://rockmerch-api.onrender.com
+ */
+export const BASE_URL =
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) ||
+  'http://localhost:4000';
 
 // ──────────────────────────────────────────────
 //  Products
