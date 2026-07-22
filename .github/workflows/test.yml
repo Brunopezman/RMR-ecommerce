@@ -21,6 +21,10 @@ jobs:
           cache: 'npm'
 
       - run: npm ci
+      - run: npm ci
+        working-directory: server
+        name: Install server dependencies
+
       - run: npm test -- --reporter=verbose
         name: Frontend unit tests (Vitest)
 
@@ -49,7 +53,6 @@ jobs:
           POSTGRES_PASSWORD: test
         ports:
           - 5432:5432
-        # Health check to ensure PostgreSQL is ready before running tests
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -65,6 +68,9 @@ jobs:
           cache: 'npm'
 
       - run: npm ci
+      - run: npm ci
+        working-directory: server
+        name: Install server dependencies
 
       - run: npm run test:server -- --reporter=verbose
         name: Backend server tests (PostgreSQL)
