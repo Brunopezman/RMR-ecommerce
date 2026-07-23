@@ -1,7 +1,7 @@
 /**
  * Rock Merch & Roll — Backend API Server
  *
- * Express + TypeScript + SQLite (sql.js)
+ * Express + TypeScript + PostgreSQL
  * Listens on port 4000 by default.
  *
  * Endpoints (matching the API contract):
@@ -16,7 +16,6 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { initDb } from './db.js';
-import { isPostgresConfigured } from './config/database.js';
 import productsRouter from './routes/products.js';
 import usersRouter from './routes/users.js';
 import ordersRouter from './routes/orders.js';
@@ -28,15 +27,32 @@ const app = express();
 
 // ── Middleware ──────────────────────────────────
 
-// CORS: allow the React frontend (localhost:3000) and any dev origin
+// CORS: allow the Vercel frontend + local dev origins
+const corsOrigins: (string | RegExp)[] = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:5173',
+  // Allow any *.vercel.app preview domain (for branch previews)
+  /\.vercel\.app$/,
+];
+
+// Allow Vercel production domain from env var (set RMR_APP_URL in Render dashboard)
+const rmrAppUrl = process.env.RMR_APP_URL;
+if (rmrAppUrl) {
+  corsOrigins.push(rmrAppUrl);
+}
+
 app.use(
   cors({
-    origin: [
-      'http://localhost:3000',
-      'http://localhost:5173',
-      'http://127.0.0.1:3000',
-      'http://127.0.0.1:5173',
-    ],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (server-to-server, curl, etc.)
+      if (!origin) return callback(null, true);
+      const isAllowed = corsOrigins.some((allowed) =>
+        typeof allowed === 'string' ? allowed === origin : allowed.test(origin),
+      );
+      callback(null, isAllowed);
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   }),
@@ -56,7 +72,7 @@ app.use('/api/contact', contactRouter);
 app.get('/health', (_req, res) => {
   res.json({
     status: 'ok',
-    db: isPostgresConfigured() ? 'postgresql' : 'sqlite',
+    db: 'postgresql',
     timestamp: new Date().toISOString(),
   });
 });

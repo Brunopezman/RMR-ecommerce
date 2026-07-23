@@ -3,7 +3,7 @@
  *
  * These tests verify that the PostgreSQL connection works when DATABASE_URL
  * is configured. They are SKIPPED if no DATABASE_URL environment variable
- * is set, so they never block CI on SQLite-only environments.
+ * is set, so they only run in environments with a real PostgreSQL database.
  *
  * Run with:
  *   DATABASE_URL=postgresql://test:test@localhost:5432/rockmerch_test npm run test:server

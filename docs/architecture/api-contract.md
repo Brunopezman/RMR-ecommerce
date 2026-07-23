@@ -147,15 +147,12 @@ interface OrderItem {
 
 ## Backend real (Paso B)
 
-El backend real está implementado en `server/` con Express + TypeScript y soporte dual-mode.
+El backend real está implementado en `server/` con Express + TypeScript + PostgreSQL.
 
 ### Arranque
 
 ```bash
-# Modo SQLite (desarrollo local)
-npm run server
-
-# Modo PostgreSQL (producción)
+# Desarrollo local con PostgreSQL
 export DATABASE_URL=postgresql://user:password@host:5432/db?sslmode=require
 export ADMIN_EMAIL=admin@rock.com
 npm run server
@@ -173,19 +170,17 @@ export const BASE_URL = 'http://localhost:3001';
 export const BASE_URL = 'http://localhost:4000';
 ```
 
-### Base de datos — dual-mode
+### Base de datos — PostgreSQL
 
-El backend opera en dos modos según la presencia de la variable `DATABASE_URL`:
+El backend usa PostgreSQL 16+ como único motor de base de datos. La conexión se configura mediante la variable `DATABASE_URL`:
 
-| Modo | Driver | Activación |
-|---|---|---|
-| SQLite (dev) | sql.js | Por defecto (sin `DATABASE_URL`) |
-| PostgreSQL (prod) | pg (node-postgres) | `DATABASE_URL` presente en env |
+| Driver | Activación |
+|---|---|
+| pg (node-postgres) | `DATABASE_URL` presente en env |
 
-- En modo SQLite: persistencia a disco en `server/data/rockmerch.db`
-- En modo PostgreSQL: conexión a Neon o cualquier servidor PostgreSQL 16+
+- Conexión a Neon o cualquier servidor PostgreSQL 16+
 - Migraciones versionadas con tracking en tabla `_migrations`
-- Seeding automático desde `data/db.json` al primer inicio en ambos modos
+- Seeding automático desde `data/db.json` al primer inicio
 
 ### Esquema de tablas
 
@@ -202,7 +197,7 @@ contact_messages (id, name, email, phone, area, subject, message, created_at)
 | Método | Endpoint | Descripción |
 |---|---|---|
 | `POST` | `/api/contact` | Enviar mensaje de contacto (requiere `name`, `email`, `area`, `message`) |
-| `GET` | `/health` | Health check — retorna `{ "status": "ok", "db": "sqlite" \| "postgresql" }` |
+| `GET` | `/health` | Health check — retorna `{ "status": "ok", "db": "postgresql" }` |
 
 ## Reglas de transición a Paso B
 

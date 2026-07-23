@@ -5,15 +5,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const mockQueryAll = vi.fn();
 const mockQueryOne = vi.fn();
 const mockRun = vi.fn();
-const mockLastInsertId = vi.fn();
-const mockPersist = vi.fn();
 
 vi.mock('../../src/db.js', () => ({
   queryAll: (...args: unknown[]) => mockQueryAll(...args),
   queryOne: (...args: unknown[]) => mockQueryOne(...args),
   run: (...args: unknown[]) => mockRun(...args),
-  lastInsertId: (...args: unknown[]) => mockLastInsertId(...args),
-  persist: (...args: unknown[]) => mockPersist(...args),
 }));
 
 // ─── Mock auth middleware ──────────────────────────────────────────────

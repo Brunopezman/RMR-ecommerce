@@ -5,7 +5,7 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { queryAll, queryOne, run, persist } from '../db.js';
+import { queryAll, queryOne, run } from '../db.js';
 import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 
 const router = Router();
@@ -48,7 +48,7 @@ router.get('/', async (_req: Request, res: Response) => {
  */
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    const row = (await queryOne('SELECT * FROM products WHERE id = ?', [
+    const row = (await queryOne('SELECT * FROM products WHERE id = $1', [
       req.params.id,
     ])) as {
       id: number;
@@ -101,7 +101,7 @@ router.patch(
       }
 
       // Check product exists
-      const existing = (await queryOne('SELECT * FROM products WHERE id = ?', [
+      const existing = (await queryOne('SELECT * FROM products WHERE id = $1', [
         req.params.id,
       ])) as {
         id: number;
@@ -119,14 +119,13 @@ router.patch(
       }
 
       // Update stock
-      await run('UPDATE products SET stock = ? WHERE id = ?', [
+      await run('UPDATE products SET stock = $1 WHERE id = $2', [
         stock,
         req.params.id,
       ]);
-      await persist();
 
       // Fetch and return the updated product
-      const updated = (await queryOne('SELECT * FROM products WHERE id = ?', [
+      const updated = (await queryOne('SELECT * FROM products WHERE id = $1', [
         req.params.id,
       ])) as {
         id: number;

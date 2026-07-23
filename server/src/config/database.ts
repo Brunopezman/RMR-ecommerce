@@ -56,7 +56,7 @@ export function getDbConfig(): DbConfig | null {
   }
 
   const host = process.env.PGHOST;
-  // If no PG variables at all, return null (SQLite fallback)
+  // If no PG variables at all, return null (no DB configured)
   if (!host && !process.env.PGDATABASE && !process.env.PGUSER) {
     return null;
   }

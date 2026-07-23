@@ -1,21 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// ─── Mock isPostgresConfigured → false so the contact route always takes the
-//     SQLite branch (persist + lastInsertId), regardless of DATABASE_URL env.
-vi.mock('../../src/config/database.js', () => ({
-  isPostgresConfigured: () => false,
-}));
-
 // ─── Mock db module ────────────────────────────────────────────────────
 
 const mockRun = vi.fn();
-const mockLastInsertId = vi.fn();
-const mockPersist = vi.fn();
 
 vi.mock('../../src/db.js', () => ({
   run: (...args: unknown[]) => mockRun(...args),
-  lastInsertId: (...args: unknown[]) => mockLastInsertId(...args),
-  persist: (...args: unknown[]) => mockPersist(...args),
 }));
 
 // ─── Mock contact-areas config ─────────────────────────────────────────
@@ -101,7 +91,8 @@ describe('POST /api/contact', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockLastInsertId.mockReturnValue(42);
+    // run() should return a fake QueryResult with RETURNING id
+    mockRun.mockReturnValue({ rows: [{ id: 42 }] });
   });
 
   // ── CA-1: Valid input → 201 ─────────────────────────────────────────
@@ -115,7 +106,6 @@ describe('POST /api/contact', () => {
       expect.stringContaining('INSERT INTO contact_messages'),
       ['Juan Pérez', 'juan@example.com', 'ventas', 'Quiero consultar sobre precios de remeras'],
     );
-    expect(mockPersist).toHaveBeenCalled();
     expect(mockSendContactEmail).toHaveBeenCalledWith({
       name: 'Juan Pérez',
       email: 'juan@example.com',

@@ -2,7 +2,7 @@
 
 **Fecha:** 22 de julio de 2026
 **Autor:** @refactor-architect
-**Versión del código analizado:** v1.2.0 (React + TypeScript + Vite + Tailwind + PostgreSQL)
+**Versión del código analizado:** v2.0.0 (React + TypeScript + Vite + Tailwind + PostgreSQL)
 
 ---
 
@@ -143,9 +143,8 @@ App
 |---|---|---|---|
 | `server/src/config/database.ts` | `getDbConfig()`, `isPostgresConfigured()`, `parseConnectionString()` | `process.env` | Configuración de conexión PostgreSQL desde `DATABASE_URL` o variables individuales |
 | `server/src/db/pool.ts` | `getPool()`, `query()`, `getClient()`, `closePool()` | `pg` (Pool), `database.ts` | Singleton pool de PostgreSQL con helpers query/getClient |
-| `server/src/db/compat.ts` | `isPostgres()`, `convertPlaceholders()`, `getLastInsertId()`, `nowExpression()` | `database.ts` | Capa de compatibilidad: abstrae diferencias SQL `?` vs `$N`, timestamps, last insert ID |
-| `server/src/db/seed.ts` | `seedProducts()`, `seedAdminUser()` | `fs`, `bcryptjs`, `../db.js` | Seeding dual-mode desde `data/db.json` (idempotente) |
-| `server/src/db/migrate.ts` | `runMigrations()` | `migrations-runner`, migrations `001`, `002` | Entry point de migraciones PostgreSQL (lazy import, solo en modo PG) |
+| `server/src/db/seed.ts` | `seedProducts()`, `seedAdminUser()` | `fs`, `bcryptjs`, `../db.js` | Seeding idempotente desde `data/db.json` (PostgreSQL) |
+| `server/src/db/migrate.ts` | `runMigrations()` | `migrations-runner`, migrations `001`, `002` | Entry point de migraciones PostgreSQL |
 | `server/src/db/migrations-runner.ts` | `runMigrations(migrations)` | `pool.ts`, `_migrations` table | Runner genérico: ejecuta pendientes, registra en `_migrations` |
 | `server/src/db/migrations/001-initial-schema.ts` | `name`, `up()` | — | Crea tablas: products, users, orders, order_items, contact_messages |
 | `server/src/db/migrations/002-add-user-fields.ts` | `name`, `up()` | — | Agrega columnas: apellido, codigo_postal, sexo, telefono, password_hash, role |
@@ -162,25 +161,24 @@ App
 | `server/src/middleware/auth.ts` | `authenticateToken`, `requireAdmin` | `jsonwebtoken` |
 | `server/src/services/emailService.ts` | `sendContactConfirmation()`, `sendOrderConfirmation()` | `nodemailer`, `jsPDF` |
 
-## Base de datos — dual-mode
+## Base de datos — PostgreSQL (único backend)
 
-| Modo | Driver | Activación | Archivo de entrada |
-|---|---|---|---|
-| SQLite (dev) | sql.js | Por defecto (`DATABASE_URL` no seteada) | `server/src/db.ts` |
-| PostgreSQL (prod) | pg (node-postgres) | `DATABASE_URL` presente en env | `server/src/db.ts` → `pool.ts` |
+| Driver | Activación | Archivo de entrada |
+|---|---|---|
+| pg (node-postgres) | `DATABASE_URL` presente en env o configurado via Neon | `server/src/db.ts` → `pool.ts` |
 
 **Flujo de inicialización:**
-1. `db.ts` evalúa `isPostgresConfigured()` desde `database.ts`
-2. En modo PG: importa dinámicamente `pool.ts` + `migrate.ts` → corre migraciones → seeding
-3. En modo SQLite: inicializa sql.js desde archivo local → corre schema DDL → seeding
+1. `db.ts` obtiene conexión desde `pool.ts` (PostgreSQL vía `pg`)
+2. Corre migraciones versionadas desde `server/src/db/migrations/`
+3. Ejecuta seeding automático desde `data/db.json` al primer inicio
 
 ## Estado de arquitectura (post-migración PostgreSQL)
 
 Todos los issues de la Auditoría Fase 1 (2026-07-16) han sido corregidos. Ver `docs/reports/auditor/auditoria-fase2-2026-07-22.md` para detalle.
 
-Resumen de mejoras arquitectónicas en v1.2.0:
-- **Dual-mode DB**: SQLite en dev, PostgreSQL en prod, detección automática por `DATABASE_URL`
+Resumen de mejoras arquitectónicas en v2.0.0:
+- **PostgreSQL como único backend**: migración completa desde dual-mode (SQLite + PostgreSQL)
 - **Migraciones versionadas**: esquemas trackeados en tabla `_migrations`
-- **Capa de compatibilidad**: abstracción sobre placeholders, timestamps, last insert ID
-- **Seeding idempotente**: mismo `data/db.json` funciona en ambos motores
-- **Tests de compatibilidad cross-mode**: 14 tests que verifican mismo shape en SQLite y PostgreSQL
+- **Seeding idempotente**: desde `data/db.json` con `INSERT ... ON CONFLICT`
+- **Queries nativas PostgreSQL**: placeholders `$N`, `INSERT ... RETURNING id`
+- **Compat eliminada**: `compat.ts` ya no existe, todas las queries usan sintaxis PostgreSQL pura

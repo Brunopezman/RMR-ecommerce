@@ -5,13 +5,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const mockQueryAll = vi.fn();
 const mockQueryOne = vi.fn();
 const mockRun = vi.fn();
-const mockPersist = vi.fn();
 
 vi.mock('../../src/db.js', () => ({
   queryAll: (...args: unknown[]) => mockQueryAll(...args),
   queryOne: (...args: unknown[]) => mockQueryOne(...args),
   run: (...args: unknown[]) => mockRun(...args),
-  persist: (...args: unknown[]) => mockPersist(...args),
 }));
 
 // ─── Mock auth middleware ──────────────────────────────────────────────
@@ -106,10 +104,9 @@ describe('PATCH /products/:id/stock', () => {
     expect(status).toBe(200);
     expect(data).toMatchObject({ id: 1, stock: 10 });
     expect(mockRun).toHaveBeenCalledWith(
-      'UPDATE products SET stock = ? WHERE id = ?',
+      'UPDATE products SET stock = $1 WHERE id = $2',
       [10, '1'],
     );
-    expect(mockPersist).toHaveBeenCalled();
   });
 
   // ── CA-2: Non-admin user gets 403 ──────────────────────────────────
@@ -207,9 +204,8 @@ describe('PATCH /products/:id/stock', () => {
 
     expect(status).toBe(200);
     expect(mockRun).toHaveBeenCalledWith(
-      'UPDATE products SET stock = ? WHERE id = ?',
+      'UPDATE products SET stock = $1 WHERE id = $2',
       [42, '5'],
     );
-    expect(mockPersist).toHaveBeenCalled();
   });
 });

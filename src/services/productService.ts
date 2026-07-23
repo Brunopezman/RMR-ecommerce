@@ -1,9 +1,10 @@
 import type { Product } from '../types/product';
+import { BASE_URL } from './api';
 
 /**
- * Base URL for the products API.
+ * Base URL for the products API (derived from api.ts BASE_URL).
  */
-export const PRODUCTS_API_URL = 'http://localhost:4000/products';
+export const PRODUCTS_API_URL = `${BASE_URL}/products`;
 
 /**
  * Fetch products from a URL (defaults to PRODUCTS_API_URL).

@@ -7,17 +7,16 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { queryAll, queryOne, run, lastInsertId, persist } from '../db.js';
-import { isPostgresConfigured } from '../config/database.js';
+import { queryAll, queryOne, run } from '../db.js';
 import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 
 /**
- * Convert SQLite datetime string to ISO 8601 format.
+ * Convert datetime to ISO 8601 format.
  */
-function toIsoDate(sqliteDate: string | Date): string {
-  if (sqliteDate instanceof Date) return sqliteDate.toISOString();
-  if (sqliteDate.includes('T')) return sqliteDate;
-  return sqliteDate.replace(' ', 'T') + '.000Z';
+function toIsoDate(date: string | Date): string {
+  if (date instanceof Date) return date.toISOString();
+  if (date.includes('T')) return date;
+  return date.replace(' ', 'T') + '.000Z';
 }
 
 /**
@@ -55,7 +54,7 @@ router.post('/', async (req: Request, res: Response) => {
     }
 
     // Check if user already exists
-    const existing = (await queryOne('SELECT * FROM users WHERE email = ?', [
+    const existing = (await queryOne('SELECT * FROM users WHERE email = $1', [
       email,
     ])) as Record<string, unknown> | undefined;
 
@@ -65,26 +64,13 @@ router.post('/', async (req: Request, res: Response) => {
       return;
     }
 
-    let newId: number;
+    const result = await run(
+      'INSERT INTO users (email, name, address) VALUES ($1, $2, $3) RETURNING id',
+      [email, name, address ?? null],
+    );
+    const newId = result.rows[0].id as number;
 
-    if (isPostgresConfigured()) {
-      const result = await run(
-        'INSERT INTO users (email, name, address) VALUES ($1, $2, $3) RETURNING id',
-        [email, name, address ?? null],
-      );
-      newId = (result as import('pg').QueryResult).rows[0].id as number;
-    } else {
-      await run('INSERT INTO users (email, name, address) VALUES (?, ?, ?)', [
-        email,
-        name,
-        address ?? null,
-      ]);
-
-      newId = await lastInsertId();
-      await persist();
-    }
-
-    const created = await queryOne('SELECT * FROM users WHERE id = ?', [newId]);
+    const created = await queryOne('SELECT * FROM users WHERE id = $1', [newId]);
     res
       .status(201)
       .json(
@@ -141,7 +127,7 @@ router.get(
         return;
       }
 
-      const row = (await queryOne('SELECT * FROM users WHERE id = ?', [
+      const row = (await queryOne('SELECT * FROM users WHERE id = $1', [
         targetId,
       ])) as Record<string, unknown> | undefined;
 
@@ -178,7 +164,7 @@ router.patch(
       }
 
       // Check user exists
-      const existing = await queryOne('SELECT id FROM users WHERE id = ?', [
+      const existing = await queryOne('SELECT id FROM users WHERE id = $1', [
         targetId,
       ]);
       if (!existing) {
@@ -197,6 +183,7 @@ router.patch(
       ] as const;
       const updates: string[] = [];
       const params: unknown[] = [];
+      let paramIndex = 1;
 
       for (const field of allowedFields) {
         // Map camelCase body fields to snake_case columns
@@ -204,7 +191,7 @@ router.patch(
         const value = req.body[bodyKey];
 
         if (value !== undefined) {
-          updates.push(`${field} = ?`);
+          updates.push(`${field} = $${paramIndex++}`);
           params.push(value);
         }
       }
@@ -218,13 +205,12 @@ router.patch(
 
       params.push(targetId);
       await run(
-        `UPDATE users SET ${updates.join(', ')} WHERE id = ?`,
+        `UPDATE users SET ${updates.join(', ')} WHERE id = $${paramIndex}`,
         params,
       );
-      await persist();
 
       // Return updated user
-      const updated = (await queryOne('SELECT * FROM users WHERE id = ?', [
+      const updated = (await queryOne('SELECT * FROM users WHERE id = $1', [
         targetId,
       ])) as Record<string, unknown> | undefined;
       res.json(updated ? shapeUser(updated) : { id: targetId });
