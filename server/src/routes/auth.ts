@@ -8,8 +8,7 @@
 import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { queryOne, run, lastInsertId, persist } from '../db.js';
-import { isPostgresConfigured } from '../config/database.js';
+import { queryOne, run } from '../db.js';
 import { sendWelcomeEmail } from '../services/emailService.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'rmr-dev-secret';
@@ -17,12 +16,12 @@ const JWT_SECRET = process.env.JWT_SECRET || 'rmr-dev-secret';
 const router = Router();
 
 /**
- * Convert SQLite datetime string to ISO 8601 format.
+ * Convert datetime to ISO 8601 format.
  */
-function toIsoDate(sqliteDate: string | Date): string {
-  if (sqliteDate instanceof Date) return sqliteDate.toISOString();
-  if (sqliteDate.includes('T')) return sqliteDate;
-  return sqliteDate.replace(' ', 'T') + '.000Z';
+function toIsoDate(date: string | Date): string {
+  if (date instanceof Date) return date.toISOString();
+  if (date.includes('T')) return date;
+  return date.replace(' ', 'T') + '.000Z';
 }
 
 /**
@@ -86,7 +85,7 @@ router.post('/register', async (req: Request, res: Response) => {
     }
 
     // ── Check duplicate ─────────────────────────
-    const existing = await queryOne('SELECT id FROM users WHERE email = ?', [
+    const existing = await queryOne('SELECT id FROM users WHERE email = $1', [
       email,
     ]);
     if (existing) {
@@ -98,47 +97,25 @@ router.post('/register', async (req: Request, res: Response) => {
     const passwordHash = bcrypt.hashSync(password, 10);
 
     // ── Insert user ─────────────────────────────
-    let newId: number;
-
-    if (isPostgresConfigured()) {
-      const result = await run(
-        `INSERT INTO users (email, password_hash, name, apellido, address, codigo_postal, sexo, telefono)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-         RETURNING id`,
-        [
-          email,
-          passwordHash,
-          name,
-          apellido ?? '',
-          address ?? null,
-          codigoPostal ?? '',
-          sexo ?? '',
-          telefono ?? '',
-        ],
-      );
-      newId = (result as import('pg').QueryResult).rows[0].id as number;
-    } else {
-      await run(
-        `INSERT INTO users (email, password_hash, name, apellido, address, codigo_postal, sexo, telefono)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          email,
-          passwordHash,
-          name,
-          apellido ?? '',
-          address ?? null,
-          codigoPostal ?? '',
-          sexo ?? '',
-          telefono ?? '',
-        ],
-      );
-
-      newId = await lastInsertId();
-      await persist();
-    }
+    const result = await run(
+      `INSERT INTO users (email, password_hash, name, apellido, address, codigo_postal, sexo, telefono)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING id`,
+      [
+        email,
+        passwordHash,
+        name,
+        apellido ?? '',
+        address ?? null,
+        codigoPostal ?? '',
+        sexo ?? '',
+        telefono ?? '',
+      ],
+    );
+    const newId = result.rows[0].id as number;
 
     // ── Fetch created user ──────────────────────
-    const created = await queryOne('SELECT * FROM users WHERE id = ?', [
+    const created = await queryOne('SELECT * FROM users WHERE id = $1', [
       newId,
     ]);
     if (!created) {
@@ -180,7 +157,7 @@ router.post('/login', async (req: Request, res: Response) => {
     }
 
     // ── Find user ───────────────────────────────
-    const row = (await queryOne('SELECT * FROM users WHERE email = ?', [
+    const row = (await queryOne('SELECT * FROM users WHERE email = $1', [
       email,
     ])) as Record<string, unknown> | undefined;
 

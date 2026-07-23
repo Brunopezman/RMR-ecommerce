@@ -4,7 +4,7 @@ Este archivo contiene las directrices globales de desarrollo para todo agente o 
 
 ## Qué es este repo
 
-E-commerce de merchandising de rock. **Stack actual:** React 18+, TypeScript (`strict: true`), Vite, Tailwind CSS. El frontend carga datos desde `data/db.json` (mock API) o se conecta al backend real en `server/` (Express + SQLite).
+E-commerce de merchandising de rock. **Stack actual:** React 18+, TypeScript (`strict: true`), Vite, Tailwind CSS. El frontend carga datos desde `data/db.json` (mock API) o se conecta al backend real en `server/` (Express + PostgreSQL).
 
 ## Convenciones de código y Estándares
 
@@ -53,4 +53,3 @@ La documentación técnica detallada se mantiene centralizada y debe usarse como
 - `ux-writing` — Microcopy, CTAs, tono de voz consistente en la interfaz.
 - `express-typescript` — Arquitectura, patrones y mejores prácticas para APIs RESTful con Express y TypeScript.
 - `jwt-security` — Auditoría e implementación segura de autenticación y autorización basada en JWT (JSON Web Tokens).
-- `sqlite-database-expert` — Diseño de esquemas, optimización de consultas, migraciones y gestión de bases de datos SQLite.

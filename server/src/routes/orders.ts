@@ -5,20 +5,17 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { queryAll, queryOne, run, lastInsertId, persist } from '../db.js';
-import { isPostgresConfigured } from '../config/database.js';
+import { queryAll, queryOne, run } from '../db.js';
 import { sendOrderConfirmationEmail } from '../services/emailService.js';
 import { generateOrderPDF } from '../services/pdfService.js';
 
 /**
- * Convert SQLite datetime string to ISO 8601 format.
- * SQLite's datetime('now') returns "2026-07-13 22:10:05"
- * We need "2026-07-13T22:10:05.000Z"
+ * Convert datetime to ISO 8601 format.
  */
-function toIsoDate(sqliteDate: string | Date): string {
-  if (sqliteDate instanceof Date) return sqliteDate.toISOString();
-  if (sqliteDate.includes('T')) return sqliteDate;
-  return sqliteDate.replace(' ', 'T') + '.000Z';
+function toIsoDate(date: string | Date): string {
+  if (date instanceof Date) return date.toISOString();
+  if (date.includes('T')) return date;
+  return date.replace(' ', 'T') + '.000Z';
 }
 
 const router = Router();
@@ -37,7 +34,7 @@ router.get('/', async (req: Request, res: Response) => {
     }
 
     const orderRows = (await queryAll(
-      'SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC',
+      'SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC',
       [userId],
     )) as Array<{
       id: number;
@@ -51,7 +48,7 @@ router.get('/', async (req: Request, res: Response) => {
     const orders = await Promise.all(
       orderRows.map(async (order) => {
         const items = (await queryAll(
-          'SELECT * FROM order_items WHERE order_id = ?',
+          'SELECT * FROM order_items WHERE order_id = $1',
           [order.id],
         )) as Array<{
           product_id: number;
@@ -104,7 +101,7 @@ router.post('/', async (req: Request, res: Response) => {
     }
 
     // Verify user exists
-    const user = await queryOne('SELECT id FROM users WHERE id = ?', [userId]);
+    const user = await queryOne('SELECT id FROM users WHERE id = $1', [userId]);
     if (!user) {
       res.status(404).json({ error: 'User not found' });
       return;
@@ -113,7 +110,7 @@ router.post('/', async (req: Request, res: Response) => {
     // Validate stock for each item
     for (const item of items) {
       const product = (await queryOne(
-        'SELECT stock FROM products WHERE id = ?',
+        'SELECT stock FROM products WHERE id = $1',
         [item.productId],
       )) as { stock: number } | undefined;
 
@@ -133,41 +130,26 @@ router.post('/', async (req: Request, res: Response) => {
     }
 
     // Create order
-    let orderId: number;
-
-    if (isPostgresConfigured()) {
-      const result = await run(
-        'INSERT INTO orders (user_id, total, shipping_address) VALUES ($1, $2, $3) RETURNING id',
-        [userId, total, shippingAddress ?? null],
-      );
-      orderId = (result as import('pg').QueryResult).rows[0].id as number;
-    } else {
-      await run(
-        'INSERT INTO orders (user_id, total, shipping_address) VALUES (?, ?, ?)',
-        [userId, total, shippingAddress ?? null],
-      );
-
-      orderId = await lastInsertId();
-    }
+    const result = await run(
+      'INSERT INTO orders (user_id, total, shipping_address) VALUES ($1, $2, $3) RETURNING id',
+      [userId, total, shippingAddress ?? null],
+    );
+    const orderId = result.rows[0].id as number;
 
     // Insert order items and deduct stock
     for (const item of items) {
       await run(
-        'INSERT INTO order_items (order_id, product_id, nombre, precio, cantidad) VALUES (?, ?, ?, ?, ?)',
+        'INSERT INTO order_items (order_id, product_id, nombre, precio, cantidad) VALUES ($1, $2, $3, $4, $5)',
         [orderId, item.productId, item.nombre, item.precio, item.cantidad],
       );
       await run(
-        'UPDATE products SET stock = stock - ? WHERE id = ?',
+        'UPDATE products SET stock = stock - $1 WHERE id = $2',
         [item.cantidad, item.productId],
       );
     }
 
-    if (!isPostgresConfigured()) {
-      await persist();
-    }
-
     // Fetch the created order with items
-    const orderRow = (await queryOne('SELECT * FROM orders WHERE id = ?', [
+    const orderRow = (await queryOne('SELECT * FROM orders WHERE id = $1', [
       orderId,
     ])) as {
       id: number;
@@ -179,7 +161,7 @@ router.post('/', async (req: Request, res: Response) => {
     };
 
     const itemRows = (await queryAll(
-      'SELECT * FROM order_items WHERE order_id = ?',
+      'SELECT * FROM order_items WHERE order_id = $1',
       [orderId],
     )) as Array<{
       product_id: number;
@@ -212,7 +194,7 @@ router.post('/', async (req: Request, res: Response) => {
 
     // Fire order confirmation email with PDF (non-blocking)
     const orderUser = (await queryOne(
-      'SELECT name, email FROM users WHERE id = ?',
+      'SELECT name, email FROM users WHERE id = $1',
       [userId],
     )) as { name: string; email: string } | undefined;
     if (orderUser) {

@@ -8,12 +8,11 @@
 [![Playwright](https://img.shields.io/badge/Playwright-1-45BA4B?style=flat-square&logo=playwright&logoColor=white)](https://playwright.dev)
 [![Express](https://img.shields.io/badge/Express-4-000000?style=flat-square&logo=express&logoColor=white)](https://expressjs.com)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat-square&logo=postgresql&logoColor=white)](https://postgresql.org)
-[![SQLite](https://img.shields.io/badge/SQLite-3-003B57?style=flat-square&logo=sqlite&logoColor=white)](https://sqlite.org)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 [![Built with opencode](https://img.shields.io/badge/Built_with-opencode_agents-8A2BE2?style=flat-square&logo=sparkles&logoColor=white)](./AGENTS.md)
 [![Tests](https://img.shields.io/badge/Tests-364_passing-4CAF50?style=flat-square&logo=vitest&logoColor=white)](./docs/reports/qa/)
 
-E-commerce de merchandising de bandas de rock con frontend React, backend Express y base de datos dual (SQLite dev / PostgreSQL prod).
+E-commerce de merchandising de bandas de rock con frontend React, backend Express y base de datos PostgreSQL.
 
 [Stack](#stack) • [Scripts](#scripts) • [Estructura](#estructura-del-proyecto) • [Arquitectura](#arquitectura) • [API](#api) • [Testing](#testing) • [Desarrollo](#desarrollo)
 
@@ -24,10 +23,10 @@ E-commerce de merchandising de bandas de rock con frontend React, backend Expres
 | Capa | Tecnología |
 |---|---|
 | Frontend | React 18, TypeScript (`strict: true`), Vite 5, Tailwind CSS 3 |
-| Backend | Express 4, TypeScript, SQLite (sql.js) + PostgreSQL 16 (Neon) |
+| Backend | Express 4, TypeScript, PostgreSQL 16 |
 | Testing | Vitest (unitario), Playwright (E2E) |
 | Mock API | json-server (`data/db.json`) |
-| DB Production | PostgreSQL 16 via Neon (serverless, free tier sin expiración) |
+| DB | PostgreSQL 16 via Neon (serverless, free tier sin expiración) |
 
 ## Scripts
 
@@ -59,10 +58,10 @@ E-commerce de merchandising de bandas de rock con frontend React, backend Expres
 │   ├── types/                    # Interfaces y tipos TypeScript compartidos
 │   ├── __tests__/                # Tests unitarios (Vitest)
 │   └── test/                     # Utilidades y helpers de testing
-├── server/                       # Backend Express + SQLite/PostgreSQL
+├── server/                       # Backend Express + PostgreSQL
 │   └── src/
 │       ├── config/               # Configuración (database.ts, contact-areas)
-│       ├── db/                   # Base de datos (pool, compat, seed, migrations)
+│       ├── db/                   # Base de datos (pool, seed, migrations)
 │       ├── routes/               # Rutas: products, users, orders, auth
 │       └── types.ts              # Tipos del backend
 ├── data/                         # Datos semilla (db.json) para json-server
@@ -81,8 +80,8 @@ coordinados bajo un conjunto de directrices y skills especializados por dominio
   proceso de tareas, reglas de commits y seguridad que todo agente sigue antes 
   de intervenir en el repo.
 - **Skills especializados**: cada agente puede apoyarse en skills específicos 
-  (`coding-standards`, `testing-workflow`, `ui-ux-review`, `accessibility`, 
-  `jwt-security`, `sqlite-database-expert`, entre otros) según el dominio de 
+   (`coding-standards`, `testing-workflow`, `ui-ux-review`, `accessibility`, 
+   `jwt-security`, `express-typescript`, entre otros) según el dominio de 
   la tarea.
 - **Trazabilidad**: cada fase de desarrollo queda documentada en `docs/architecture/`, 
   `docs/reports/auditor/` (deuda técnica) y `docs/reports/qa/` (cobertura de tests), 
@@ -108,20 +107,13 @@ La aplicación es una SPA construida con React 18 que se organiza en torno a con
 
 ### Backend
 
-El backend está en `server/` con Express + TypeScript y soporte dual-mode para base de datos.
+El backend está en `server/` con Express + TypeScript y base de datos PostgreSQL como único motor.
 
-**Modos de operación:**
-
-| Modo | Base de datos | Activación | Uso |
-|---|---|---|---|
-| SQLite | sql.js (archivo local) | Por defecto (sin `DATABASE_URL`) | Desarrollo local |
-| PostgreSQL | PostgreSQL 16 via Neon | Setear `DATABASE_URL` | Producción (Render + Neon) |
-
-- **Dual-mode**: El backend detecta automáticamente el modo. Si `DATABASE_URL` está configurada, usa PostgreSQL; si no, usa SQLite.
+- **PostgreSQL 16**: conexión via `DATABASE_URL` (Neon o cualquier servidor PostgreSQL 16+)
 - **Migraciones versionadas**: `server/src/db/migrations/` con tabla `_migrations` de tracking.
-- **Capa de compatibilidad** (`server/src/db/compat.ts`): abstrae diferencias entre SQLite y PostgreSQL (placeholders, timestamps, last insert ID).
+- **Queries nativas**: sintaxis PostgreSQL pura (`$1`, `$2`, `INSERT ... RETURNING id`)
 - Tablas: `products`, `users`, `orders`, `order_items`, `contact_messages`
-- Seeding automático desde `data/db.json` en ambos modos.
+- Seeding automático desde `data/db.json` al primer inicio.
 - Contrato de API idéntico al mock json-server.
 
 ## API
@@ -186,7 +178,7 @@ npm run test:watch    # Modo watch
 | **Backend — Servicios** | `emailService.test.ts` | plantillas email, PDF, envío |
 | **Backend — Rutas** | `products.test.ts`, `users.test.ts`, `contact.test.ts` | endpoints REST, validaciones |
 | **Backend — Auth** | `auth.test.ts` | middleware JWT, roles |
-| **Backend — DB** | `dual-backend.test.ts`, `postgres-connection.test.ts` | compatibilidad SQLite/PG, conexión PostgreSQL |
+| **Backend — DB** | `postgres-backend.test.ts`, `postgres-connection.test.ts` | conexión PostgreSQL, queries |
 
 ### End-to-End (Playwright)
 
@@ -224,7 +216,7 @@ npm install
 ### Inicio rápido
 
 ```bash
-# Terminal 1 — Backend real (crea la DB automáticamente)
+# Terminal 1 — Backend real (requiere DATABASE_URL configurada o Neon)
 npm run server
 
 # Terminal 2 — Frontend

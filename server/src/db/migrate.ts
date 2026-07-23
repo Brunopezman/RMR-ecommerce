@@ -2,8 +2,7 @@
  * PostgreSQL migrations entry point.
  *
  * Imports individual migration modules and runs them via the shared
- * migrations-runner. This module is lazy-imported by db.ts only in
- * PostgreSQL mode, so the pg dependency is never loaded for SQLite.
+ * migrations-runner.
  */
 
 import { runMigrations as runViaRunner } from './migrations-runner.js';

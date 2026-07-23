@@ -1,12 +1,12 @@
 /**
  * PostgreSQL connection pool (pg).
  *
- * Singleton pool initialized only when DATABASE_URL or PG variables are set.
+ * Singleton pool initialized when DATABASE_URL or PG variables are set.
  * Exports `query()` and `getClient()` helpers.
  */
 
 import pg from 'pg';
-import { getDbConfig, isPostgresConfigured } from '../config/database.js';
+import { getDbConfig } from '../config/database.js';
 
 const { Pool } = pg;
 
@@ -19,13 +19,12 @@ let pool: pg.Pool | null = null;
 export function getPool(): pg.Pool {
   if (pool) return pool;
 
-  if (!isPostgresConfigured()) {
+  const config = getDbConfig();
+  if (!config) {
     throw new Error(
       'PostgreSQL not configured. Set DATABASE_URL or PG* environment variables.',
     );
   }
-
-  const config = getDbConfig()!;
 
   pool = new Pool({
     host: config.host,

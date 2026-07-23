@@ -1,12 +1,8 @@
 /**
- * Database seeding module.
+ * Database seeding module (PostgreSQL).
  *
- * Provides idempotent seeding functions for both SQLite and PostgreSQL
- * backends. Uses the `run()` and `queryAll()` exports from `../db.js`,
- * which handle placeholder conversion and backend dispatch.
- *
- * Placeholders: uses `$1`, `$2`, … (PostgreSQL style) — these work
- * natively in pg; in SQLite mode sql.js maps them positionally too.
+ * Provides idempotent seeding functions for PostgreSQL backend.
+ * Uses the `run()` and `queryAll()` exports from `../db.js`.
  */
 
 import { readFileSync } from 'fs';
@@ -14,7 +10,6 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import bcrypt from 'bcryptjs';
 import { run, queryAll } from '../db.js';
-import { isPostgresConfigured } from '../config/database.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -54,18 +49,15 @@ export async function seedProducts(): Promise<void> {
 
   for (const p of products) {
     await run(
-      'INSERT INTO products (id, nombre, tipo, img, descripcion, precio, stock) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING',
+      'INSERT INTO products (id, nombre, tipo, img, descripcion, precio, stock) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT DO NOTHING',
       [p.id, p.nombre, p.tipo ?? null, p.img, p.descripcion ?? null, p.precio, p.stock ?? 0],
     );
   }
 
   console.log(`[seed] Inserted ${products.length} products from data/db.json`);
 
-  // After seeding with explicit IDs, sync the PostgreSQL sequence so that
-  // subsequent INSERTs without an explicit id don't clash with seeded rows.
-  if (isPostgresConfigured()) {
-    await run("SELECT setval('products_id_seq', (SELECT MAX(id) FROM products))");
-  }
+  // Sync the PostgreSQL sequence so subsequent inserts don't clash
+  await run("SELECT setval('products_id_seq', (SELECT MAX(id) FROM products))");
 }
 
 // ── Admin user seeding ─────────────────────────────────

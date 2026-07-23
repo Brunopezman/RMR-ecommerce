@@ -1,7 +1,7 @@
 /**
  * Rock Merch & Roll — Backend API Server
  *
- * Express + TypeScript + SQLite (sql.js)
+ * Express + TypeScript + PostgreSQL
  * Listens on port 4000 by default.
  *
  * Endpoints (matching the API contract):
@@ -16,7 +16,6 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { initDb } from './db.js';
-import { isPostgresConfigured } from './config/database.js';
 import productsRouter from './routes/products.js';
 import usersRouter from './routes/users.js';
 import ordersRouter from './routes/orders.js';
@@ -73,7 +72,7 @@ app.use('/api/contact', contactRouter);
 app.get('/health', (_req, res) => {
   res.json({
     status: 'ok',
-    db: isPostgresConfigured() ? 'postgresql' : 'sqlite',
+    db: 'postgresql',
     timestamp: new Date().toISOString(),
   });
 });

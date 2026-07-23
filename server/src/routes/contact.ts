@@ -8,8 +8,7 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { run, lastInsertId, persist } from '../db.js';
-import { isPostgresConfigured } from '../config/database.js';
+import { run } from '../db.js';
 import { getArea, getAllAreas } from '../config/contact-areas.js';
 import { sendContactEmail } from '../services/emailService.js';
 
@@ -63,26 +62,13 @@ router.post('/', async (req: Request, res: Response) => {
 
     // ── Insert into DB ──────────────────────────
 
-    let newId: number;
-
-    if (isPostgresConfigured()) {
-      const result = await run(
-        `INSERT INTO contact_messages (name, email, area, message)
-         VALUES ($1, $2, $3, $4)
-         RETURNING id`,
-        [name.trim(), email.trim(), area, message.trim()],
-      );
-      newId = (result as import('pg').QueryResult).rows[0].id as number;
-    } else {
-      await run(
-        `INSERT INTO contact_messages (name, email, area, message)
-         VALUES (?, ?, ?, ?)`,
-        [name.trim(), email.trim(), area, message.trim()],
-      );
-
-      newId = await lastInsertId();
-      await persist();
-    }
+    const result = await run(
+      `INSERT INTO contact_messages (name, email, area, message)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id`,
+      [name.trim(), email.trim(), area, message.trim()],
+    );
+    const newId = result.rows[0].id as number;
 
     // ── Send email (fire-and-forget) ────────────
 
