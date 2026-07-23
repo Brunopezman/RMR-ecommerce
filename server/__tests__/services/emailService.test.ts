@@ -27,7 +27,6 @@ import { sendEmail } from '../../src/services/emailService.js';
 import {
   welcomeTemplate,
   orderConfirmationTemplate,
-  contactTemplate,
 } from '../../src/services/emailTemplates.js';
 
 // ─── Test data ──────────────────────────────────────────────────────────
@@ -46,13 +45,6 @@ const sampleOrder = {
 };
 
 const sampleUser = { name: 'Juan Pérez', email: 'juan@example.com' };
-
-const sampleContact = {
-  name: 'María García',
-  email: 'maria@example.com',
-  area: 'Ventas',
-  message: 'Hola, quería consultar por el precio de las remeras de AC/DC en talle XL.',
-};
 
 // ─── Tests ──────────────────────────────────────────────────────────────
 
@@ -132,18 +124,6 @@ describe('emailService', () => {
     });
   });
 
-  describe('sendContactEmail', () => {
-    it('envía email mock sin errores', async () => {
-      const { sendContactEmail } = await import('../../src/services/emailService.js');
-      await sendContactEmail(sampleContact);
-
-      const mockCalls = consoleLogSpy.mock.calls;
-      const mockTagCall = mockCalls.find(
-        ([msg]: string[]) => typeof msg === 'string' && msg.includes('[EMAIL_MOCK]'),
-      );
-      expect(mockTagCall).toBeDefined();
-    });
-  });
 });
 
 describe('emailTemplates', () => {
@@ -199,33 +179,4 @@ describe('emailTemplates', () => {
     });
   });
 
-  describe('contactTemplate', () => {
-    it('incluye el área del mensaje', () => {
-      const html = contactTemplate(sampleContact);
-      expect(html).toContain('Ventas');
-    });
-
-    it('incluye el contenido del mensaje', () => {
-      const html = contactTemplate(sampleContact);
-      expect(html).toContain('remeras de AC/DC');
-    });
-
-    it('incluye los datos del remitente', () => {
-      const html = contactTemplate(sampleContact);
-      expect(html).toContain('María García');
-      expect(html).toContain('maria@example.com');
-    });
-
-    it('escapa HTML en los valores para prevenir inyección', () => {
-      const malicious = {
-        name: '<script>alert("xss")</script>',
-        email: 'hacker@example.com',
-        area: 'Seguridad',
-        message: 'Mensaje con <b>HTML</b>',
-      };
-      const html = contactTemplate(malicious);
-      expect(html).toContain('&lt;script&gt;');
-      expect(html).not.toContain('<script>');
-    });
-  });
 });

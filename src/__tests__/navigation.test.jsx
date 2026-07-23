@@ -111,11 +111,9 @@ describe('App — renderizado inicial (home)', () => {
     // Los botones de navegación son los únicos <button> con estos textos
     const inicioBtn = await screen.findByText('Inicio', { selector: 'button' });
     const productosBtn = await screen.findByText('Productos', { selector: 'button' });
-    const contactoBtn = await screen.findByText('Contacto', { selector: 'button' });
 
     expect(inicioBtn).toBeInTheDocument();
     expect(productosBtn).toBeInTheDocument();
-    expect(contactoBtn).toBeInTheDocument();
   });
 
   it('NO muestra la sección de productos en home', () => {
@@ -147,42 +145,6 @@ describe('App — renderizado inicial (home)', () => {
     // Al menos una pregunta del FAQ debe ser visible
     expect(screen.getByText('¿Cuánto tarda el envío?')).toBeInTheDocument();
     expect(screen.getByText('Todo lo que necesitás saber antes de comprar')).toBeInTheDocument();
-  });
-});
-
-// ──────────────────────────────────────────────────────────────────────
-//  Navegación: Contacto desde navbar
-// ──────────────────────────────────────────────────────────────────────
-describe('Navegación — contacto', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it('navega a /contact al hacer clic en "Contacto" del navbar', async () => {
-    const user = userEvent.setup();
-    render(<App />);
-
-    // Click en "Contacto" del navbar
-    const contactoBtn = await screen.findByText('Contacto', { selector: 'button' });
-    await user.click(contactoBtn);
-
-    // La página de contacto debería renderizarse con el título "Contacto"
-    await waitFor(() => {
-      expect(
-        screen.getByRole('heading', { name: 'Contacto' }),
-      ).toBeInTheDocument();
-    });
-
-    // Hero debería estar oculto (ya no estamos en home)
-    expect(screen.queryByText('Contenido para fanáticos')).not.toBeInTheDocument();
-  });
-
-  it('el botón "Contacto" está presente en la navbar', async () => {
-    render(<App />);
-
-    const contactoBtn = await screen.findByText('Contacto', { selector: 'button' });
-    expect(contactoBtn).toBeInTheDocument();
-    expect(contactoBtn.tagName).toBe('BUTTON');
   });
 });
 

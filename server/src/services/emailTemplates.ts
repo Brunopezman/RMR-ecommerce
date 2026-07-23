@@ -128,36 +128,6 @@ export function orderConfirmationTemplate(order: Order, user: { name: string }):
   return emailLayout(body);
 }
 
-/**
- * Staff notification email when a contact form is submitted.
- */
-export function contactTemplate(input: { name: string; email: string; area: string; message: string }): string {
-  const body = `
-    <h2 style="color:#1a1a2e;margin-top:0;">Nuevo mensaje de contacto desde RMR</h2>
-
-    <table role="presentation" cellpadding="6" cellspacing="0" style="margin:16px 0;font-size:14px;">
-      <tr>
-        <td style="font-weight:600;color:#555;padding-right:16px;">Nombre</td>
-        <td>${escapeHtml(input.name)}</td>
-      </tr>
-      <tr>
-        <td style="font-weight:600;color:#555;padding-right:16px;">Email</td>
-        <td><a href="mailto:${escapeHtml(input.email)}" style="color:#e94560;">${escapeHtml(input.email)}</a></td>
-      </tr>
-      <tr>
-        <td style="font-weight:600;color:#555;padding-right:16px;">Área</td>
-        <td>${escapeHtml(input.area)}</td>
-      </tr>
-    </table>
-
-    <hr style="border:none;border-top:1px solid #eee;margin:16px 0;" />
-
-    <h3 style="color:#333;">Mensaje</h3>
-    <p style="background-color:#f9f9f9;padding:16px;border-radius:6px;line-height:1.6;white-space:pre-wrap;">${escapeHtml(input.message)}</p>
-  `;
-  return emailLayout(body);
-}
-
 // ── Helpers ─────────────────────────────────────────────────────────────
 
 /** Escape HTML special characters to prevent injection in templates. */

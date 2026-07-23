@@ -34,7 +34,7 @@ const faqData: FaqItem[] = [
   {
     question: '¿Cómo puedo contactar a soporte?',
     answer:
-      'Podés escribirnos a info@rockmerch.com.ar, llamarnos al +54 11 5555-0123 o usar nuestro formulario de contacto. Respondemos en menos de 24 hs hábiles.',
+      'Podés escribirnos a info@rockmerch.com.ar o llamarnos al +54 11 5555-0123. Respondemos en menos de 24 hs hábiles.',
   },
 ];
 

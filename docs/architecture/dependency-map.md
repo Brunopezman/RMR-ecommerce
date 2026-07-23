@@ -146,7 +146,7 @@ App
 | `server/src/db/seed.ts` | `seedProducts()`, `seedAdminUser()` | `fs`, `bcryptjs`, `../db.js` | Seeding idempotente desde `data/db.json` (PostgreSQL) |
 | `server/src/db/migrate.ts` | `runMigrations()` | `migrations-runner`, migrations `001`, `002` | Entry point de migraciones PostgreSQL |
 | `server/src/db/migrations-runner.ts` | `runMigrations(migrations)` | `pool.ts`, `_migrations` table | Runner genérico: ejecuta pendientes, registra en `_migrations` |
-| `server/src/db/migrations/001-initial-schema.ts` | `name`, `up()` | — | Crea tablas: products, users, orders, order_items, contact_messages |
+| `server/src/db/migrations/001-initial-schema.ts` | `name`, `up()` | — | Crea tablas: products, users, orders, order_items |
 | `server/src/db/migrations/002-add-user-fields.ts` | `name`, `up()` | — | Agrega columnas: apellido, codigo_postal, sexo, telefono, password_hash, role |
 
 ## Servicios del backend (Express)
@@ -156,10 +156,9 @@ App
 | `server/src/routes/products.ts` | `GET /products`, `GET /products/:id` | `../db.js` (queryAll, queryOne) |
 | `server/src/routes/users.ts` | `POST /users`, `GET /users`, `GET /users/:id`, `PATCH /users/:id` | `../db.js`, middleware auth |
 | `server/src/routes/orders.ts` | `GET /orders?userId=`, `POST /orders` | `../db.js`, middleware auth |
-| `server/src/routes/contact.ts` | `POST /api/contact` | `../db.js`, email service |
 | `server/src/routes/auth.ts` | `POST /api/auth/login` | `../db.js`, `bcryptjs`, `jsonwebtoken` |
 | `server/src/middleware/auth.ts` | `authenticateToken`, `requireAdmin` | `jsonwebtoken` |
-| `server/src/services/emailService.ts` | `sendContactConfirmation()`, `sendOrderConfirmation()` | `nodemailer`, `jsPDF` |
+| `server/src/services/emailService.ts` | `sendWelcomeEmail()`, `sendOrderConfirmationEmail()`, `sendEmail()` | `nodemailer`, `jsPDF` |
 
 ## Base de datos — PostgreSQL (único backend)
 

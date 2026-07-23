@@ -2,7 +2,6 @@ import { useSyncExternalStore } from 'react';
 import { getPath, navigate } from '../../services/router';
 import { Header } from '../layout/Header';
 import { CheckoutPage } from '../checkout/CheckoutPage';
-import { ContactPage } from '../contact/ContactPage';
 import { ProductDetailRoute } from './ProductDetailRoute';
 import { RegisterPage } from '../auth/RegisterPage';
 import { AdminPanel } from '../admin/AdminPanel';
@@ -35,10 +34,6 @@ export function Router({ children }: { children: React.ReactNode }) {
     },
     getPath,
   );
-
-  if (pathname === '/contact') {
-    return <ContactPage />;
-  }
 
   if (pathname === '/register') {
     return <RegisterPage />;

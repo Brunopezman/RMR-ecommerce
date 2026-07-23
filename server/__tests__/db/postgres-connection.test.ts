@@ -94,7 +94,7 @@ describe('PostgreSQL connection', () => {
     expect(inserted!.nombre).toBe('Test PG Product');
   });
 
-  it.skipIf(!PG_AVAILABLE)('las tablas se crean correctamente (products, users, orders, order_items, contact_messages)', async () => {
+  it.skipIf(!PG_AVAILABLE)('las tablas se crean correctamente (products, users, orders, order_items)', async () => {
     const db = await import('../../src/db.js');
     await db.initDb();
 
@@ -108,7 +108,6 @@ describe('PostgreSQL connection', () => {
     expect(tableNames).toContain('users');
     expect(tableNames).toContain('orders');
     expect(tableNames).toContain('order_items');
-    expect(tableNames).toContain('contact_messages');
   });
 
   it.skipIf(!PG_AVAILABLE)('queryAll/queryOne/run funcionan correctamente en modo pg', async () => {

@@ -16,7 +16,6 @@ import type { Order } from '../types.js';
 import {
   welcomeTemplate,
   orderConfirmationTemplate,
-  contactTemplate,
 } from './emailTemplates.js';
 
 // ── Transporter (singleton) ─────────────────────────────────────────────
@@ -153,24 +152,4 @@ export async function sendOrderConfirmationEmail(
   }
 }
 
-/**
- * Send a contact notification to the staff.
- *
- * This is the central replacement for the old `sendContactEmail` in
- * contact-areas.ts. It uses HTML templates and the same transporter.
- */
-export async function sendContactEmail(input: {
-  name: string;
-  email: string;
-  area: string;
-  message: string;
-}): Promise<void> {
-  const html = contactTemplate(input);
-  const destinationEmail = 'contacto@rockmerch.com'; // Central inbox for now
 
-  await sendEmail(
-    destinationEmail,
-    `[Rock Merch] Consulta de ${input.name} — ${input.area}`,
-    html,
-  );
-}

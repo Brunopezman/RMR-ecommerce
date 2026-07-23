@@ -56,15 +56,4 @@ export async function up(
     cantidad INTEGER NOT NULL DEFAULT 1
   )`);
 
-  // ── contact_messages ────────────────────────────────────
-  await runSql(`CREATE TABLE IF NOT EXISTS contact_messages (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    phone VARCHAR(50),
-    area VARCHAR(50) NOT NULL,
-    subject VARCHAR(255),
-    message TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW()
-  )`);
 }

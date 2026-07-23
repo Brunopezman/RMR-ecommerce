@@ -60,7 +60,7 @@ E-commerce de merchandising de bandas de rock con frontend React, backend Expres
 │   └── test/                     # Utilidades y helpers de testing
 ├── server/                       # Backend Express + PostgreSQL
 │   └── src/
-│       ├── config/               # Configuración (database.ts, contact-areas)
+│       ├── config/               # Configuración (database.ts)
 │       ├── db/                   # Base de datos (pool, seed, migrations)
 │       ├── routes/               # Rutas: products, users, orders, auth
 │       └── types.ts              # Tipos del backend
@@ -112,7 +112,7 @@ El backend está en `server/` con Express + TypeScript y base de datos PostgreSQ
 - **PostgreSQL 16**: conexión via `DATABASE_URL` (Neon o cualquier servidor PostgreSQL 16+)
 - **Migraciones versionadas**: `server/src/db/migrations/` con tabla `_migrations` de tracking.
 - **Queries nativas**: sintaxis PostgreSQL pura (`$1`, `$2`, `INSERT ... RETURNING id`)
-- Tablas: `products`, `users`, `orders`, `order_items`, `contact_messages`
+- Tablas: `products`, `users`, `orders`, `order_items`
 - Seeding automático desde `data/db.json` al primer inicio.
 - Contrato de API idéntico al mock json-server.
 
@@ -169,14 +169,13 @@ npm run test:watch    # Modo watch
 | **Catálogo** | `products.service.test.js`, `FilterSidebar.test.jsx`, `ProductGrid.test.jsx`, `ProductCard.test.jsx`, `ProductDetailPage.test.jsx` | fetch, filtros, búsqueda, renderizado de grilla y cards |
 | **Carrito** | `cart.test.js` | agregar/eliminar/vaciar productos, persistencia localStorage |
 | **Auth** | `auth.test.js`, `LoginModal.test.jsx`, `RegisterPage.test.jsx` | login contra API, registro, formularios, estados de carga/error |
-| **Contacto** | `contact.test.js`, `ContactPage.test.tsx` | servicio, hook, página completa |
 | **Admin** | `admin.test.jsx` | CRUD usuarios, panel admin |
 | **Footer** | `Footer.test.tsx` | renderizado completo |
 | **FAQ** | `FaqSection.test.tsx` | accordion, contenido |
 | **Catálogo hook** | `useCatalog.test.jsx` | fetch con loading/error, datos de productos |
 | **Navegación** | `navigation.test.jsx` | router SPA, cambio de vistas |
 | **Backend — Servicios** | `emailService.test.ts` | plantillas email, PDF, envío |
-| **Backend — Rutas** | `products.test.ts`, `users.test.ts`, `contact.test.ts` | endpoints REST, validaciones |
+| **Backend — Rutas** | `products.test.ts`, `users.test.ts` | endpoints REST, validaciones |
 | **Backend — Auth** | `auth.test.ts` | middleware JWT, roles |
 | **Backend — DB** | `postgres-backend.test.ts`, `postgres-connection.test.ts` | conexión PostgreSQL, queries |
 
@@ -193,7 +192,6 @@ npm run test:e2e
 | **Carrito** | `cart.spec.js` | Contador, agregar producto, incrementar cantidad |
 | **Navegación** | `navigation.spec.js` | Nav "Productos"/"Inicio", botón "Compra Ahora" |
 | **Checkout** | `checkout.spec.js` | Flujo completo de compra con formulario de pago |
-| **Contacto** | `contact.spec.js` | Formulario de contacto, validación |
 | **Product detail** | `product-detail.spec.js` | Vista detalle, selector de talle |
 | **Filtros** | `filters.spec.js` | Filtros de catálogo por categoría |
 | **Full flow** | `full-flow.spec.js` | Recorrido completo: home → shop → carrito → checkout → confirmación |
