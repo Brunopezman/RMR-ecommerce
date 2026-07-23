@@ -193,18 +193,30 @@ router.post('/', async (req: Request, res: Response) => {
     res.status(201).json(newOrder);
 
     // Fire order confirmation email with PDF (non-blocking)
+    // Intenta generar el PDF y enviar el mail. Si el PDF falla,
+    // igual manda el mail sin PDF para no bloquear la confirmación.
     const orderUser = (await queryOne(
       'SELECT name, email FROM users WHERE id = $1',
       [userId],
     )) as { name: string; email: string } | undefined;
     if (orderUser) {
-      generateOrderPDF(newOrder, orderUser)
-        .then((pdfBuffer) =>
-          sendOrderConfirmationEmail(newOrder, orderUser, pdfBuffer),
-        )
-        .catch((err: unknown) =>
-          console.error('[orders] Error sending confirmation email:', err),
-        );
+      (async () => {
+        try {
+          const pdfBuffer = await generateOrderPDF(newOrder, orderUser);
+          await sendOrderConfirmationEmail(newOrder, orderUser, pdfBuffer);
+          console.log(`[orders] Email + PDF enviados a ${orderUser.email} — orden #${order.id}`);
+        } catch (pdfErr) {
+          console.error('[orders] Error generando PDF, intentando sin adjunto:', pdfErr);
+          try {
+            await sendOrderConfirmationEmail(newOrder, orderUser);
+            console.log(`[orders] Email (sin PDF) enviado a ${orderUser.email} — orden #${order.id}`);
+          } catch (emailErr) {
+            console.error('[orders] Error enviando email de confirmación:', emailErr);
+          }
+        }
+      })();
+    } else {
+      console.warn(`[orders] No se pudo enviar email: usuario ${userId} no encontrado en la DB`);
     }
   } catch (err) {
     console.error('[orders] Error creating order:', err);
