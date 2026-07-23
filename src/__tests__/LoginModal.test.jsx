@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor, cleanup } from '@testing-library/react';
+import { render, screen, waitFor, cleanup, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { LoginModal } from '../components/auth/LoginModal';
 
@@ -65,8 +65,8 @@ describe('LoginModal — Modo Login (comportamiento existente)', () => {
 
     renderModal(true, onClose);
 
-    await user.type(screen.getByLabelText('Correo electrónico'), 'test@test.com');
-    await user.type(screen.getByLabelText('Contraseña'), 'password123');
+    fireEvent.change(screen.getByLabelText('Correo electrónico'), { target: { value: 'test@test.com' } });
+    fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'password123' } });
     await user.click(screen.getByRole('button', { name: 'Iniciar Sesión' }));
 
     await waitFor(() => {
@@ -81,8 +81,8 @@ describe('LoginModal — Modo Login (comportamiento existente)', () => {
 
     renderModal();
 
-    await user.type(screen.getByLabelText('Correo electrónico'), 'bad@test.com');
-    await user.type(screen.getByLabelText('Contraseña'), 'wrong');
+    fireEvent.change(screen.getByLabelText('Correo electrónico'), { target: { value: 'bad@test.com' } });
+    fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'wrong' } });
     await user.click(screen.getByRole('button', { name: 'Iniciar Sesión' }));
 
     expect(await screen.findByText('Credenciales inválidas.')).toBeInTheDocument();
@@ -104,8 +104,8 @@ describe('LoginModal — Modo Login (comportamiento existente)', () => {
 
     renderModal();
 
-    await user.type(screen.getByLabelText('Correo electrónico'), 'a@b.com');
-    await user.type(screen.getByLabelText('Contraseña'), 'pass');
+    fireEvent.change(screen.getByLabelText('Correo electrónico'), { target: { value: 'a@b.com' } });
+    fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'pass' } });
     await user.click(screen.getByRole('button', { name: 'Iniciar Sesión' }));
 
     // findByRole retries up to 5s to avoid flakiness in full suite

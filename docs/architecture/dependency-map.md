@@ -174,7 +174,7 @@ App
 
 ## Estado de arquitectura (post-migración PostgreSQL)
 
-Todos los issues de la Auditoría Fase 1 (2026-07-16) han sido corregidos. Ver `docs/reports/auditor/auditoria-fase2-2026-07-22.md` para detalle.
+Todos los issues de la Auditoría Fase 1 (2026-07-16) han sido corregidos. Ver `docs/reports/auditor/2026-07-22-auditoria-fase2.md` para detalle.
 
 Resumen de mejoras arquitectónicas en v2.0.0:
 - **PostgreSQL como único backend**: migración completa desde dual-mode (SQLite + PostgreSQL)
