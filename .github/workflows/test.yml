@@ -56,3 +56,4 @@ jobs:
         name: E2E tests (Playwright)
         env:
           CI: true
+          DATABASE_URL: postgresql://test:test@localhost:5432/rockmerch_test
