@@ -5,22 +5,12 @@
  *   initDb(), queryAll(), queryOne(), run()
  *
  * All functions are async.
- * Placeholders: both `$N` and `?` are supported; `?` is auto-converted to
- * `$N` for backward compatibility with existing route code.
+ * Placeholders: use `$1`, `$2`, … (PostgreSQL-style) in all queries.
  */
 
 import { query } from './db/pool.js';
 import { runMigrations } from './db/migrate.js';
 import { seedProducts, seedAdminUser } from './db/seed.js';
-
-/**
- * Convert SQLite positional placeholders (?) to PostgreSQL positional
- * placeholders ($1, $2, …). Internal helper — not exported.
- */
-function adaptPlaceholders(sql: string): string {
-  let idx = 0;
-  return sql.replace(/\?/g, () => `$${++idx}`);
-}
 
 /**
  * Initialize the database.
@@ -59,8 +49,7 @@ export async function queryAll(
   sql: string,
   params: unknown[] = [],
 ): Promise<Record<string, unknown>[]> {
-  const adaptedSql = adaptPlaceholders(sql);
-  const result = await query(adaptedSql, params);
+  const result = await query(sql, params);
   return result.rows as Record<string, unknown>[];
 }
 
@@ -71,8 +60,7 @@ export async function queryOne(
   sql: string,
   params: unknown[] = [],
 ): Promise<Record<string, unknown> | undefined> {
-  const adaptedSql = adaptPlaceholders(sql);
-  const result = await query(adaptedSql, params);
+  const result = await query(sql, params);
   return result.rows[0] as Record<string, unknown> | undefined;
 }
 
@@ -85,7 +73,6 @@ export async function run(
   sql: string,
   params: unknown[] = [],
 ): Promise<import('pg').QueryResult> {
-  const adaptedSql = adaptPlaceholders(sql);
-  const result = await query(adaptedSql, params);
+  const result = await query(sql, params);
   return result;
 }
