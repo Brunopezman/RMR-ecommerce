@@ -204,12 +204,12 @@ router.post('/', async (req: Request, res: Response) => {
         try {
           const pdfBuffer = await generateOrderPDF(newOrder, orderUser);
           await sendOrderConfirmationEmail(newOrder, orderUser, pdfBuffer);
-          console.log(`[orders] Email + PDF enviados a ${orderUser.email} — orden #${order.id}`);
+          console.log(`[orders] Email + PDF enviados a ${orderUser.email} — orden #${newOrder.id}`);
         } catch (pdfErr) {
           console.error('[orders] Error generando PDF, intentando sin adjunto:', pdfErr);
           try {
             await sendOrderConfirmationEmail(newOrder, orderUser);
-            console.log(`[orders] Email (sin PDF) enviado a ${orderUser.email} — orden #${order.id}`);
+            console.log(`[orders] Email (sin PDF) enviado a ${orderUser.email} — orden #${newOrder.id}`);
           } catch (emailErr) {
             console.error('[orders] Error enviando email de confirmación:', emailErr);
           }
