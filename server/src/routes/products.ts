@@ -32,7 +32,7 @@ router.get('/', async (_req: Request, res: Response) => {
       tipo: row.tipo ?? undefined,
       img: row.img,
       descripcion: row.descripcion ?? undefined,
-      precio: row.precio,
+      precio: Number(row.precio),
       stock: row.stock,
     }));
 
@@ -71,7 +71,7 @@ router.get('/:id', async (req: Request, res: Response) => {
       tipo: row.tipo ?? undefined,
       img: row.img,
       descripcion: row.descripcion ?? undefined,
-      precio: row.precio,
+      precio: Number(row.precio),
       stock: row.stock,
     };
 
@@ -143,7 +143,7 @@ router.patch(
         tipo: updated.tipo ?? undefined,
         img: updated.img,
         descripcion: updated.descripcion ?? undefined,
-        precio: updated.precio,
+        precio: Number(updated.precio),
         stock: updated.stock,
       };
 
