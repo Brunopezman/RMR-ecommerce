@@ -24,7 +24,7 @@ export async function initDb(): Promise<void> {
     console.log('[db] CI/test mode: truncating tables for clean state.');
     try {
       await query(
-        'TRUNCATE TABLE products, users, orders, order_items, contact_messages, _migrations RESTART IDENTITY CASCADE',
+        'TRUNCATE TABLE products, users, orders, order_items, _migrations RESTART IDENTITY CASCADE',
       );
     } catch (err: any) {
       // If tables don't exist yet (fresh DB), ignore error SQLSTATE 42P01

@@ -189,14 +189,12 @@ products        (id, nombre, tipo, img, descripcion, precio, stock)
 users           (id, email, name, address, created_at, apellido, codigo_postal, sexo, telefono, password_hash, role)
 orders          (id, user_id, total, status, created_at, shipping_address)
 order_items     (id, order_id, product_id, nombre, precio, cantidad)
-contact_messages (id, name, email, phone, area, subject, message, created_at)
 ```
 
 ### Endpoint adicional
 
 | Método | Endpoint | Descripción |
 |---|---|---|
-| `POST` | `/api/contact` | Enviar mensaje de contacto (requiere `name`, `email`, `area`, `message`) |
 | `GET` | `/health` | Health check — retorna `{ "status": "ok", "db": "postgresql" }` |
 
 ## Reglas de transición a Paso B

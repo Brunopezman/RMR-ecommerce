@@ -37,7 +37,7 @@ server/
       users.ts        # POST /users, GET /users/:id, PATCH /users/:id
       orders.ts       # GET /orders?userId=, POST /orders
       auth.ts         # POST /api/auth/login, POST /api/auth/register
-      contact.ts      # POST /api/contact
+
     middleware/
       auth.ts         # authenticateToken + requireAdmin — verifica JWT Bearer
     services/
