@@ -47,7 +47,17 @@ function getTransporter(): Transporter | null {
   return transporter;
 }
 
-const DEFAULT_FROM = process.env.SMTP_FROM || 'noreply@rockmerch.com';
+/**
+ * Build the From field for emails.
+ * If SMTP_FROM includes angle brackets (e.g. "Name <email>"), use it as-is.
+ * Otherwise, wrap in "Rock Merch & Roll <SMTP_FROM>".
+ */
+function buildFrom(): string {
+  const raw = process.env.SMTP_FROM || '';
+  if (raw.includes('<') && raw.includes('>')) return raw;
+  const email = raw || process.env.SMTP_USER || 'noreply@rockmerch.com';
+  return `"Rock Merch & Roll" <${email}>`;
+}
 
 // ── Base send function ──────────────────────────────────────────────────
 
@@ -66,7 +76,7 @@ export async function sendEmail(
 
   if (activeTransporter) {
     await activeTransporter.sendMail({
-      from: `"Rock Merch & Roll" <${DEFAULT_FROM}>`,
+      from: buildFrom(),
       to,
       subject,
       html,
@@ -115,7 +125,7 @@ export async function sendOrderConfirmationEmail(
 
   if (activeTransporter) {
     const mailOptions: nodemailer.SendMailOptions = {
-      from: `"Rock Merch & Roll" <${DEFAULT_FROM}>`,
+      from: buildFrom(),
       to: user.email,
       subject,
       html,
