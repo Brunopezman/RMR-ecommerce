@@ -168,7 +168,7 @@ npm run test:watch    # Modo watch
 ```
 
 | Área | Suites | Cobertura |
-|---|---|---|---|
+|---|---|---|
 | **Checkout** | `checkout.test.js` | detectCardType, validarLuhn, formatearNumeroTarjeta, cálculos de cuotas y envío, resumen |
 | **Catálogo** | `products.service.test.js`, `FilterSidebar.test.jsx`, `ProductGrid.test.jsx`, `ProductCard.test.jsx`, `ProductDetailPage.test.jsx` | fetch, filtros, búsqueda, renderizado de grilla y cards |
 | **Carrito** | `cart.test.js` | agregar/eliminar/vaciar productos, persistencia localStorage |
