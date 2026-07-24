@@ -7,6 +7,10 @@
  *
  * Falls back to console-only mock mode when SMTP credentials are not set,
  * tagged with `[EMAIL_MOCK]` for easy identification during development.
+ *
+ * SMTP errors are caught internally — the function always resolves, never
+ * rejects. On failure, a descriptive `[EMAIL_FAIL]` message is logged and
+ * the main request flow continues uninterrupted.
  */
 
 import nodemailer from 'nodemailer';
@@ -77,18 +81,26 @@ export async function sendEmail(
   const activeTransporter = getTransporter();
 
   if (activeTransporter) {
-    await activeTransporter.sendMail({
-      from: buildFrom(),
-      to,
-      subject,
-      html,
-    });
-    console.log(`[email] Sent to "${to}" — subject: "${subject}"`);
+    try {
+      await activeTransporter.sendMail({
+        from: buildFrom(),
+        to,
+        subject,
+        html,
+      });
+      console.log(`[email] Sent to "${to}" — subject: "${subject}"`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(`[EMAIL_FAIL] No se pudo enviar a "${to}" — subject: "${subject}"`);
+      console.error(`[EMAIL_FAIL] Error: ${msg}`);
+      console.error('[EMAIL_FAIL] SMTP no disponible en este entorno — el email no se entregó pero el flujo principal no se interrumpe.');
+    }
   } else {
     console.log('[EMAIL_MOCK] Email would be sent:');
     console.log(`  To:      ${to}`);
     console.log(`  Subject: ${subject}`);
     console.log(`  HTML:    (${html.length} chars)`);
+    console.log('[EMAIL_MOCK] Configure SMTP credentials (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS) for real delivery.');
   }
 }
 
@@ -142,8 +154,15 @@ export async function sendOrderConfirmationEmail(
       ];
     }
 
-    await activeTransporter.sendMail(mailOptions);
-    console.log(`[email] Order confirmation sent to "${user.email}" — order #${order.id}`);
+    try {
+      await activeTransporter.sendMail(mailOptions);
+      console.log(`[email] Order confirmation sent to "${user.email}" — order #${order.id}`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(`[EMAIL_FAIL] No se pudo enviar a "${user.email}" — subject: "${subject}"`);
+      console.error(`[EMAIL_FAIL] Error: ${msg}`);
+      console.error('[EMAIL_FAIL] SMTP no disponible en este entorno — el email no se entregó pero el flujo principal no se interrumpe.');
+    }
   } else {
     console.log('[EMAIL_MOCK] Order confirmation email would be sent:');
     console.log(`  To:      ${user.email}`);
@@ -152,6 +171,7 @@ export async function sendOrderConfirmationEmail(
     if (pdfBuffer) {
       console.log(`  PDF:     compra-rockmerch.pdf (${pdfBuffer.length} bytes)`);
     }
+    console.log('[EMAIL_MOCK] Configure SMTP credentials (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS) for real delivery.');
   }
 }
 
