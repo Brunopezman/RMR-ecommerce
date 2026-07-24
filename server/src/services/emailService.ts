@@ -4,7 +4,6 @@
  * Provides a unified interface for all email types:
  * - welcome (user registration)
  * - order confirmation (with optional PDF attachment)
- * - contact (staff notification)
  *
  * Falls back to console-only mock mode when SMTP credentials are not set,
  * tagged with `[EMAIL_MOCK]` for easy identification during development.
@@ -36,6 +35,10 @@ function getTransporter(): Transporter | null {
       port: parseInt(port, 10),
       secure: parseInt(port, 10) === 465,
       auth: { user, pass },
+      // Render (y otros PaaS) no tienen salida IPv6 habilitada.
+      // Sin esto, Node puede resolver smtp.gmail.com a una IP IPv6
+      // y la conexión muere con ENETUNREACH antes de autenticar.
+      family: 4,
     });
     console.log('[email] SMTP transporter configured:', host);
   } else {
