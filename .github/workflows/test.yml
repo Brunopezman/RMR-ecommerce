@@ -48,6 +48,8 @@ jobs:
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/rockmerch_test
           CI: true
+          JWT_SECRET: ci-test-secret
+          ADMIN_PASSWORD: ci-admin-password
 
       - run: npx playwright install --with-deps chromium
         name: Install Playwright browsers
@@ -57,3 +59,5 @@ jobs:
         env:
           CI: true
           DATABASE_URL: postgresql://test:test@localhost:5432/rockmerch_test
+          JWT_SECRET: ci-test-secret
+          ADMIN_PASSWORD: ci-admin-password
