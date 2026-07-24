@@ -11,10 +11,13 @@ import jwt from 'jsonwebtoken';
 import { queryOne, run } from '../db.js';
 import { sendWelcomeEmail } from '../services/emailService.js';
 
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET environment variable is required — set it in .env or Render dashboard');
+function requireEnv(name: string): string {
+  const val = process.env[name];
+  if (!val) throw new Error(`${name} environment variable is required — set it in .env or Render dashboard`);
+  return val;
 }
+
+const JWT_SECRET = requireEnv('JWT_SECRET');
 
 const router = Router();
 

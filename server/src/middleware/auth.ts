@@ -9,10 +9,13 @@
 import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET environment variable is required — set it in .env or Render dashboard');
+function requireEnv(name: string): string {
+  const val = process.env[name];
+  if (!val) throw new Error(`${name} environment variable is required — set it in .env or Render dashboard`);
+  return val;
 }
+
+const JWT_SECRET = requireEnv('JWT_SECRET');
 
 export interface AuthPayload {
   userId: number;
@@ -40,7 +43,7 @@ export function authenticateToken(
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as AuthPayload;
+    const decoded = jwt.verify(token, JWT_SECRET) as unknown as AuthPayload;
     res.locals.auth = decoded;
     next();
   } catch (err) {
