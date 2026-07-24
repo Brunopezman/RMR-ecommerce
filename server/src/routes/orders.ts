@@ -192,36 +192,54 @@ router.post('/', async (req: Request, res: Response) => {
 
     res.status(201).json(newOrder);
 
-    // Fire order confirmation email with PDF (non-blocking)
-    // Intenta generar el PDF y enviar el mail. Si el PDF falla,
-    // igual manda el mail sin PDF para no bloquear la confirmación.
-    const orderUser = (await queryOne(
-      'SELECT name, email FROM users WHERE id = $1',
-      [userId],
-    )) as { name: string; email: string } | undefined;
-    if (orderUser) {
-      (async () => {
-        try {
-          const pdfBuffer = await generateOrderPDF(newOrder, orderUser);
-          await sendOrderConfirmationEmail(newOrder, orderUser, pdfBuffer);
-          console.log(`[orders] Email + PDF enviados a ${orderUser.email} — orden #${newOrder.id}`);
-        } catch (pdfErr) {
-          console.error('[orders] Error generando PDF, intentando sin adjunto:', pdfErr);
-          try {
-            await sendOrderConfirmationEmail(newOrder, orderUser);
-            console.log(`[orders] Email (sin PDF) enviado a ${orderUser.email} — orden #${newOrder.id}`);
-          } catch (emailErr) {
-            console.error('[orders] Error enviando email de confirmación:', emailErr);
-          }
-        }
-      })();
-    } else {
-      console.warn(`[orders] No se pudo enviar email: usuario ${userId} no encontrado en la DB`);
-    }
+    // A partir de acá la respuesta YA se mandó. Todo lo que sigue corre
+    // aislado en su propia cadena de try/catch: ningún error de acá abajo
+    // puede tocar `res` ni propagarse al try/catch de la ruta, porque eso
+    // provocaría ERR_HTTP_HEADERS_SENT y tumbaría el proceso entero
+    // (unhandled rejection) sin dejar rastro en los logs.
+    void sendOrderConfirmationFireAndForget(newOrder, userId);
   } catch (err) {
     console.error('[orders] Error creating order:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+/**
+ * Busca al usuario y dispara el email de confirmación (con PDF si se puede).
+ * Deliberadamente fuera del try/catch de la ruta — ver comentario arriba.
+ * Nunca debe lanzar; cualquier error queda logueado acá adentro.
+ */
+async function sendOrderConfirmationFireAndForget(
+  newOrder: import('../types.js').Order,
+  userId: string | number,
+): Promise<void> {
+  try {
+    const orderUser = (await queryOne(
+      'SELECT name, email FROM users WHERE id = $1',
+      [userId],
+    )) as { name: string; email: string } | undefined;
+
+    if (!orderUser) {
+      console.warn(`[orders] No se pudo enviar email: usuario ${userId} no encontrado en la DB`);
+      return;
+    }
+
+    try {
+      const pdfBuffer = await generateOrderPDF(newOrder, orderUser);
+      await sendOrderConfirmationEmail(newOrder, orderUser, pdfBuffer);
+      console.log(`[orders] Email + PDF enviados a ${orderUser.email} — orden #${newOrder.id}`);
+    } catch (pdfErr) {
+      console.error('[orders] Error generando PDF, intentando sin adjunto:', pdfErr);
+      try {
+        await sendOrderConfirmationEmail(newOrder, orderUser);
+        console.log(`[orders] Email (sin PDF) enviado a ${orderUser.email} — orden #${newOrder.id}`);
+      } catch (emailErr) {
+        console.error('[orders] Error enviando email de confirmación:', emailErr);
+      }
+    }
+  } catch (lookupErr) {
+    console.error('[orders] Error buscando usuario para email de confirmación:', lookupErr);
+  }
+}
 
 export default router;
