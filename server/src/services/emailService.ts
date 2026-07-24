@@ -39,7 +39,7 @@ function getTransporter(): Transporter | null {
       // Sin esto, Node puede resolver smtp.gmail.com a una IP IPv6
       // y la conexión muere con ENETUNREACH antes de autenticar.
       family: 4,
-    });
+    } as any);
     console.log('[email] SMTP transporter configured:', host);
   } else {
     transporter = null;
